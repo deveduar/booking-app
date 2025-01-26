@@ -1,94 +1,29 @@
-<!-- <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
-</template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style> -->
-
-<!-- <template>
-  <v-app>
+  <v-app >
     <v-main>
-      <v-container>
-        <h1 class="text-primary">Hola, Vuetify!</h1>
-        <v-btn color="primary">Botón de ejemplo</v-btn>
-      </v-container>
-    </v-main>
-  </v-app>
-</template>
-
-<script setup lang="ts">
-
-</script>
-
-<style scoped>
-
-</style> -->
-
-<template>
-  <v-app>
-    <v-main>
-      <v-container class="pa-10" style="background-color: #F9FAFA;">
+      <v-container class="pa-10">
         <!-- Header -->
         <v-row class="align-center justify-space-between">
           <v-col cols="auto">
             <v-btn icon>
               <v-icon>mdi-view-grid</v-icon>
             </v-btn>
-            <span class="text-h6 font-weight-bold ml-2" style="color: #1C1D22;">Glamour</span>
+            <span class="text-h6 font-weight-bold ml-2">Glamour</span>
           </v-col>
           <v-col cols="auto">
-            <v-avatar>
-              <v-img src="https://cdn.usegalileo.ai/sdxl10/3bcb4a13-a797-4480-b43d-dfe101c8ef09.png" />
-            </v-avatar>
+            <v-switch
+              inset
+              color="primary"
+              @click="toggleTheme"
+            />
           </v-col>
         </v-row>
 
         <!-- Título y descripción -->
         <v-row class="mt-5">
           <v-col cols="12">
-            <h1 class="text-h4 font-weight-bold" style="color: #1C1D22;">Book a Haircut</h1>
-            <p class="text-subtitle-1" style="color: #3C3F4A;">Select a date and time for your appointment</p>
+            <h1 class="text-h4 font-weight-bold">Book a Haircut</h1>
+            <p class="text-subtitle-1">Select a date and time for your appointment</p>
           </v-col>
         </v-row>
 
@@ -100,7 +35,7 @@ header {
               placeholder="Select a date"
               variant="outlined"
               prepend-inner-icon="mdi-calendar"
-              bg-color="#EEEFF2"
+              bg-color="surface"
               hide-details
               color="primary"
             />
@@ -111,7 +46,7 @@ header {
               placeholder="Select a time"
               variant="outlined"
               prepend-inner-icon="mdi-clock"
-              bg-color="#EEEFF2"
+              bg-color="surface"
               hide-details
               color="primary"
             />
@@ -121,20 +56,20 @@ header {
         <!-- Lista de estilistas -->
         <v-row class="mt-5">
           <v-col cols="12">
-            <h2 class="text-h6 font-weight-bold" style="color: #1C1D22;">Stylist</h2>
-            <v-list>
+            <h2 class="text-h6 font-weight-bold">Stylist</h2>
+            <v-list class="rounded-lg">
               <v-list-item
                 v-for="stylist in stylists"
                 :key="stylist.name"
-                style="background-color: #F9FAFA;"
+                :bg-color=" isDark ? 'background' : 'surface'"
               >
                 <template v-slot:prepend>
                   <v-avatar>
                     <v-img :src="stylist.image" />
                   </v-avatar>
                 </template>
-                <v-list-item-title style="color: #1C1D22;">{{ stylist.name }}</v-list-item-title>
-                <v-list-item-subtitle style="color: #3C3F4A;">{{ stylist.status }}</v-list-item-subtitle>
+                <v-list-item-title>{{ stylist.name }}</v-list-item-title>
+                <v-list-item-subtitle>{{ stylist.status }}</v-list-item-subtitle>
                 <template v-slot:append>
                   <v-switch color="primary" hide-details />
                 </template>
@@ -155,6 +90,18 @@ header {
 </template>
 
 <script setup lang="ts">
+import { useTheme } from 'vuetify';
+
+// Estado del tema
+const theme = useTheme();
+
+const isDark = theme.global.current.value.dark;
+
+// Función para cambiar el tema
+function toggleTheme () {
+  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+}
+
 // Datos de los estilistas
 const stylists = [
   {
@@ -172,13 +119,21 @@ const stylists = [
     status: 'Available',
     image: 'https://cdn.usegalileo.ai/sdxl10/014920d7-e0b4-4ffa-823a-811dd0d3cdbc.png',
   },
-]
+];
 </script>
 
 <style scoped>
 /* Estilos personalizados */
 .v-list-item {
-  /* border-radius: 12px; */
-  /* margin-bottom: 8px; */
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.rounded-lg {
+  border-radius: 12px;
+  margin-bottom: 8px;
+  margin-top: 1.6rem;
+  /* border-color: black; */
+  /* background-color: red; */
 }
 </style>
