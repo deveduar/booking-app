@@ -32,17 +32,18 @@ const vuetify = createVuetify({
       themes: {
         light: {
           colors: {
-            primary: '#607AFB', 
-            background: '#F9FAFA', 
+            primary: '#274c77', 
+            background: '#ffffff', 
+            surface: '#e5e5e5',
             'on-background': '#1C1D22', // Texto principal
             'on-surface': '#3C3F4A', // Texto secundario
           },
         },
         dark: {
         colors: {
-            primary: '#607AFB', 
-            background: '#1C1D22', 
-            // surface: '#3C3F4A',
+            primary: '#15616d', 
+            background: '#1C1D2', 
+            surface: '#212121',
             'on-background': '#F9FAFA', // Texto principal
             'on-surface': '#D5D6DD', // Texto secundario
         },

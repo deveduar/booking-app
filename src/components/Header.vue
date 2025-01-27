@@ -1,7 +1,7 @@
 <template>
       <!-- Toolbar -->
-      <v-toolbar 
-      prominent
+      <v-toolbar   :color="theme.global.name.value === 'dark' ? theme.current.value.colors.surface : theme.current.value.colors.surface" prominent
+      
 
       >
         <v-app-bar-nav-icon></v-app-bar-nav-icon>
@@ -35,7 +35,7 @@
   .v-switch {
   display: flex;
   align-items: center;
-  margin-right: 1rem;
+  margin: 1rem;
 
 }
 
