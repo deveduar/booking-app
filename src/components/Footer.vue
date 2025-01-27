@@ -4,7 +4,7 @@
         <v-col cols="12" class="text-center">
           <!-- Primera sección: Conéctate con nosotros -->
           <div class=" flex items-center justify-center w-full py-4 px-4">
-            <strong class="mr-10">Get connected with us on social networks!</strong>
+            <strong class="mr-4">Get connected with us on social networks!</strong>
   
             <!-- <v-spacer ></v-spacer> -->
   
@@ -13,8 +13,8 @@
               v-for="icon in icons"
               :key="icon"
               :icon="icon"
-              class="mx-2"
-              size="medium"
+              class="mx-1"
+              size="small"
               variant="plain"
             ></v-btn>
           </div>

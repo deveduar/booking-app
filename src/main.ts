@@ -33,6 +33,7 @@ const vuetify = createVuetify({
         light: {
           colors: {
             primary: '#274c77', 
+            secondary: '#6096ba', 
             background: '#ffffff', 
             surface: '#e5e5e5',
             'on-background': '#1C1D22', // Texto principal
@@ -41,7 +42,8 @@ const vuetify = createVuetify({
         },
         dark: {
         colors: {
-            primary: '#15616d', 
+            primary: '#15616d',
+            secondary: '#8aa79f', 
             background: '#1C1D2', 
             surface: '#212121',
             'on-background': '#F9FAFA', // Texto principal
