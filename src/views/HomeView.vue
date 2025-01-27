@@ -35,7 +35,7 @@
             :key="i"
             :src="item.src"
           >
-            <v-img :src="item.src" height="300px"></v-img>
+            
           </v-carousel-item>
         </v-carousel>
       </v-col>
@@ -67,13 +67,15 @@
         <v-carousel
           height="200"
           width="100"
-          show-arrows="hover"
           cycle
           hide-delimiter-background
+          :show-arrows="false"
+          hide-delimiters
         >
           <v-carousel-item
             v-for="(item, i) in testimonials"
             :key="i"
+            
           >
             <v-card class="mx-auto mt-10" max-width="400">
               <v-card-text class="text-center">
