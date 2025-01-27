@@ -1,27 +1,43 @@
 <template>
-    <v-row class="align-center justify-space-between">
-      <v-col cols="auto">
-        <v-btn icon>
-          <v-icon>mdi-view-grid</v-icon>
-        </v-btn>
-        <span class="text-h6 font-weight-bold ml-2">Glamour</span>
-      </v-col>
-      <v-col cols="auto">
+      <!-- Toolbar -->
+      <v-toolbar 
+      prominent
+
+      >
+        <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        <v-toolbar-title>Glamour</v-toolbar-title>
+        <v-btn to="/" variant="text">Home</v-btn>
+        <v-btn to="/booking" variant="text">Booking</v-btn>
+        <v-btn to="/login" variant="text">Login</v-btn>
+        <v-btn to="/register" variant="text">Register</v-btn>
+  
+        <!-- Interruptor de tema -->
         <v-switch
           inset
           color="primary"
           @click="toggleTheme"
         />
-      </v-col>
-    </v-row>
+      </v-toolbar>
   </template>
   
   <script setup lang="ts">
   import { useTheme } from 'vuetify';
   
+  // Manejo del tema global
   const theme = useTheme();
   
   function toggleTheme() {
     theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark';
   }
   </script>
+  
+  <style scoped>
+  .v-switch {
+  display: flex;
+  align-items: center;
+  margin-right: 1rem;
+
+}
+
+  </style>
+  

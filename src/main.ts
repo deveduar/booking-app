@@ -28,21 +28,21 @@ const vuetify = createVuetify({
       }
     },
     theme: {
-      defaultTheme: 'dark', // Puedes definir temas personalizados
+      defaultTheme: 'dark',
       themes: {
         light: {
           colors: {
-            primary: '#607AFB', // Color principal (botón y switch)
-            background: '#F9FAFA', // Fondo principal
+            primary: '#607AFB', 
+            background: '#F9FAFA', 
             'on-background': '#1C1D22', // Texto principal
             'on-surface': '#3C3F4A', // Texto secundario
           },
         },
         dark: {
         colors: {
-            primary: '#607AFB', // Color principal (botón y switch)
-            background: '#1C1D22', // Fondo principal
-            surface: '#3C3F4A', // Fondo de elementos secundarios
+            primary: '#607AFB', 
+            background: '#1C1D22', 
+            // surface: '#3C3F4A',
             'on-background': '#F9FAFA', // Texto principal
             'on-surface': '#D5D6DD', // Texto secundario
         },

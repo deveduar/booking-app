@@ -36,5 +36,6 @@
   .v-list-item {
     border-radius: 12px;
     margin-bottom: 8px;
+    /* background-color: red; */
   }
   </style>

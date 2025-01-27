@@ -1,9 +1,8 @@
 <template>
     <v-app>
       <v-main>
-        <v-container class="pa-10">
-          <!-- Header -->
-          <Header />
+        <v-container class="pa-5">
+
   
           <!-- Título y descripción -->
           <v-row class="mt-5">
@@ -36,7 +35,6 @@
   </template>
   
   <script setup lang="ts">
-  import Header from '../components/Header.vue';
   import StylistList from '../components/StylistList.vue';
   import DateTimePicker from '../components/DateTimePicker.vue';
   
