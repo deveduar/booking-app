@@ -14,7 +14,7 @@
         <!-- CTA Button -->
         <v-btn
           color="primary"
-          @click="$router.push('/booking')"
+          to="/booking"
           large
           class="mt-4 "
         >

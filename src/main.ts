@@ -44,7 +44,7 @@ const vuetify = createVuetify({
         colors: {
             primary: '#15616d',
             secondary: '#8aa79f', 
-            background: '#1C1D2', 
+            background: '#1C1D20', 
             surface: '#212121',
             'on-background': '#F9FAFA', // Texto principal
             'on-surface': '#D5D6DD', // Texto secundario

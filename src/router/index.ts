@@ -3,6 +3,7 @@ import HomeView from '@/views/HomeView.vue';
 import BookingView from '@/views/BookingView.vue';
 import LoginView from '@/views/LoginView.vue';
 import RegisterView from '@/views/RegisterView.vue';
+import HistoryView from '@/views/HistoryView.vue';
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     path: '/register',
     name: 'Register',
     component: RegisterView,
+  },
+  {
+    path: '/history',
+    name: 'History',
+    component: HistoryView,
   },
 ];
 
