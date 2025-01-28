@@ -1,13 +1,13 @@
 <template>
-  <v-container class="d-flex justify-center align-center fill-height mb-15">
-    <v-card class="pa-6" max-width="500" elevation="8" rounded="lg">
+  <v-container  class="d-flex justify-center align-center fill-height ">
+    <v-card class="pa-6" max-width="500" elevation="5" rounded="lg">
       <!-- Logo -->
       <!-- <v-img
         class="mx-auto my-6"
         max-width="228"
         src="https://cdn.vuetifyjs.com/docs/images/logos/vuetify-logo-v3-slim-text-light.svg"
       ></v-img> -->
-      <h1 class="text-h4 font-weight-bold text-center mb-4">Sign Up</h1>
+      <h1 class="text-h4 font-weight-bold text-center mb-4">Sign In</h1>
       <!-- Formulario de Login -->
       <v-form ref="form" @submit.prevent="handleLogin" v-model="isFormValid">
         <v-text-field

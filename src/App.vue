@@ -39,9 +39,12 @@ const drawer = ref(false);
 const navItems = [
   { title: 'Home', to: '/' },
   { title: 'Booking', to: '/booking' },
-  { title: 'Log In', to: '/login' },
-  { title: 'Sing In', to: '/register' },
+  { title: 'Services', to: '/services' },
   { title: 'History', to: '/history' },
+  { title: 'Sing In', to: '/login' },
+  { title: 'Sing Up', to: '/register' },
+  { title: 'About', to: '/about' },
+
 ];
 
 // Método para alternar el drawer

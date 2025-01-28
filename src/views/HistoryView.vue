@@ -3,7 +3,7 @@
       <!-- Page Title -->
       <v-row>
         <v-col>
-          <h1 class=" display-2 font-weight-bold text-h4 text-center mb-4">Appointment History</h1>
+          <h1 class=" display-2 font-weight-bold text-h4  mb-4">Appointment History</h1>
         </v-col>
       </v-row>
   

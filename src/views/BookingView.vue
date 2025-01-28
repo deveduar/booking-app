@@ -1,11 +1,7 @@
 <template>
-    <v-app>
-      <v-main>
-        <v-container class="pa-5">
-
-  
+        <v-container class="">
           <!-- Título y descripción -->
-          <v-row class="mt-5">
+          <v-row class="">
             <v-col cols="12">
               <h1 class="text-h4 font-weight-bold">Book a Haircut</h1>
               <p class="text-subtitle-1">Select a date and time for your appointment</p>
@@ -30,8 +26,6 @@
             </v-col>
           </v-row>
         </v-container>
-      </v-main>
-    </v-app>
   </template>
   
   <script setup lang="ts">

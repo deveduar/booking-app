@@ -43,8 +43,11 @@ const theme = useTheme();
 const navbarItems = ref([
       { label: 'Home', to: '/' },
       { label: 'Booking', to: '/booking' },
-      { label: 'Sign Up', to: '/login' },
-      { label: 'Sign In', to: '/register' },
+      { label: 'Services', to: '/services' },
+      { label: 'Sing In', to: '/login' },
+      { label: 'Sing Up', to: '/register' },
+      { label: 'About', to: '/about' },
+
     ]);
 
 

@@ -1,45 +1,50 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <!-- Header Section -->
     
-    <v-row
-      class="d-flex align-center justify-center"
-      no-gutters
-    >
-      <v-col cols="12" md="6" class="d-flex flex-column justify-center align-center">
-        <h1 class="display-2 font-weight-bold text-center">Glamour Salon</h1>
-        <p class="subheading text-center">
-          Your go-to destination for premium hair care and styling.
-        </p>
-        <!-- CTA Button -->
-        <v-btn
-          color="primary"
-          to="/booking"
-          large
-          class="mt-4 "
+<v-row class="d-flex  justify-center">
+  <!-- Carrusel con CTA superpuesto -->
+  <v-col cols="12">
+      <v-carousel
+        height="400px"
+        :show-arrows="false"
+        hide-delimiter-background
+        hide-delimiters
+        cycle
+      >
+        <!-- Carrusel Item 1 -->
+        <v-carousel-item
+          v-for="(item, i) in images"
+          :key="i"
+          :src="item.src"
+          cover
         >
-          Book Now
-        </v-btn>
-      </v-col>
+          <!-- Overlay para el CTA -->
+            <v-container
+              class="fill-height d-flex flex-column justify-center align-center text-center"
+            >
+              <!-- CTA Info -->
+              <h1 class="text-white display-2 font-weight-bold mb-2">
+                Glamour Salon
+              </h1>
+              <p class="text-white text-h6">
+                Your go-to destination for premium hair care and styling.
+              </p>
+              <!-- CTA Button -->
+              <v-btn
+                color="primary"
+                to="/booking"
+                large
+                class="mt-4"
+              >
+                Book Now
+              </v-btn>
+            </v-container>
+        </v-carousel-item>
+      </v-carousel>
+  </v-col>
+</v-row>
 
-      <v-col cols="12" md="6" class="d-flex justify-center mt-5">
-        <!-- Image Carousel -->
-        <v-carousel
-          height="400"
-          show-arrows="hover"
-          cycle
-          hide-delimiter-background
-        >
-          <v-carousel-item
-            v-for="(item, i) in images"
-            :key="i"
-            :src="item.src"
-          >
-            
-          </v-carousel-item>
-        </v-carousel>
-      </v-col>
-    </v-row>
 
     <!-- Navigation Links -->
     <v-row class="my-6">
@@ -95,9 +100,9 @@ import { ref } from 'vue';
 
 // Array of images for the carousel
 const images = ref([
-  { src: 'https://placehold.co/600x400' },
-  { src: 'https://placehold.co/600x400/transparent/F00' },
-  { src: 'https://placehold.co/600x400?text=Hello+World' },
+  { src: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { src: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { src: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
 ]);
 
 // Optional testimonials for the homepage

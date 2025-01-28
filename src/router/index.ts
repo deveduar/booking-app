@@ -4,6 +4,8 @@ import BookingView from '@/views/BookingView.vue';
 import LoginView from '@/views/LoginView.vue';
 import RegisterView from '@/views/RegisterView.vue';
 import HistoryView from '@/views/HistoryView.vue';
+import ServicesView from '@/views/ServicesView.vue';
+import AboutView from '@/views/AboutView.vue';
 
 const routes = [
   {
@@ -31,6 +33,16 @@ const routes = [
     name: 'History',
     component: HistoryView,
   },
+  {
+    path: '/services',
+    name: 'Services',
+    component: ServicesView,
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: AboutView,
+  }
 ];
 
 const router = createRouter({
