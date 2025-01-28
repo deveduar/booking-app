@@ -1,51 +1,92 @@
 <template>
-  <v-container fluid>
+  <v-container >
     <!-- Header Section -->
-    
-<v-row class="d-flex  justify-center">
-  <!-- Carrusel con CTA superpuesto -->
-  <v-col cols="12">
-      <v-carousel
-        height="400px"
-        :show-arrows="false"
-        hide-delimiter-background
-        hide-delimiters
-        cycle
-      >
-        <!-- Carrusel Item 1 -->
-        <v-carousel-item
-          v-for="(item, i) in images"
-          :key="i"
-          :src="item.src"
-          cover
-        >
-          <!-- Overlay para el CTA -->
-            <v-container
-              class="fill-height d-flex flex-column justify-center align-center text-center"
+    <v-row class="d-flex  justify-center">
+      <!-- Carrusel con CTA superpuesto -->
+      <v-col cols="12">
+          <v-carousel
+            height="400px"
+            :show-arrows="false"
+            hide-delimiter-background
+            hide-delimiters
+            cycle
+          >
+            <!-- Carrusel Item 1 -->
+            <v-carousel-item
+              v-for="(item, i) in images"
+              :key="i"
+              :src="item.src"
+              cover
             >
-              <!-- CTA Info -->
-              <h1 class="text-white display-2 font-weight-bold mb-2">
-                Glamour Salon
-              </h1>
-              <p class="text-white text-h6">
-                Your go-to destination for premium hair care and styling.
-              </p>
-              <!-- CTA Button -->
-              <v-btn
-                color="primary"
-                to="/booking"
-                large
-                class="mt-4"
-              >
-                Book Now
-              </v-btn>
-            </v-container>
-        </v-carousel-item>
-      </v-carousel>
-  </v-col>
-</v-row>
+              <!-- Overlay para el CTA -->
+                <v-container
+                  class="fill-height d-flex flex-column justify-center align-center text-center"
+                >
+                  <!-- CTA Info -->
+                  <h1 class="text-white display-2 font-weight-bold mb-2">
+                    Glamour Salon
+                  </h1>
+                  <p class="text-white text-h6">
+                    Your go-to destination for premium hair care and styling.
+                  </p>
+                  <!-- CTA Button -->
+                  <v-btn
+                    color="primary"
+                    to="/booking"
+                    large
+                    class="mt-4"
+                  >
+                    Book Now
+                  </v-btn>
+                </v-container>
+            </v-carousel-item>
+          </v-carousel>
+      </v-col>
+    </v-row>
+
+    <h1 class="text-h5 font-weight-bold mt-10 ml-2">Featured services</h1>
+    <v-row class="mt-2">
+      <v-col cols="12" sm="4">
+        <ServiceCard 
+      :service="{
+        id: 1,
+        name: 'Haircut',
+        description: 'A stylish haircut tailored to you.',
+        price: 25,
+        duration: 30,
+        category: 'Hair'
+      }"
+    />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <ServiceCard 
+          :service="{
+            id: 4,
+            name: 'Hair Coloring',
+            description: 'Choose from a variety of hair colors and highlights.',
+            price: 80,
+            duration: 90,
+            category: 'Coloring'
+        }"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <ServiceCard 
+          :service="{
+          id: 7,
+          name: 'Deep Conditioning',
+          description: 'A treatment to nourish and restore your hair.',
+          price: 40,
+          duration: 60,
+          category: 'Treatments',
+        }"
+        />
+      </v-col>
 
 
+
+    </v-row>
+  
     <!-- Navigation Links -->
     <v-row class="my-6">
       <v-col cols="12" sm="4">
@@ -97,6 +138,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import ServiceCard from '@/components/ServiceCard.vue'
 
 // Array of images for the carousel
 const images = ref([
