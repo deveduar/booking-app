@@ -2,6 +2,7 @@
     <v-row class="mt-3">
       <v-col cols="12" md="6">
         <v-date-input
+          v-model="selectedDate"
           label="Select a date"
           prepend-icon=""
           prepend-inner-icon="$calendar"
@@ -44,8 +45,21 @@
   </template>
   
   <script setup lang="ts">
-  import { ref } from 'vue';
+  import { ref, watch } from 'vue';
+  
+  const props = defineProps<{
+    date: string | null
+    time: string | null
+  }>()
+  const emit = defineEmits<{
+    (e: 'update:date', v: string | null): void
+    (e: 'update:time', v: string | null): void
+  }>()
   
   const menu2 = ref(false);
-  const selectedTime = ref('');
+  const selectedTime = ref(props.time ?? '');
+  const selectedDate = ref<string | null>(props.date ?? null);
+  
+  watch(selectedTime, v => emit('update:time', v || null));
+  watch(selectedDate, v => emit('update:date', v ?? null));
   </script>

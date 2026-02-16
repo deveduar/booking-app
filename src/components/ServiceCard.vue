@@ -26,26 +26,23 @@
     </v-card>
   </template>
   
-  <script lang="ts">
-  export default {
-    name: "ServiceCard",
-    props: {
-      service: {
-        type: Object,
-        required: true,
-      },
-    },
-    setup(props) {
-      const handleBooking = () => {
-        console.log(`Booking service: ${props.service.name}`);
-      };
+  <script setup lang="ts">
+  type Service = {
+    id: number
+    name: string
+    description: string
+    price: number
+    duration: number
+    category: string
+  }
   
-      return {
-        handleBooking,
-        service: props.service, // Hacer `service` accesible en el template
-      };
-    },
-  };
+  defineOptions({ name: 'ServiceCard' })
+  
+  const { service } = defineProps<{ service: Service }>()
+  
+  const handleBooking = () => {
+    console.log(`Booking service: ${service.name}`)
+  }
   </script>
   
   <style scoped>

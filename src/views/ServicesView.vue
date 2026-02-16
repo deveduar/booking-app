@@ -55,7 +55,8 @@
 
 <script lang="ts">
 import { ref, computed, watchEffect } from 'vue';
-import { servicesData } from '@/data/servicesData';
+import { storeToRefs } from 'pinia';
+import { useServicesStore } from '@/stores/services';
 import ServiceCard from '@/components/ServiceCard.vue'; // Import ServiceCard component
 
 export default {
@@ -64,13 +65,13 @@ export default {
     ServiceCard, // Register ServiceCard component
   },
   setup() {
-    // Placeholder data for services
-    const services = ref(servicesData);
+    const servicesStore = useServicesStore();
+    const { services, categories: storeCategories } = storeToRefs(servicesStore);
 
     // Filter and sort options
     const selectedCategory = ref('All'); // Default to 'All'
     const sortOption = ref('price'); // Default to sort by price
-    const categories = ref(['All', 'Haircuts', 'Coloring', 'Treatments']);
+    const categories = ref<string[]>([]);
     const sortOptions = ref(['price', 'duration']);
 
     // Computed property to filter and sort services
@@ -94,9 +95,9 @@ export default {
       return filtered;
     });
 
-    // Watch effect to log and debug if necessary
+    // Watch effect to keep categories in sync and log sort option if needed
     watchEffect(() => {
-      console.log(`Sorted by: ${sortOption.value}`);
+      categories.value = ['All', ...storeCategories.value];
     });
 
     return {

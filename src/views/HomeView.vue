@@ -48,38 +48,20 @@
     <v-row class="mt-2">
       <v-col cols="12" sm="4">
         <ServiceCard 
-      :service="{
-        id: 1,
-        name: 'Haircut',
-        description: 'A stylish haircut tailored to you.',
-        price: 25,
-        duration: 30,
-        category: 'Hair'
-      }"
-    />
-      </v-col>
-      <v-col cols="12" sm="4">
-        <ServiceCard 
-          :service="{
-            id: 4,
-            name: 'Hair Coloring',
-            description: 'Choose from a variety of hair colors and highlights.',
-            price: 80,
-            duration: 90,
-            category: 'Coloring'
-        }"
+          v-if="highlightedServices[0]"
+          :service="highlightedServices[0]"
         />
       </v-col>
       <v-col cols="12" sm="4">
         <ServiceCard 
-          :service="{
-          id: 7,
-          name: 'Deep Conditioning',
-          description: 'A treatment to nourish and restore your hair.',
-          price: 40,
-          duration: 60,
-          category: 'Treatments',
-        }"
+          v-if="highlightedServices[1]"
+          :service="highlightedServices[1]"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <ServiceCard 
+          v-if="highlightedServices[2]"
+          :service="highlightedServices[2]"
         />
       </v-col>
 
@@ -137,8 +119,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import ServiceCard from '@/components/ServiceCard.vue'
+import { useServicesStore } from '@/stores/services';
+
+const servicesStore = useServicesStore();
+const { services } = storeToRefs(servicesStore);
+
+const highlightedServices = computed(() => services.value.slice(0, 3));
 
 // Array of images for the carousel
 const images = ref([

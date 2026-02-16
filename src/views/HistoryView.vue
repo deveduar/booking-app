@@ -43,7 +43,7 @@
                     <strong>{{ appointment.time }}</strong>
                   </div>
                   <div>Service: {{ appointment.service }}</div>
-                  <div v-if="appointment.stylist">Stylist: {{ appointment.stylist }}</div>
+                  <div v-if="appointment.provider">Provider: {{ appointment.provider }}</div>
                   <div>Status: <strong>{{ appointment.status }}</strong></div>
                 </v-col>
                 <v-col
@@ -85,24 +85,12 @@
   
   <script setup lang="ts">
   import { ref, computed } from 'vue';
+  import { storeToRefs } from 'pinia';
+  import { useAppointmentsStore } from '@/stores/appointments';
+  import type { Appointment } from '@/stores/appointments';
   
-  // Define la interfaz para las citas
-  interface Appointment {
-    id: number;
-    date: string;
-    time: string;
-    service: string;
-    stylist?: string; // Opcional
-    status: 'Upcoming' | 'Completed' | 'Canceled';
-  }
-  
-  // Placeholder appointment data
-  const appointments = ref<Appointment[]>([
-    { id: 1, date: '2025-01-10', time: '10:00 AM', service: 'Haircut', stylist: 'Alex', status: 'Upcoming' },
-    { id: 2, date: '2025-01-08', time: '2:00 PM', service: 'Coloring', stylist: 'Sophie', status: 'Completed' },
-    { id: 3, date: '2025-01-06', time: '11:00 AM', service: 'Haircut', stylist: 'John', status: 'Canceled' },
-    { id: 4, date: '2025-01-12', time: '3:00 PM', service: 'Styling', stylist: 'Emma', status: 'Upcoming' },
-  ]);
+  const appointmentsStore = useAppointmentsStore();
+  const { appointments } = storeToRefs(appointmentsStore);
   
   // Filter and sort options
   const filterOptions = ['All', 'Past Appointments', 'Upcoming Appointments'];
@@ -143,10 +131,7 @@
   
   function confirmCancel() {
     if (selectedAppointment.value) {
-      // Realizar la cancelación
-      appointments.value = appointments.value.filter(
-        a => a.id !== selectedAppointment.value?.id
-      );
+      appointmentsStore.cancelAppointment(selectedAppointment.value.id);
       cancelDialog.value = false;
       selectedAppointment.value = null;
     }

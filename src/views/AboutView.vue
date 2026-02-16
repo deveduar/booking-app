@@ -19,10 +19,10 @@
             bottom: 0;"
         >
           <v-card-title class="font-weight-bold text-h4 text-white">
-            About Us
+            About Our Platform
           </v-card-title>
           <v-card-subtitle class=" text-h5 text-white">
-            We are a team of passionate and creative individuals dedicated to providing exceptional service.
+            We help businesses of all types manage services and accept bookings online.
           </v-card-subtitle>
         </div>
                     </v-img>
@@ -35,7 +35,7 @@
         <v-row class="py-5">
           <v-col cols="12">
             <h2 class="text-h5 font-weight-bold">Our Story</h2>
-            <p>Founded in 2014, Beautify was created with the intention of providing an inclusive and diverse space for all clients. Our team of stylists is dedicated to creating unique, personalized looks while maintaining the health and integrity of your hair.</p>
+            <p>Founded in 2014, our platform started as a simple appointment tool and evolved into a flexible booking system used by salons, clinics, trainers, consultants, and more. Our mission is to simplify scheduling so businesses can focus on delivering great service.</p>
           </v-col>
         </v-row>
   
@@ -52,7 +52,7 @@
         <v-row class="py-5">
           <v-col cols="12">
             <h2 class="text-h5 font-weight-bold">Our Mission</h2>
-            <p>At Beautify, we believe that everyone deserves to feel beautiful. Our mission is to provide exceptional service and quality results while fostering a sense of community and belonging.</p>
+            <p>We believe booking should be effortless—for providers and customers. We deliver tools to publish services, manage availability, and communicate with clients in one place.</p>
           </v-col>
         </v-row>
   
@@ -70,7 +70,7 @@
       </v-container>
   </template>
   
-  <script>
+  <script lang="ts">
   export default {
     data() {
       return {
@@ -80,8 +80,8 @@
           { name: 'Kelsey Deenihan', role: 'Co-Founder', photo: 'https://cdn.usegalileo.ai/sdxl10/3cfcffb1-11fa-4070-a3e8-e84e285b9343.png' },
         ],
         testimonials: [
-          { name: 'John Doe', role: 'Client', avatar: 'https://cdn.usegalileo.ai/sdxl10/858083b2-aa0f-4fb3-aa9a-789ee1d4e3fe.png', comment: 'I love the results! The staff is friendly and professional.' },
-          { name: 'Jane Smith', role: 'Client', avatar: 'https://cdn.usegalileo.ai/replicate/44054395-3f26-4fc6-b930-e2ca89e11e0c.png', comment: 'The best salon experience I’ve had. Highly recommend!' },
+          { name: 'John Doe', role: 'Business Owner', avatar: 'https://cdn.usegalileo.ai/sdxl10/858083b2-aa0f-4fb3-aa9a-789ee1d4e3fe.png', comment: 'Managing bookings is now effortless for our team.' },
+          { name: 'Jane Smith', role: 'Customer', avatar: 'https://cdn.usegalileo.ai/replicate/44054395-3f26-4fc6-b930-e2ca89e11e0c.png', comment: 'Booking online is quick and reliable—highly recommend!' },
         ],
       };
     },

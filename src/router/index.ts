@@ -6,6 +6,8 @@ import RegisterView from '@/views/RegisterView.vue';
 import HistoryView from '@/views/HistoryView.vue';
 import ServicesView from '@/views/ServicesView.vue';
 import AboutView from '@/views/AboutView.vue';
+import AdminView from '@/views/AdminView.vue';
+import NextAppointmentView from '@/views/NextAppointmentView.vue';
 
 const routes = [
   {
@@ -42,7 +44,17 @@ const routes = [
     path: '/about',
     name: 'About',
     component: AboutView,
-  }
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: AdminView,
+  },
+  {
+    path: '/appointments/next',
+    name: 'NextAppointment',
+    component: NextAppointmentView,
+  },
 ];
 
 const router = createRouter({

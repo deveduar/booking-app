@@ -2,6 +2,8 @@
 
 declare module '*.vue' {
     import type { DefineComponent } from 'vue';
-    const component: DefineComponent<{}, {}, any>;
+    type Props = Record<string, unknown>
+    type RawBindings = Record<string, unknown>
+    const component: DefineComponent<Props, RawBindings, unknown>;
     export default component;
   }

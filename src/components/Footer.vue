@@ -23,7 +23,7 @@
         <v-col cols="12" class="text-center">
           <!-- Segunda sección: Copyright -->
           <div class="px-4 py-2 text-center w-100">
-            &copy; {{ new Date().getFullYear() }} Glamour Salon
+            &copy; {{ new Date().getFullYear() }} YourBrand
           </div>
         </v-col>
       </v-row>
@@ -31,6 +31,7 @@
   </template>
   
   <script setup lang="ts">
+  defineOptions({ name: 'AppFooter' })
   import { ref } from 'vue';
   
   const icons = ref([

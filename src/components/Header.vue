@@ -7,7 +7,7 @@
     <v-app-bar-nav-icon @click="$emit('toggle-drawer')" />
 
     <!-- Título del toolbar -->
-    <v-toolbar-title>Glamour</v-toolbar-title>
+    <v-toolbar-title>YourBrand</v-toolbar-title>
 
     <!-- Espaciador para separar el título de los botones -->
     <v-spacer></v-spacer>
@@ -34,6 +34,7 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'AppHeader' })
 import { useTheme } from 'vuetify';
 import { ref, onMounted } from 'vue';
 
@@ -41,14 +42,13 @@ import { ref, onMounted } from 'vue';
 const theme = useTheme();
 
 const navbarItems = ref([
-      { label: 'Home', to: '/' },
-      { label: 'Booking', to: '/booking' },
-      { label: 'Services', to: '/services' },
-      { label: 'Sing In', to: '/login' },
-      { label: 'Sing Up', to: '/register' },
-      { label: 'About', to: '/about' },
-
-    ]);
+  { label: 'Home', to: '/' },
+  { label: 'Booking', to: '/booking' },
+  { label: 'Services', to: '/services' },
+  { label: 'Sign In', to: '/login' },
+  { label: 'Sign Up', to: '/register' },
+  { label: 'About', to: '/about' },
+]);
 
 
 // Estado del interruptor (dark/light theme)

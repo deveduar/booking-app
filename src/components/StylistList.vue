@@ -1,16 +1,16 @@
 <template>
     <v-list class="rounded-lg">
       <v-list-item
-        v-for="stylist in stylists"
-        :key="stylist.name"
+        v-for="provider in providers"
+        :key="provider.id"
       >
         <template v-slot:prepend>
           <v-avatar>
-            <v-img :src="stylist.image" />
+            <v-img :src="provider.image" />
           </v-avatar>
         </template>
-        <v-list-item-title>{{ stylist.name }}</v-list-item-title>
-        <v-list-item-subtitle>{{ stylist.status }}</v-list-item-subtitle>
+        <v-list-item-title>{{ provider.name }}</v-list-item-title>
+        <v-list-item-subtitle>{{ provider.status }}</v-list-item-subtitle>
         <template v-slot:append>
           <v-switch color="primary" hide-details />
         </template>
@@ -19,16 +19,12 @@
   </template>
   
   <script setup lang="ts">
-  // Definir la interfaz para un estilista
-  interface Stylist {
-    name: string;
-    status: string;
-    image: string;
-  }
+  import type { Provider } from '@/stores/providers'
   
-  // Definir las props con tipado fuerte
+  defineOptions({ name: 'ProviderList' })
+  
   defineProps<{
-    stylists: Stylist[];
+    providers: Provider[];
   }>();
   </script>
   
@@ -36,6 +32,5 @@
   .v-list-item {
     border-radius: 12px;
     margin-bottom: 8px;
-    /* background-color: red; */
   }
   </style>

@@ -41,8 +41,8 @@ const navItems = [
   { title: 'Booking', to: '/booking' },
   { title: 'Services', to: '/services' },
   { title: 'History', to: '/history' },
-  { title: 'Sing In', to: '/login' },
-  { title: 'Sing Up', to: '/register' },
+  { title: 'Sign In', to: '/login' },
+  { title: 'Sign Up', to: '/register' },
   { title: 'About', to: '/about' },
 
 ];

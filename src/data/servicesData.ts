@@ -10,7 +10,7 @@ export const servicesData = [
     },
     {
       id: 2,
-      name: 'Buzz Cut',
+      name: 'Buzz Cutaaaaaaaaaaaaa',
       description: 'A clean, short cut perfect for low maintenance.',
       price: 25,
       duration: 30,

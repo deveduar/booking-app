@@ -3,26 +3,61 @@
           <!-- Título y descripción -->
           <v-row class="">
             <v-col cols="12">
-              <h1 class="text-h4 font-weight-bold">Book a Haircut</h1>
+              <h1 class="text-h4 font-weight-bold">Book an Appointment</h1>
               <p class="text-subtitle-1">Select a date and time for your appointment</p>
             </v-col>
           </v-row>
   
-          <!-- Selectores de fecha y hora -->
-          <DateTimePicker />
+          <!-- Selectores de servicio, proveedor, fecha y hora -->
+          <v-row class="mt-3">
+            <v-col cols="12" md="6">
+              <v-select
+                v-model="selectedServiceId"
+                :items="serviceItems"
+                item-title="name"
+                item-value="id"
+                label="Select a service"
+                variant="outlined"
+                bg-color="surface"
+                color="primary"
+                hide-details
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                v-model="selectedProviderId"
+                :items="providerItems"
+                item-title="name"
+                item-value="id"
+                label="Select a provider"
+                variant="outlined"
+                bg-color="surface"
+                color="primary"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+          <DateTimePicker
+            :date="selectedDate"
+            :time="selectedTime"
+            @update:date="selectedDate = $event"
+            @update:time="selectedTime = $event"
+          />
   
-          <!-- Lista de estilistas -->
+          <!-- Lista de proveedores -->
           <v-row class="mt-5">
             <v-col cols="12">
-              <h2 class="text-h6 font-weight-bold">Stylist</h2>
-              <StylistList :stylists="stylists" />
+              <h2 class="text-h6 font-weight-bold">Provider</h2>
+              <StylistList :providers="providers" />
             </v-col>
           </v-row>
   
           <!-- Botón de confirmación -->
           <v-row class="mt-5">
             <v-col cols="12">
-              <v-btn block color="primary" size="large">Next</v-btn>
+              <v-btn block color="primary" size="large" :disabled="!canSubmit" @click="confirm">
+                Confirm
+              </v-btn>
             </v-col>
           </v-row>
         </v-container>
@@ -31,23 +66,40 @@
   <script setup lang="ts">
   import StylistList from '../components/StylistList.vue';
   import DateTimePicker from '../components/DateTimePicker.vue';
+  import { storeToRefs } from 'pinia';
+  import { useProvidersStore } from '@/stores/providers';
+  import { useServicesStore } from '@/stores/services';
+  import { useAppointmentsStore } from '@/stores/appointments';
+  import { ref, computed } from 'vue';
   
-  // Datos de los estilistas
-  const stylists = [
-    {
-      name: 'Alexa',
-      status: 'Available',
-      image: 'https://cdn.usegalileo.ai/sdxl10/4d0bd9a4-2f47-4eeb-8fbf-5fb13eaf0a0b.png',
-    },
-    {
-      name: 'Renee',
-      status: 'Available',
-      image: 'https://cdn.usegalileo.ai/sdxl10/7cb6bea5-df1a-43ff-97c9-cc743fe8520d.png',
-    },
-    {
-      name: 'Samantha',
-      status: 'Available',
-      image: 'https://cdn.usegalileo.ai/sdxl10/014920d7-e0b4-4ffa-823a-811dd0d3cdbc.png',
-    },
-  ];
+  const providersStore = useProvidersStore();
+  const { providers } = storeToRefs(providersStore);
+  
+  const servicesStore = useServicesStore();
+  const { services } = storeToRefs(servicesStore);
+  
+  const appointmentsStore = useAppointmentsStore();
+  
+  const selectedServiceId = ref<number | null>(null);
+  const selectedProviderId = ref<number | null>(null);
+  const selectedDate = ref<string | null>(null);
+  const selectedTime = ref<string | null>(null);
+  
+  const serviceItems = computed(() => services.value);
+  const providerItems = computed(() => providers.value);
+  
+  const canSubmit = computed(() => !!(selectedServiceId.value && selectedProviderId.value && selectedDate.value && selectedTime.value));
+  
+  function confirm() {
+    const service = servicesStore.getById(selectedServiceId.value as number);
+    const provider = providers.value.find(p => p.id === selectedProviderId.value);
+    if (!service || !provider || !selectedDate.value || !selectedTime.value) return;
+    appointmentsStore.addAppointment({
+      date: selectedDate.value,
+      time: selectedTime.value,
+      service: service.name,
+      provider: provider.name,
+      status: 'Upcoming',
+    });
+  }
   </script>
