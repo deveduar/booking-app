@@ -3,11 +3,10 @@ import HomeView from '@/views/HomeView.vue';
 import BookingView from '@/views/BookingView.vue';
 import LoginView from '@/views/LoginView.vue';
 import RegisterView from '@/views/RegisterView.vue';
-import HistoryView from '@/views/HistoryView.vue';
 import ServicesView from '@/views/ServicesView.vue';
 import AboutView from '@/views/AboutView.vue';
 import AdminView from '@/views/AdminView.vue';
-import NextAppointmentView from '@/views/NextAppointmentView.vue';
+import AppointmentsView from '@/views/AppointmentsView.vue';
 
 const routes = [
   {
@@ -31,9 +30,9 @@ const routes = [
     component: RegisterView,
   },
   {
-    path: '/history',
-    name: 'History',
-    component: HistoryView,
+    path: '/appointments',
+    name: 'Appointments',
+    component: AppointmentsView,
   },
   {
     path: '/services',
@@ -49,11 +48,6 @@ const routes = [
     path: '/admin',
     name: 'Admin',
     component: AdminView,
-  },
-  {
-    path: '/appointments/next',
-    name: 'NextAppointment',
-    component: NextAppointmentView,
   },
 ];
 

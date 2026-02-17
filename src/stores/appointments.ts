@@ -1,5 +1,6 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { appointmentsData } from '@/data/initialData'
 
 export type AppointmentStatus = 'Upcoming' | 'Completed' | 'Canceled'
 
@@ -12,15 +13,19 @@ export type Appointment = {
   status: AppointmentStatus
 }
 
-const initialAppointments: Appointment[] = [
-  { id: 1, date: '2025-01-10', time: '10:00 AM', service: 'Consultation', provider: 'Alex', status: 'Upcoming' },
-  { id: 2, date: '2025-01-08', time: '2:00 PM', service: 'Coloring', provider: 'Sophie', status: 'Completed' },
-  { id: 3, date: '2025-01-06', time: '11:00 AM', service: 'General Service', provider: 'John', status: 'Canceled' },
-  { id: 4, date: '2025-01-12', time: '3:00 PM', service: 'Session', provider: 'Emma', status: 'Upcoming' },
-]
+const STORAGE_KEY = 'salon_appointments'
 
 export const useAppointmentsStore = defineStore('appointments', () => {
-  const appointments = ref<Appointment[]>(initialAppointments)
+  const storedAppointments = localStorage.getItem(STORAGE_KEY)
+  const appointments = ref<Appointment[]>(storedAppointments ? JSON.parse(storedAppointments) : appointmentsData)
+
+  watch(
+    appointments,
+    (newAppointments) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newAppointments))
+    },
+    { deep: true }
+  )
 
   const upcoming = computed(() =>
     appointments.value.filter(appointment => appointment.status === 'Upcoming'),

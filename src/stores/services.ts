@@ -1,6 +1,11 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { servicesData } from '@/data/servicesData'
+import { servicesData } from '@/data/initialData'
+
+export type AvailabilitySlot = {
+  date: string
+  times: string[]
+}
 
 export type Service = {
   id: number
@@ -9,10 +14,25 @@ export type Service = {
   price: number
   duration: number
   category: string
+  defaultDate?: string
+  defaultTime?: string
+  defaultProviderId?: number
+  availableSlots?: AvailabilitySlot[]
 }
 
+const STORAGE_KEY = 'salon_services'
+
 export const useServicesStore = defineStore('services', () => {
-  const services = ref<Service[]>(servicesData)
+  const storedServices = localStorage.getItem(STORAGE_KEY)
+  const services = ref<Service[]>(storedServices ? JSON.parse(storedServices) : servicesData)
+
+  watch(
+    services,
+    (newServices) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newServices))
+    },
+    { deep: true }
+  )
 
   const categories = computed(() => {
     const set = new Set(services.value.map(service => service.category))
@@ -33,12 +53,20 @@ export const useServicesStore = defineStore('services', () => {
     services.value = services.value.filter(s => s.id !== id)
   }
 
+  function updateService(id: number, updated: Partial<Omit<Service, 'id'>>) {
+    const index = services.value.findIndex(s => s.id === id)
+    if (index !== -1) {
+      services.value[index] = { ...services.value[index], ...updated }
+    }
+  }
+
   return {
     services,
     categories,
     getById,
     addService,
     removeService,
+    updateService,
   }
 })
 

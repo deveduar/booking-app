@@ -45,6 +45,8 @@ const navbarItems = ref([
   { label: 'Home', to: '/' },
   { label: 'Booking', to: '/booking' },
   { label: 'Services', to: '/services' },
+  { label: 'Admin', to: '/admin' },
+  { label: 'Appointments', to: '/appointments' },
   { label: 'Sign In', to: '/login' },
   { label: 'Sign Up', to: '/register' },
   { label: 'About', to: '/about' },

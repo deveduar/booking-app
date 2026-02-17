@@ -88,6 +88,28 @@
       </v-col>
     </v-row>
 
+    <!-- Experts Section -->
+    <h1 class="text-h5 font-weight-bold mt-10 ml-2">Our Experts</h1>
+    <v-row class="mt-2">
+      <v-col v-for="p in providers" :key="p.id" cols="12" sm="4">
+        <v-card class="text-center pa-4">
+          <v-avatar size="100" class="mb-4">
+            <v-img :src="p.image" cover />
+          </v-avatar>
+          <div class="text-h6 font-weight-bold">{{ p.name }}</div>
+          <div class="text-subtitle-2 text-primary mb-4">{{ p.status }}</div>
+          <v-btn 
+            color="primary" 
+            variant="tonal" 
+            block 
+            :to="{ path: '/booking', query: { providerId: p.id } }"
+          >
+            Book with {{ p.name }}
+          </v-btn>
+        </v-card>
+      </v-col>
+    </v-row>
+
     <!-- Testimonials Section (Optional) -->
     <v-row>
       <v-col cols="12">
@@ -123,9 +145,13 @@ import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import ServiceCard from '@/components/ServiceCard.vue'
 import { useServicesStore } from '@/stores/services';
+import { useProvidersStore } from '@/stores/providers';
 
 const servicesStore = useServicesStore();
 const { services } = storeToRefs(servicesStore);
+
+const providersStore = useProvidersStore();
+const { providers } = storeToRefs(providersStore);
 
 const highlightedServices = computed(() => services.value.slice(0, 3));
 

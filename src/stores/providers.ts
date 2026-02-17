@@ -1,36 +1,28 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { providersData } from '@/data/initialData'
 
 export type Provider = {
   id: number
   name: string
   status: string
   image: string
+  serviceIds: number[]
 }
 
-const initialProviders: Provider[] = [
-  {
-    id: 1,
-    name: 'Alexa',
-    status: 'Available',
-    image: 'https://cdn.usegalileo.ai/sdxl10/4d0bd9a4-2f47-4eeb-8fbf-5fb13eaf0a0b.png',
-  },
-  {
-    id: 2,
-    name: 'Renee',
-    status: 'Available',
-    image: 'https://cdn.usegalileo.ai/sdxl10/7cb6bea5-df1a-43ff-97c9-cc743fe8520d.png',
-  },
-  {
-    id: 3,
-    name: 'Samantha',
-    status: 'Available',
-    image: 'https://cdn.usegalileo.ai/sdxl10/014920d7-e0b4-4ffa-823a-811dd0d3cdbc.png',
-  },
-]
+const STORAGE_KEY = 'salon_providers'
 
 export const useProvidersStore = defineStore('providers', () => {
-  const providers = ref<Provider[]>(initialProviders)
+  const storedProviders = localStorage.getItem(STORAGE_KEY)
+  const providers = ref<Provider[]>(storedProviders ? JSON.parse(storedProviders) : providersData)
+
+  watch(
+    providers,
+    (newProviders) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newProviders))
+    },
+    { deep: true }
+  )
 
   function setProviders(nextProviders: Provider[]) {
     providers.value = nextProviders
@@ -46,10 +38,23 @@ export const useProvidersStore = defineStore('providers', () => {
     providers.value = providers.value.filter(p => p.id !== id)
   }
 
+  function getByService(serviceId: number) {
+    return providers.value.filter(p => p.serviceIds.includes(serviceId))
+  }
+
+  function assignService(providerId: number, serviceId: number) {
+    const p = providers.value.find(p => p.id === providerId)
+    if (p && !p.serviceIds.includes(serviceId)) {
+      p.serviceIds.push(serviceId)
+    }
+  }
+
   return {
     providers,
     setProviders,
     addProvider,
     removeProvider,
+    getByService,
+    assignService,
   }
 })
