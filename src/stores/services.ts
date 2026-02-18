@@ -7,6 +7,16 @@ export type AvailabilitySlot = {
   times: string[]
 }
 
+export type DateRange = {
+  start: string | null
+  end: string | null
+}
+
+export type TimeRange = {
+  start: string | null
+  end: string | null
+}
+
 export type Service = {
   id: number
   name: string
@@ -18,6 +28,8 @@ export type Service = {
   defaultTime?: string
   defaultProviderId?: number
   availableSlots?: AvailabilitySlot[]
+  dateRange?: DateRange
+  timeRange?: TimeRange
 }
 
 const STORAGE_KEY = 'salon_services'

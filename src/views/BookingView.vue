@@ -61,6 +61,8 @@
             :date="selectedDate"
             :time="selectedTime"
             :available-slots="selectedService?.availableSlots"
+            :date-range="selectedService?.dateRange"
+            :time-range="selectedService?.timeRange"
             @update:date="selectedDate = $event"
             @update:time="selectedTime = $event"
           />

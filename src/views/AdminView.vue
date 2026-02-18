@@ -67,6 +67,18 @@
                     clearable
                   />
                 </v-col>
+
+                <v-col cols="12">
+                  <div class="text-subtitle-2 mb-1">Service Defaults (Optional)</div>
+                  <DateTimePicker
+                    :date="svcDefaultDate"
+                    :time="svcDefaultTime"
+                    :date-range="{ start: svcDateRangeStart, end: svcDateRangeEnd }"
+                    :time-range="{ start: svcTimeRangeStart, end: svcTimeRangeEnd }"
+                    @update:date="svcDefaultDate = $event"
+                    @update:time="svcDefaultTime = $event"
+                  />
+                </v-col>
                 
                 <v-col cols="12">
                   <div class="text-subtitle-2 mb-1">Specific Availability (Unique Dates)</div>
@@ -102,6 +114,16 @@
                         Add Slot
                       </v-btn>
                     </v-col>
+                  </v-row>
+                </v-col>
+
+                <v-col cols="12">
+                  <div class="text-subtitle-2 mb-1">Range Availability (Optional)</div>
+                  <v-row dense>
+                    <v-col cols="6"><v-text-field v-model="svcDateRangeStart" label="Start Date" placeholder="YYYY-MM-DD" density="compact" hide-details :rules="[v => !v || v >= todayStr || 'Cannot be in the past']" /></v-col>
+                    <v-col cols="6"><v-text-field v-model="svcDateRangeEnd" label="End Date" placeholder="YYYY-MM-DD" density="compact" hide-details :rules="[v => !v || !svcDateRangeStart || v >= svcDateRangeStart || 'Must be after start date']" /></v-col>
+                    <v-col cols="6"><v-text-field v-model="svcTimeRangeStart" label="Start Time" placeholder="HH:MM AM/PM" density="compact" hide-details /></v-col>
+                    <v-col cols="6"><v-text-field v-model="svcTimeRangeEnd" label="End Time" placeholder="HH:MM AM/PM" density="compact" hide-details /></v-col>
                   </v-row>
                 </v-col>
                </v-row>
@@ -237,6 +259,14 @@ const svcDefaultDate = ref<string | null>(null)
 const svcDefaultTime = ref<string | null>(null)
 const svcAvailableSlots = ref<{ date: string, times: string[] }[]>([])
 
+const now = new Date()
+const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+
+const svcDateRangeStart = ref<string | null>(null)
+const svcDateRangeEnd = ref<string | null>(null)
+const svcTimeRangeStart = ref<string | null>(null)
+const svcTimeRangeEnd = ref<string | null>(null)
+
 const newSlotDate = ref<string | null>(null)
 const newSlotTime = ref<string | null>(null)
 
@@ -277,6 +307,10 @@ function editService(service: any) {
   svcDefaultDate.value = service.defaultDate || null
   svcDefaultTime.value = service.defaultTime || null
   svcAvailableSlots.value = service.availableSlots ? JSON.parse(JSON.stringify(service.availableSlots)) : []
+  svcDateRangeStart.value = service.dateRange?.start || null
+  svcDateRangeEnd.value = service.dateRange?.end || null
+  svcTimeRangeStart.value = service.timeRange?.start || null
+  svcTimeRangeEnd.value = service.timeRange?.end || null
 }
 
 function cancelEdit() {
@@ -290,6 +324,10 @@ function cancelEdit() {
   svcDefaultDate.value = null
   svcDefaultTime.value = null
   svcAvailableSlots.value = []
+  svcDateRangeStart.value = null
+  svcDateRangeEnd.value = null
+  svcTimeRangeStart.value = null
+  svcTimeRangeEnd.value = null
   nextTick(() => {
     if (serviceForm.value) serviceForm.value.resetValidation()
   })
@@ -309,6 +347,8 @@ async function addService() {
     defaultTime: svcDefaultTime.value || undefined,
     defaultProviderId: svcDefaultProviderId.value || undefined,
     availableSlots: svcAvailableSlots.value,
+    dateRange: { start: svcDateRangeStart.value, end: svcDateRangeEnd.value },
+    timeRange: { start: svcTimeRangeStart.value, end: svcTimeRangeEnd.value },
   }
 
   if (editingServiceId.value) {
