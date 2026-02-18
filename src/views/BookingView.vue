@@ -60,9 +60,9 @@
           <DateTimePicker
             :date="selectedDate"
             :time="selectedTime"
-            :available-slots="selectedService?.availableSlots"
-            :date-range="selectedService?.dateRange"
-            :time-range="selectedService?.timeRange"
+            :available-slots="activeAvailability?.availableSlots"
+            :date-range="activeAvailability?.dateRange"
+            :time-range="activeAvailability?.timeRange"
             @update:date="selectedDate = $event"
             @update:time="selectedTime = $event"
           />
@@ -128,6 +128,24 @@
   });
   
   const selectedService = computed(() => services.value.find(s => s.id === selectedServiceId.value));
+
+  const activeAvailability = computed(() => {
+    if (!selectedService.value) return null;
+    const service = selectedService.value;
+    const providerId = selectedProviderId.value;
+    
+    // Check for provider override
+    if (providerId && service.providerAvailability && service.providerAvailability[providerId]) {
+      return service.providerAvailability[providerId];
+    }
+    
+    // Fallback to service defaults based on mode
+    return {
+      availableSlots: service.schedulingMode === 'Fixed Slots' ? service.availableSlots : [],
+      dateRange: service.schedulingMode === 'Standard' ? service.dateRange : undefined,
+      timeRange: service.schedulingMode === 'Standard' ? service.timeRange : undefined
+    };
+  });
   
   const canSubmit = computed(() => !!(selectedServiceId.value && selectedProviderId.value && selectedDate.value && selectedTime.value));
   

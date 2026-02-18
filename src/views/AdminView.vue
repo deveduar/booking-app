@@ -56,6 +56,13 @@
                 <v-col cols="12"><v-text-field v-model="svcCategory" label="Category" :rules="[v => !!v || 'Category is required']" /></v-col>
                 
                 <v-col cols="12">
+                  <v-radio-group v-model="svcSchedulingMode" label="Scheduling Mode" inline>
+                    <v-radio label="Standard (Range)" value="Standard"></v-radio>
+                    <v-radio label="Fixed Slots" value="Fixed Slots"></v-radio>
+                  </v-radio-group>
+                </v-col>
+
+                <v-col cols="12">
                   <v-select
                     v-model="svcDefaultProviderId"
                     :items="providers"
@@ -80,7 +87,7 @@
                   />
                 </v-col>
                 
-                <v-col cols="12">
+                <v-col v-if="svcSchedulingMode === 'Fixed Slots'" cols="12">
                   <div class="text-subtitle-2 mb-1">Specific Availability (Unique Dates)</div>
                   <v-alert v-if="svcAvailableSlots.length === 0" type="info" density="compact" variant="tonal" class="mb-2">
                     No unique slots. Service will use default provider availability.
@@ -117,14 +124,112 @@
                   </v-row>
                 </v-col>
 
-                <v-col cols="12">
+                <v-col v-if="svcSchedulingMode === 'Standard'" cols="12">
                   <div class="text-subtitle-2 mb-1">Range Availability (Optional)</div>
                   <v-row dense>
-                    <v-col cols="6"><v-text-field v-model="svcDateRangeStart" label="Start Date" placeholder="YYYY-MM-DD" density="compact" hide-details :rules="[v => !v || v >= todayStr || 'Cannot be in the past']" /></v-col>
-                    <v-col cols="6"><v-text-field v-model="svcDateRangeEnd" label="End Date" placeholder="YYYY-MM-DD" density="compact" hide-details :rules="[v => !v || !svcDateRangeStart || v >= svcDateRangeStart || 'Must be after start date']" /></v-col>
-                    <v-col cols="6"><v-text-field v-model="svcTimeRangeStart" label="Start Time" placeholder="HH:MM AM/PM" density="compact" hide-details /></v-col>
-                    <v-col cols="6"><v-text-field v-model="svcTimeRangeEnd" label="End Time" placeholder="HH:MM AM/PM" density="compact" hide-details /></v-col>
+                    <v-col cols="12" sm="6">
+                      <div class="text-caption">Start Date</div>
+                      <DateTimePicker :date="svcDateRangeStart" :time="null" hideTime @update:date="svcDateRangeStart = $event" />
+                    </v-col>
+                    <v-col cols="12" sm="6">
+                      <div class="text-caption">End Date</div>
+                      <DateTimePicker :date="svcDateRangeEnd" :time="null" hideTime @update:date="svcDateRangeEnd = $event" />
+                    </v-col>
+                    <v-col cols="12" sm="6">
+                      <div class="text-caption">Start Time</div>
+                      <DateTimePicker :date="null" :time="svcTimeRangeStart" hideDate @update:time="svcTimeRangeStart = $event" />
+                    </v-col>
+                    <v-col cols="12" sm="6">
+                      <div class="text-caption">End Time</div>
+                      <DateTimePicker :date="null" :time="svcTimeRangeEnd" hideDate @update:time="svcTimeRangeEnd = $event" />
+                    </v-col>
                   </v-row>
+                </v-col>
+
+                <v-col v-if="editingServiceId" cols="12">
+                  <v-divider class="my-4"></v-divider>
+                  <div class="text-h6 mb-2">Specialist Overrides (Advanced)</div>
+                  <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+                    Set specific availability for a specialist that differs from the service defaults.
+                  </v-alert>
+
+                  <v-row dense>
+                    <v-col cols="12" sm="6">
+                      <v-select
+                        v-model="selectedOverrideProviderId"
+                        :items="assignedProviders"
+                        item-title="name"
+                        item-value="id"
+                        label="Select Specialist to Override"
+                        variant="outlined"
+                        density="compact"
+                        clearable
+                      />
+                    </v-col>
+                  </v-row>
+
+                  <div v-if="selectedOverrideProviderId" class="pa-4 bg-grey-lighten-4 rounded-lg">
+                    <div class="text-subtitle-2 mb-2">Override for {{ overrideProviderName }}</div>
+                    
+                    <v-radio-group v-model="overrideSchedulingMode" label="Override Mode" inline>
+                      <v-radio label="Standard (Range)" value="Standard"></v-radio>
+                      <v-radio label="Fixed Slots" value="Fixed Slots"></v-radio>
+                    </v-radio-group>
+
+                    <div v-if="overrideSchedulingMode === 'Fixed Slots'">
+                       <div class="text-caption mb-1">Specific Slots for Specialist</div>
+                       <!-- Slot management for override -->
+                       <v-list density="compact" bg-color="transparent" v-if="overrideSlots.length > 0">
+                         <v-list-item v-for="(slot, idx) in overrideSlots" :key="idx">
+                           {{ slot.date }}: {{ slot.times.join(', ') }}
+                           <template #append>
+                             <v-btn icon="mdi-delete" size="x-small" variant="text" @click="overrideSlots.splice(idx, 1)" />
+                           </template>
+                         </v-list-item>
+                       </v-list>
+                       <v-row dense class="align-center mt-1">
+                        <v-col cols="12">
+                          <DateTimePicker
+                            :date="overDate"
+                            :time="overTime"
+                            @update:date="overDate = $event"
+                            @update:time="overTime = $event"
+                          />
+                        </v-col>
+                        <v-col cols="12" class="d-flex justify-end">
+                          <v-btn prepend-icon="mdi-plus" size="small" variant="tonal" @click="addOverrideSlot" :disabled="!overDate || !overTime">Add Slot</v-btn>
+                        </v-col>
+                      </v-row>
+                    </div>
+
+                    <div v-if="overrideSchedulingMode === 'Standard'">
+                      <v-row dense>
+                        <v-col cols="12" sm="6"><div class="text-caption">Start Date</div><DateTimePicker :date="overDateRangeStart" :time="null" hideTime @update:date="overDateRangeStart = $event" /></v-col>
+                        <v-col cols="12" sm="6"><div class="text-caption">End Date</div><DateTimePicker :date="overDateRangeEnd" :time="null" hideTime @update:date="overDateRangeEnd = $event" /></v-col>
+                      </v-row>
+                    </div>
+
+                    <v-btn color="primary" variant="elevated" block class="mt-4" @click="saveOverride">
+                      Save Specialist Override
+                    </v-btn>
+                  </div>
+
+                  <!-- List of active overrides -->
+                  <div v-if="Object.keys(svcProviderAvailability).length > 0" class="mt-4">
+                    <div class="text-subtitle-2 mb-2">Active Specialist Overrides:</div>
+                    <v-list density="compact" rounded-lg>
+                      <v-list-item v-for="(ov, pid) in svcProviderAvailability" :key="pid">
+                        <template #prepend>
+                          <v-icon icon="mdi-account-star" color="primary" class="mr-2" />
+                        </template>
+                        <v-list-item-title>{{ getProviderName(Number(pid)) }}</v-list-item-title>
+                        <v-list-item-subtitle>{{ ov.schedulingMode }} Mode</v-list-item-subtitle>
+                        <template #append>
+                          <v-btn icon="mdi-delete" size="x-small" variant="text" @click="delete svcProviderAvailability[Number(pid)]" />
+                        </template>
+                      </v-list-item>
+                    </v-list>
+                  </div>
                 </v-col>
                </v-row>
               <v-btn type="submit" color="primary" class="mt-2" block>
@@ -195,6 +300,8 @@
                   item-value="id"
                   label="Assigned Services"
                   multiple
+                  chips
+                  closable-chips
                   density="compact"
                   variant="outlined"
                   hide-details
@@ -232,7 +339,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useServicesStore } from '@/stores/services'
 import { useProvidersStore } from '@/stores/providers'
@@ -253,6 +360,7 @@ const svcDescription = ref('')
 const svcPrice = ref<number | null>(null)
 const svcDuration = ref<number | null>(null)
 const svcCategory = ref('')
+const svcSchedulingMode = ref<'Standard' | 'Fixed Slots'>('Standard')
 const svcDefaultProviderId = ref<number | null>(null)
 
 const svcDefaultDate = ref<string | null>(null)
@@ -266,6 +374,69 @@ const svcDateRangeStart = ref<string | null>(null)
 const svcDateRangeEnd = ref<string | null>(null)
 const svcTimeRangeStart = ref<string | null>(null)
 const svcTimeRangeEnd = ref<string | null>(null)
+const svcProviderAvailability = ref<{ [id: number]: any }>({})
+
+// Override state
+const selectedOverrideProviderId = ref<number | null>(null)
+const overrideSchedulingMode = ref<'Standard' | 'Fixed Slots'>('Standard')
+const overrideSlots = ref<{ date: string, times: string[] }[]>([])
+const overDate = ref<string | null>(null)
+const overTime = ref<string | null>(null)
+const overDateRangeStart = ref<string | null>(null)
+const overDateRangeEnd = ref<string | null>(null)
+
+const assignedProviders = computed(() => {
+  if (!editingServiceId.value) return []
+  return providers.value.filter(p => p.serviceIds.includes(editingServiceId.value as number))
+})
+
+const overrideProviderName = computed(() => {
+  return providers.value.find(p => p.id === selectedOverrideProviderId.value)?.name || ''
+})
+
+function getProviderName(id: number) {
+  return providers.value.find(p => p.id === id)?.name || 'Unknown'
+}
+
+function addOverrideSlot() {
+  if (!overDate.value || !overTime.value) return
+  const existing = overrideSlots.value.find(s => s.date === overDate.value)
+  if (existing) {
+    if (!existing.times.includes(overTime.value)) existing.times.push(overTime.value)
+  } else {
+    overrideSlots.value.push({ date: overDate.value, times: [overTime.value] })
+  }
+  overTime.value = null
+}
+
+function saveOverride() {
+  if (!selectedOverrideProviderId.value) return
+  svcProviderAvailability.value[selectedOverrideProviderId.value] = {
+    schedulingMode: overrideSchedulingMode.value,
+    availableSlots: JSON.parse(JSON.stringify(overrideSlots.value)),
+    dateRange: { start: overDateRangeStart.value, end: overDateRangeEnd.value }
+  }
+  selectedOverrideProviderId.value = null
+  snackbarText.value = 'Override saved (apply changes to save permanently)'
+  snackbarColor.value = 'info'
+  snackbar.value = true
+}
+
+// Watch for override provider selection to load data
+watch(selectedOverrideProviderId, (id) => {
+  if (id && svcProviderAvailability.value[id]) {
+    const ov = svcProviderAvailability.value[id]
+    overrideSchedulingMode.value = ov.schedulingMode || 'Standard'
+    overrideSlots.value = JSON.parse(JSON.stringify(ov.availableSlots || []))
+    overDateRangeStart.value = ov.dateRange?.start || null
+    overDateRangeEnd.value = ov.dateRange?.end || null
+  } else {
+    overrideSchedulingMode.value = 'Standard'
+    overrideSlots.value = []
+    overDateRangeStart.value = null
+    overDateRangeEnd.value = null
+  }
+})
 
 const newSlotDate = ref<string | null>(null)
 const newSlotTime = ref<string | null>(null)
@@ -303,6 +474,7 @@ function editService(service: any) {
   svcPrice.value = service.price
   svcDuration.value = service.duration
   svcCategory.value = service.category
+  svcSchedulingMode.value = service.schedulingMode || 'Standard'
   svcDefaultProviderId.value = service.defaultProviderId || null
   svcDefaultDate.value = service.defaultDate || null
   svcDefaultTime.value = service.defaultTime || null
@@ -311,6 +483,7 @@ function editService(service: any) {
   svcDateRangeEnd.value = service.dateRange?.end || null
   svcTimeRangeStart.value = service.timeRange?.start || null
   svcTimeRangeEnd.value = service.timeRange?.end || null
+  svcProviderAvailability.value = service.providerAvailability ? JSON.parse(JSON.stringify(service.providerAvailability)) : {}
 }
 
 function cancelEdit() {
@@ -320,6 +493,7 @@ function cancelEdit() {
   svcPrice.value = null
   svcDuration.value = null
   svcCategory.value = ''
+  svcSchedulingMode.value = 'Standard'
   svcDefaultProviderId.value = null
   svcDefaultDate.value = null
   svcDefaultTime.value = null
@@ -328,6 +502,8 @@ function cancelEdit() {
   svcDateRangeEnd.value = null
   svcTimeRangeStart.value = null
   svcTimeRangeEnd.value = null
+  svcProviderAvailability.value = {}
+  selectedOverrideProviderId.value = null
   nextTick(() => {
     if (serviceForm.value) serviceForm.value.resetValidation()
   })
@@ -343,12 +519,14 @@ async function addService() {
     price: Number(svcPrice.value ?? 0),
     duration: Number(svcDuration.value ?? 0),
     category: svcCategory.value || 'General',
+    schedulingMode: svcSchedulingMode.value,
     defaultDate: svcDefaultDate.value || undefined,
     defaultTime: svcDefaultTime.value || undefined,
     defaultProviderId: svcDefaultProviderId.value || undefined,
     availableSlots: svcAvailableSlots.value,
     dateRange: { start: svcDateRangeStart.value, end: svcDateRangeEnd.value },
     timeRange: { start: svcTimeRangeStart.value, end: svcTimeRangeEnd.value },
+    providerAvailability: svcProviderAvailability.value,
   }
 
   if (editingServiceId.value) {

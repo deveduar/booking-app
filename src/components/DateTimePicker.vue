@@ -1,6 +1,6 @@
 <template>
     <v-row class="mt-3">
-      <v-col cols="12" md="6">
+      <v-col v-if="!hideDate" cols="12" :md="hideTime ? 12 : 6">
         <!-- Use v-select for restricted dates, otherwise v-date-input -->
         <v-select
           v-if="availableSlots && availableSlots.length > 0"
@@ -27,7 +27,7 @@
           hide-actions
         />
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col v-if="!hideTime" cols="12" :md="hideDate ? 12 : 6">
         <!-- Use v-select for restricted times, otherwise v-text-field with v-time-picker -->
         <v-select
           v-if="availableSlots && availableSlots.length > 0"
@@ -93,6 +93,8 @@
     availableSlots?: AvailabilitySlot[]
     dateRange?: Range
     timeRange?: Range
+    hideDate?: boolean
+    hideTime?: boolean
   }>()
   const emit = defineEmits<{
     (e: 'update:date', v: string | null): void

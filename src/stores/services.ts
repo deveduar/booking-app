@@ -17,6 +17,15 @@ export type TimeRange = {
   end: string | null
 }
 
+export type SchedulingMode = 'Standard' | 'Fixed Slots'
+
+export type AvailabilityOverride = {
+  schedulingMode?: SchedulingMode
+  availableSlots?: AvailabilitySlot[]
+  dateRange?: DateRange
+  timeRange?: TimeRange
+}
+
 export type Service = {
   id: number
   name: string
@@ -24,12 +33,14 @@ export type Service = {
   price: number
   duration: number
   category: string
+  schedulingMode?: SchedulingMode
   defaultDate?: string
   defaultTime?: string
   defaultProviderId?: number
   availableSlots?: AvailabilitySlot[]
   dateRange?: DateRange
   timeRange?: TimeRange
+  providerAvailability?: { [providerId: number]: AvailabilityOverride }
 }
 
 const STORAGE_KEY = 'salon_services'
