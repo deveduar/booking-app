@@ -229,8 +229,18 @@
                           <v-icon icon="mdi-account-star" color="primary" class="mr-2" />
                         </template>
                         <v-list-item-title>{{ getProviderName(Number(pid)) }}</v-list-item-title>
-                        <v-list-item-subtitle>{{ ov.schedulingMode }} Mode</v-list-item-subtitle>
+                        <v-list-item-subtitle>
+                          <v-chip size="x-small" label color="primary" variant="flat" class="mr-1">{{ ov.schedulingMode }}</v-chip>
+                          <span v-if="ov.schedulingMode === 'Standard'">
+                            {{ ov.dateRange?.start }} — {{ ov.dateRange?.end }}
+                          </span>
+                          <span v-else>
+                            {{ ov.availableSlots?.map(s => s.date).slice(0, 2).join(', ') }}
+                            <span v-if="ov.availableSlots && ov.availableSlots.length > 2">... (+{{ ov.availableSlots.length - 2 }} more)</span>
+                          </span>
+                        </v-list-item-subtitle>
                         <template #append>
+                          <v-btn icon="mdi-pencil" size="x-small" variant="text" @click="editOverride(Number(pid), ov)" class="mr-1" />
                           <v-btn icon="mdi-delete" size="x-small" variant="text" @click="delete svcProviderAvailability[Number(pid)]" />
                         </template>
                       </v-list-item>
@@ -346,7 +356,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useServicesStore } from '@/stores/services'
+import { useServicesStore, type AvailabilityOverride } from '@/stores/services'
 import { useProvidersStore } from '@/stores/providers'
 import { useAppointmentsStore } from '@/stores/appointments'
 import DateTimePicker from '@/components/DateTimePicker.vue'
@@ -377,7 +387,7 @@ const svcDateRangeStart = ref<string | null>(null)
 const svcDateRangeEnd = ref<string | null>(null)
 const svcTimeRangeStart = ref<string | null>(null)
 const svcTimeRangeEnd = ref<string | null>(null)
-const svcProviderAvailability = ref<{ [id: number]: any }>({})
+const svcProviderAvailability = ref<{ [id: number]: AvailabilityOverride }>({})
 
 // Override state
 const selectedOverrideProviderId = ref<number | null>(null)
@@ -432,13 +442,13 @@ watch(selectedOverrideProviderId, (id) => {
     overrideSlots.value = JSON.parse(JSON.stringify(ov.availableSlots || []))
     overDateRangeStart.value = ov.dateRange?.start || null
     overDateRangeEnd.value = ov.dateRange?.end || null
-  } else {
-    overrideSchedulingMode.value = 'Standard'
-    overrideSlots.value = []
-    overDateRangeStart.value = null
-    overDateRangeEnd.value = null
   }
 })
+
+function editOverride(pid: number, ov: AvailabilityOverride) {
+  selectedOverrideProviderId.value = pid
+  // The watcher on selectedOverrideProviderId will handle loading the data
+}
 
 const newSlotDate = ref<string | null>(null)
 const newSlotTime = ref<string | null>(null)

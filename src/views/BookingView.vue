@@ -57,6 +57,17 @@
               </div>
             </v-col>
           </v-row>
+          <v-alert
+            v-if="isSpecialistOverride"
+            type="info"
+            variant="tonal"
+            density="compact"
+            class="mb-4"
+            icon="mdi-account-clock-outline"
+          >
+            <strong>Custom Specialist Schedule:</strong> You are viewing unique availability set by this specialist.
+          </v-alert>
+
           <DateTimePicker
             :date="selectedDate"
             :time="selectedTime"
@@ -146,6 +157,11 @@
       dateRange: service.schedulingMode === 'Standard' ? service.dateRange : undefined,
       timeRange: service.schedulingMode === 'Standard' ? service.timeRange : undefined
     };
+  });
+
+  const isSpecialistOverride = computed(() => {
+    if (!selectedService.value || !selectedProviderId.value) return false;
+    return !!(selectedService.value.providerAvailability?.[selectedProviderId.value]);
   });
   
   const canSubmit = computed(() => !!(selectedServiceId.value && selectedProviderId.value && selectedDate.value && selectedTime.value));

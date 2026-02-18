@@ -1,9 +1,20 @@
 <template>
     <v-row class="mt-3">
       <v-col v-if="!hideDate" cols="12" :md="hideTime ? 12 : 6">
+        <!-- If only one date is available, show as read-only text field -->
+        <v-text-field
+          v-if="availableSlots && availableSlots.length === 1 && !hideDate"
+          :model-value="availableDates[0]"
+          label="Date"
+          prepend-inner-icon="$calendar"
+          variant="outlined"
+          bg-color="surface"
+          readonly
+          hide-details
+        />
         <!-- Use v-select for restricted dates, otherwise v-date-input -->
         <v-select
-          v-if="availableSlots && availableSlots.length > 0"
+          v-else-if="availableSlots && availableSlots.length > 0"
           v-model="internalDateStr"
           :items="availableDates"
           label="Select a date"
@@ -28,9 +39,20 @@
         />
       </v-col>
       <v-col v-if="!hideTime" cols="12" :md="hideDate ? 12 : 6">
+        <!-- If only one time is available for this date, show as read-only -->
+        <v-text-field
+          v-if="allowedTimesForDate && allowedTimesForDate.length === 1"
+          :model-value="allowedTimesForDate[0]"
+          label="Time"
+          prepend-inner-icon="mdi-clock-time-four-outline"
+          variant="outlined"
+          bg-color="surface"
+          readonly
+          hide-details
+        />
         <!-- Use v-select ONLY for specific availableSlots -->
         <v-select
-          v-if="availableSlots && availableSlots.length > 0"
+          v-else-if="availableSlots && availableSlots.length > 0"
           v-model="selectedTime"
           :items="allowedTimesForDate || []"
           :disabled="!internalDateStr"
@@ -111,33 +133,6 @@
   const internalDate = ref<Date | null>(null);
   const internalDateStr = ref<string | null>(props.date);
 
-  // Sync internalDate from props.date
-  watch(() => props.date, (newDate) => {
-    internalDateStr.value = newDate;
-    
-    // Only update internalDate if it's different from the current reformatted internalDate
-    const currentInternalDateStr = internalDate.value ? 
-      `${internalDate.value.getFullYear()}-${String(internalDate.value.getMonth() + 1).padStart(2, '0')}-${String(internalDate.value.getDate()).padStart(2, '0')}` : null;
-    
-    if (newDate === currentInternalDateStr) return;
-
-    if (newDate && newDate !== '') {
-      const parts = newDate.split('-');
-      if (parts.length === 3) {
-        // Create local date from parts
-        internalDate.value = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-      }
-    } else {
-      internalDate.value = null;
-    }
-  }, { immediate: true });
-
-  watch(internalDateStr, (newVal) => {
-    if (newVal !== props.date) {
-      emit('update:date', newVal);
-    }
-  });
-  
   // Restricted dates for the date picker
   const availableDates = computed(() => {
     if (!props.availableSlots || props.availableSlots.length === 0) return [];
@@ -289,6 +284,52 @@
     if (current.h === end.h) return min <= end.m;
     return true;
   };
+
+  // --- Watchers Section ---
+
+  // Auto-set if only one option exists
+  watch(() => availableDates.value, (dates) => {
+    if (dates.length === 1) {
+      internalDateStr.value = dates[0];
+    } else if (internalDateStr.value && dates.length > 0 && !dates.includes(internalDateStr.value)) {
+      internalDateStr.value = null;
+    }
+  }, { immediate: true });
+
+  watch(() => allowedTimesForDate.value, (times) => {
+    if (times && times.length === 1) {
+      selectedTime.value = times[0];
+    } else if (selectedTime.value && times && times.length > 0 && !times.includes(selectedTime.value)) {
+      selectedTime.value = '';
+    }
+  }, { immediate: true });
+
+  // Sync internalDateStr from props.date
+  watch(() => props.date, (newDate) => {
+    internalDateStr.value = newDate;
+    
+    // Only update internalDate if it's different from the current reformatted internalDate
+    const currentInternalDateStr = internalDate.value ? 
+      `${internalDate.value.getFullYear()}-${String(internalDate.value.getMonth() + 1).padStart(2, '0')}-${String(internalDate.value.getDate()).padStart(2, '0')}` : null;
+    
+    if (newDate === currentInternalDateStr) return;
+
+    if (newDate && newDate !== '') {
+      const parts = newDate.split('-');
+      if (parts.length === 3) {
+        // Create local date from parts
+        internalDate.value = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      }
+    } else {
+      internalDate.value = null;
+    }
+  }, { immediate: true });
+
+  watch(internalDateStr, (newVal) => {
+    if (newVal !== props.date) {
+      emit('update:date', newVal);
+    }
+  });
 
   // Sync time to parent
   watch(selectedTime, v => {

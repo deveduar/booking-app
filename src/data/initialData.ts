@@ -43,6 +43,26 @@ export const servicesData: Service[] = [
             }
         }
     },
+    {
+        id: 20,
+        name: 'Weekend Workshop',
+        description: 'A two-day intensive hair styling workshop.',
+        price: 150,
+        duration: 120,
+        category: 'Haircuts',
+        schedulingMode: 'Standard',
+        dateRange: { start: '2025-05-01', end: '2025-05-31' },
+        timeRange: { start: '10:00 AM', end: '04:00 PM' },
+        providerAvailability: {
+            1: { // Alexa's specific slots for this workshop
+                schedulingMode: 'Fixed Slots',
+                availableSlots: [
+                    { date: '2025-05-10', times: ['09:00 AM', '01:00 PM'] },
+                    { date: '2025-05-11', times: ['11:00 AM'] }
+                ]
+            }
+        }
+    },
 ]
 
 export const providersData: Provider[] = [
@@ -51,7 +71,7 @@ export const providersData: Provider[] = [
         name: 'Alexa',
         status: 'Available',
         image: 'https://cdn.usegalileo.ai/sdxl10/4d0bd9a4-2f47-4eeb-8fbf-5fb13eaf0a0b.png',
-        serviceIds: [1, 4, 16],
+        serviceIds: [1, 4, 16, 20],
     },
     {
         id: 2,
