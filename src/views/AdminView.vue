@@ -141,13 +141,16 @@
                       <div class="text-caption">End Date</div>
                       <DateTimePicker :date="svcDateRangeEnd" :time="null" hideTime @update:date="svcDateRangeEnd = $event" />
                     </v-col>
-                    <v-col cols="12" sm="6">
-                      <div class="text-caption">Start Time</div>
-                      <DateTimePicker :date="null" :time="svcTimeRangeStart" hideDate :duration="svcDuration || undefined" @update:time="svcTimeRangeStart = $event" />
+                    <v-col v-if="svcDateRangeStart && svcDateRangeEnd && svcDateRangeEnd < svcDateRangeStart" cols="12" class="mt-0">
+                      <div class="text-caption text-error">End date must be after start date</div>
                     </v-col>
-                    <v-col cols="12" sm="6">
+                    <v-col cols="12" sm="3">
+                      <div class="text-caption">Start Time</div>
+                      <DateTimePicker :date="null" :time="svcTimeRangeStart" hideDate :duration="svcDuration || undefined" :time-range="{ start: null, end: svcTimeRangeEnd }" @update:time="svcTimeRangeStart = $event" />
+                    </v-col>
+                    <v-col cols="12" sm="3">
                       <div class="text-caption">End Time</div>
-                      <DateTimePicker :date="null" :time="svcTimeRangeEnd" hideDate :duration="svcDuration || undefined" @update:time="svcTimeRangeEnd = $event" />
+                      <DateTimePicker :date="null" :time="svcTimeRangeEnd" hideDate :duration="svcDuration || undefined" :time-range="{ start: svcTimeRangeStart, end: null }" @update:time="svcTimeRangeEnd = $event" />
                     </v-col>
                   </v-row>
                 </v-col>
@@ -212,10 +215,12 @@
                       <v-row dense>
                         <v-col cols="12" sm="6"><div class="text-caption">Start Date</div><DateTimePicker :date="overDateRangeStart" :time="null" hideTime @update:date="overDateRangeStart = $event" /></v-col>
                         <v-col cols="12" sm="6"><div class="text-caption">End Date</div><DateTimePicker :date="overDateRangeEnd" :time="null" hideTime @update:date="overDateRangeEnd = $event" /></v-col>
+                        <v-col cols="12" sm="6"><div class="text-caption">Start Time</div><DateTimePicker :date="null" :time="overTimeRangeStart" hideDate :duration="svcDuration || undefined" :time-range="{ start: null, end: overTimeRangeEnd }" @update:time="overTimeRangeStart = $event" /></v-col>
+                        <v-col cols="12" sm="6"><div class="text-caption">End Time</div><DateTimePicker :date="null" :time="overTimeRangeEnd" hideDate :duration="svcDuration || undefined" :time-range="{ start: overTimeRangeStart, end: null }" @update:time="overTimeRangeEnd = $event" /></v-col>
                       </v-row>
                     </div>
 
-                    <v-btn color="primary" variant="elevated" block class="mt-4" @click="saveOverride">
+                    <v-btn color="primary" variant="elevated" block class="mt-4" @click="saveOverride" :disabled="!isOverrideFormValid">
                       Save Specialist Override
                     </v-btn>
                   </div>
@@ -233,6 +238,7 @@
                           <v-chip size="x-small" label color="primary" variant="flat" class="mr-1">{{ ov.schedulingMode }}</v-chip>
                           <span v-if="ov.schedulingMode === 'Standard'">
                             {{ ov.dateRange?.start }} — {{ ov.dateRange?.end }}
+                            <span v-if="ov.timeRange?.start"> ({{ ov.timeRange.start }} — {{ ov.timeRange.end }})</span>
                           </span>
                           <span v-else>
                             {{ ov.availableSlots?.map(s => s.date).slice(0, 2).join(', ') }}
@@ -248,7 +254,7 @@
                   </div>
                 </v-col>
                </v-row>
-              <v-btn type="submit" color="primary" class="mt-2" block>
+              <v-btn type="submit" color="primary" class="mt-2" block :disabled="!isSvcFormValid">
                 {{ editingServiceId ? 'Save Changes' : 'Add Service' }}
               </v-btn>
               <v-btn v-if="editingServiceId" color="grey" variant="text" class="mt-1" block @click="cancelEdit">
@@ -397,6 +403,51 @@ const overDate = ref<string | null>(null)
 const overTime = ref<string | null>(null)
 const overDateRangeStart = ref<string | null>(null)
 const overDateRangeEnd = ref<string | null>(null)
+const overTimeRangeStart = ref<string | null>(null)
+const overTimeRangeEnd = ref<string | null>(null)
+
+function parseTimeMin(t: string | null) {
+  if (!t) return 0;
+  // Try AM/PM
+  const matchAmpm = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (matchAmpm) {
+    let h = parseInt(matchAmpm[1]);
+    const m = parseInt(matchAmpm[2]);
+    const ampm = matchAmpm[3].toUpperCase();
+    if (ampm === 'PM' && h < 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return h * 60 + m;
+  }
+  // Try 24h
+  const match24 = t.match(/(\d+):(\d+)/);
+  if (match24) {
+    return parseInt(match24[1]) * 60 + parseInt(match24[2]);
+  }
+  return 0;
+}
+
+function isTimeRangeValid(start: string | null, end: string | null) {
+  if (!start || !end) return true;
+  return parseTimeMin(end) > parseTimeMin(start);
+}
+
+const isOverrideFormValid = computed(() => {
+  if (!selectedOverrideProviderId.value) return false;
+  if (overrideSchedulingMode.value === 'Fixed Slots') return overrideSlots.value.length > 0;
+  if (overrideSchedulingMode.value === 'Standard') {
+    if (overDateRangeStart.value && overDateRangeEnd.value && overDateRangeEnd.value < overDateRangeStart.value) return false;
+    return true;
+  }
+  return true;
+});
+
+const isSvcFormValid = computed(() => {
+  if (!svcName.value) return false;
+  if (svcSchedulingMode.value === 'Standard') {
+    if (svcDateRangeStart.value && svcDateRangeEnd.value && svcDateRangeEnd.value < svcDateRangeStart.value) return false;
+  }
+  return true;
+});
 
 const assignedProviders = computed(() => {
   return providers.value.filter(p => svcAssignedProviderIds.value.includes(p.id))
@@ -426,7 +477,8 @@ function saveOverride() {
   svcProviderAvailability.value[selectedOverrideProviderId.value] = {
     schedulingMode: overrideSchedulingMode.value,
     availableSlots: JSON.parse(JSON.stringify(overrideSlots.value)),
-    dateRange: { start: overDateRangeStart.value, end: overDateRangeEnd.value }
+    dateRange: { start: overDateRangeStart.value, end: overDateRangeEnd.value },
+    timeRange: { start: overTimeRangeStart.value, end: overTimeRangeEnd.value }
   }
   selectedOverrideProviderId.value = null
   snackbarText.value = 'Override saved (apply changes to save permanently)'
@@ -442,6 +494,8 @@ watch(selectedOverrideProviderId, (id) => {
     overrideSlots.value = JSON.parse(JSON.stringify(ov.availableSlots || []))
     overDateRangeStart.value = ov.dateRange?.start || null
     overDateRangeEnd.value = ov.dateRange?.end || null
+    overTimeRangeStart.value = ov.timeRange?.start || null
+    overTimeRangeEnd.value = ov.timeRange?.end || null
   }
 })
 
@@ -516,6 +570,8 @@ function cancelEdit() {
   svcTimeRangeEnd.value = null
   svcProviderAvailability.value = {}
   selectedOverrideProviderId.value = null
+  overTimeRangeStart.value = null
+  overTimeRangeEnd.value = null
   nextTick(() => {
     if (serviceForm.value) serviceForm.value.resetValidation()
   })

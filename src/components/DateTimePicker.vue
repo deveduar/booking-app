@@ -221,32 +221,23 @@
     const currentTime = now.getHours() * 60 + now.getMinutes();
 
     return times.filter(t => {
+      const tMin = parseTimeMin(t);
       // Past time block
       if (internalDateStr.value === todayStr) {
-        // Parse "HH:MM AM/PM"
-        const match = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
-        if (match) {
-          let h = parseInt(match[1]);
-          const m = parseInt(match[2]);
-          const ampm = match[3].toUpperCase();
-          if (ampm === 'PM' && h < 12) h += 12;
-          if (ampm === 'AM' && h === 12) h = 0;
-          if (h * 60 + m < currentTime) return false;
-        }
+        if (tMin < currentTime) return false;
       }
 
-      // Range block (simple alphabetical comparison for HH:MM format might be tricky if not padded, 
-      // but assuming consistent format from Admin)
-      if (props.timeRange?.start && t < props.timeRange.start) return false;
-      if (props.timeRange?.end && t > props.timeRange.end) return false;
+      // Range block
+      if (props.timeRange?.start && tMin < parseTimeMin(props.timeRange.start)) return false;
+      if (props.timeRange?.end && tMin > parseTimeMin(props.timeRange.end)) return false;
       
       return true;
     });
   });
 
-  const parseTimeStr = (t: string) => {
-    if (!t) return { h: 0, m: 0 };
-    // Try matching with AM/PM (e.g., 09:00 AM)
+  function parseTimeMin(t: string | null) {
+    if (!t) return 0;
+    // Try AM/PM
     const matchAmpm = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (matchAmpm) {
       let h = parseInt(matchAmpm[1]);
@@ -254,34 +245,41 @@
       const ampm = matchAmpm[3].toUpperCase();
       if (ampm === 'PM' && h < 12) h += 12;
       if (ampm === 'AM' && h === 12) h = 0;
-      return { h, m };
+      return h * 60 + m;
     }
-    // Try matching HH:mm 24h (e.g., 14:30)
+    // Try 24h
     const match24 = t.match(/(\d+):(\d+)/);
     if (match24) {
-      return { h: parseInt(match24[1]), m: parseInt(match24[2]) };
+      return parseInt(match24[1]) * 60 + parseInt(match24[2]);
     }
-    return { h: 0, m: 0 };
-  };
+    return 0;
+  }
 
   const allowedHours = (hour: number) => {
-    if (!props.timeRange?.start || !props.timeRange?.end) return true;
-    const start = parseTimeStr(props.timeRange.start);
-    const end = parseTimeStr(props.timeRange.end);
-    return hour >= start.h && hour <= end.h;
+    if (!props.timeRange) return true;
+    const start = props.timeRange.start ? parseTimeMin(props.timeRange.start) : 0;
+    const end = props.timeRange.end ? parseTimeMin(props.timeRange.end) : 1439; // 23:59
+    const startH = Math.floor(start / 60);
+    const endH = Math.floor(end / 60);
+    return hour >= startH && hour <= endH;
   };
 
   const allowedMinutes = (min: number) => {
-    if (!props.timeRange?.start || !props.timeRange?.end || selectedTime.value === '') return true;
+    if (!props.timeRange || selectedTime.value === '') return true;
     
     // We need to know the current hour being selected in the picker.
-    // v-time-picker v-model is the selectedTime string.
-    const current = parseTimeStr(selectedTime.value);
-    const start = parseTimeStr(props.timeRange.start);
-    const end = parseTimeStr(props.timeRange.end);
+    const current = parseTimeMin(selectedTime.value);
+    const currentH = Math.floor(current / 60);
+    const start = props.timeRange.start ? parseTimeMin(props.timeRange.start) : 0;
+    const end = props.timeRange.end ? parseTimeMin(props.timeRange.end) : 1439;
+    const startH = Math.floor(start / 60);
+    const endH = Math.floor(end / 60);
+    const startM = start % 60;
+    const endM = end % 60;
 
-    if (current.h === start.h) return min >= start.m;
-    if (current.h === end.h) return min <= end.m;
+    if (currentH === startH && currentH === endH) return min >= startM && min <= endM;
+    if (currentH === startH) return min >= startM;
+    if (currentH === endH) return min <= endM;
     return true;
   };
 
