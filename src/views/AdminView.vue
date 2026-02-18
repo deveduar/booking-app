@@ -114,6 +114,7 @@
                         @update:date="newSlotDate = $event"
                         @update:time="newSlotTime = $event"
                         :duration="svcDuration || undefined"
+                        scheduling-mode="Fixed Slots"
                       />
                     </v-col>
                     <v-col cols="12" class="d-flex justify-end">
@@ -135,22 +136,22 @@
                   <v-row dense>
                     <v-col cols="12" sm="6">
                       <div class="text-caption">Start Date</div>
-                      <DateTimePicker :date="svcDateRangeStart" :time="null" hideTime @update:date="svcDateRangeStart = $event" />
+                      <DateTimePicker :date="svcDateRangeStart" :time="null" hideTime scheduling-mode="Standard" @update:date="svcDateRangeStart = $event" />
                     </v-col>
                     <v-col cols="12" sm="6">
                       <div class="text-caption">End Date</div>
-                      <DateTimePicker :date="svcDateRangeEnd" :time="null" hideTime @update:date="svcDateRangeEnd = $event" />
+                      <DateTimePicker :date="svcDateRangeEnd" :time="null" hideTime scheduling-mode="Standard" @update:date="svcDateRangeEnd = $event" />
                     </v-col>
                     <v-col v-if="svcDateRangeStart && svcDateRangeEnd && svcDateRangeEnd < svcDateRangeStart" cols="12" class="mt-0">
                       <div class="text-caption text-error">End date must be after start date</div>
                     </v-col>
                     <v-col cols="12" sm="3">
                       <div class="text-caption">Start Time</div>
-                      <DateTimePicker :date="null" :time="svcTimeRangeStart" hideDate :duration="svcDuration || undefined" :time-range="{ start: null, end: svcTimeRangeEnd }" @update:time="svcTimeRangeStart = $event" />
+                      <DateTimePicker :date="null" :time="svcTimeRangeStart" hideDate :duration="svcDuration || undefined" :time-range="{ start: null, end: svcTimeRangeEnd }" scheduling-mode="Standard" @update:time="svcTimeRangeStart = $event" />
                     </v-col>
                     <v-col cols="12" sm="3">
                       <div class="text-caption">End Time</div>
-                      <DateTimePicker :date="null" :time="svcTimeRangeEnd" hideDate :duration="svcDuration || undefined" :time-range="{ start: svcTimeRangeStart, end: null }" @update:time="svcTimeRangeEnd = $event" />
+                      <DateTimePicker :date="null" :time="svcTimeRangeEnd" hideDate :duration="svcDuration || undefined" :time-range="{ start: svcTimeRangeStart, end: null }" scheduling-mode="Standard" @update:time="svcTimeRangeEnd = $event" />
                     </v-col>
                   </v-row>
                 </v-col>
@@ -199,7 +200,7 @@
                        <v-row dense class="align-center mt-1">
                         <v-col cols="12">
                           <DateTimePicker
-                            :date="overDate"
+                            :date="overDate" scheduling-mode="Fixed Slots"
                             :time="overTime"
                             @update:date="overDate = $event"
                             @update:time="overTime = $event"
@@ -213,10 +214,10 @@
 
                     <div v-if="overrideSchedulingMode === 'Standard'">
                       <v-row dense>
-                        <v-col cols="12" sm="6"><div class="text-caption">Start Date</div><DateTimePicker :date="overDateRangeStart" :time="null" hideTime @update:date="overDateRangeStart = $event" /></v-col>
-                        <v-col cols="12" sm="6"><div class="text-caption">End Date</div><DateTimePicker :date="overDateRangeEnd" :time="null" hideTime @update:date="overDateRangeEnd = $event" /></v-col>
-                        <v-col cols="12" sm="6"><div class="text-caption">Start Time</div><DateTimePicker :date="null" :time="overTimeRangeStart" hideDate :duration="svcDuration || undefined" :time-range="{ start: null, end: overTimeRangeEnd }" @update:time="overTimeRangeStart = $event" /></v-col>
-                        <v-col cols="12" sm="6"><div class="text-caption">End Time</div><DateTimePicker :date="null" :time="overTimeRangeEnd" hideDate :duration="svcDuration || undefined" :time-range="{ start: overTimeRangeStart, end: null }" @update:time="overTimeRangeEnd = $event" /></v-col>
+                        <v-col cols="12" sm="6"><div class="text-caption">Start Date</div><DateTimePicker :date="overDateRangeStart" :time="null" hideTime scheduling-mode="Standard" @update:date="overDateRangeStart = $event" /></v-col>
+                        <v-col cols="12" sm="6"><div class="text-caption">End Date</div><DateTimePicker :date="overDateRangeEnd" :time="null" hideTime scheduling-mode="Standard" @update:date="overDateRangeEnd = $event" /></v-col>
+                        <v-col cols="12" sm="6"><div class="text-caption">Start Time</div><DateTimePicker :date="null" :time="overTimeRangeStart" hideDate :duration="svcDuration || undefined" :time-range="{ start: null, end: overTimeRangeEnd }" scheduling-mode="Standard" @update:time="overTimeRangeStart = $event" /></v-col>
+                        <v-col cols="12" sm="6"><div class="text-caption">End Time</div><DateTimePicker :date="null" :time="overTimeRangeEnd" hideDate :duration="svcDuration || undefined" :time-range="{ start: overTimeRangeStart, end: null }" scheduling-mode="Standard" @update:time="overTimeRangeEnd = $event" /></v-col>
                       </v-row>
                     </div>
 
@@ -473,13 +474,17 @@ function addOverrideSlot() {
 }
 
 function saveOverride() {
-  if (!selectedOverrideProviderId.value) return
+  if (!selectedOverrideProviderId.value) return;
+  
+  const mode = overrideSchedulingMode.value;
+  // Clean up data not relevant to the current mode
   svcProviderAvailability.value[selectedOverrideProviderId.value] = {
-    schedulingMode: overrideSchedulingMode.value,
-    availableSlots: JSON.parse(JSON.stringify(overrideSlots.value)),
-    dateRange: { start: overDateRangeStart.value, end: overDateRangeEnd.value },
-    timeRange: { start: overTimeRangeStart.value, end: overTimeRangeEnd.value }
+    schedulingMode: mode,
+    availableSlots: mode === 'Fixed Slots' ? JSON.parse(JSON.stringify(overrideSlots.value)) : [],
+    dateRange: mode === 'Standard' ? { start: overDateRangeStart.value, end: overDateRangeEnd.value } : { start: null, end: null },
+    timeRange: mode === 'Standard' ? { start: overTimeRangeStart.value, end: overTimeRangeEnd.value } : { start: null, end: null }
   }
+  
   selectedOverrideProviderId.value = null
   snackbarText.value = 'Override saved (apply changes to save permanently)'
   snackbarColor.value = 'info'

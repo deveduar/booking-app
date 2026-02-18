@@ -75,6 +75,7 @@
             :date-range="activeAvailability?.dateRange"
             :time-range="activeAvailability?.timeRange"
             :duration="selectedService?.duration"
+            :scheduling-mode="activeAvailability?.schedulingMode"
             @update:date="selectedDate = $event"
             @update:time="selectedTime = $event"
           />
@@ -148,11 +149,16 @@
     
     // Check for provider override
     if (providerId && service.providerAvailability && service.providerAvailability[providerId]) {
-      return service.providerAvailability[providerId];
+      const ov = service.providerAvailability[providerId];
+      return {
+        ...ov,
+        schedulingMode: ov.schedulingMode || service.schedulingMode
+      };
     }
     
     // Fallback to service defaults based on mode
     return {
+      schedulingMode: service.schedulingMode,
       availableSlots: service.schedulingMode === 'Fixed Slots' ? service.availableSlots : [],
       dateRange: service.schedulingMode === 'Standard' ? service.dateRange : undefined,
       timeRange: service.schedulingMode === 'Standard' ? service.timeRange : undefined

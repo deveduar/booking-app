@@ -3,7 +3,7 @@
       <v-col v-if="!hideDate" cols="12" :md="hideTime ? 12 : 6">
         <!-- If only one date is available, show as read-only text field -->
         <v-text-field
-          v-if="availableSlots && availableSlots.length === 1 && !hideDate"
+          v-if="schedulingMode === 'Fixed Slots' && availableSlots && availableSlots.length === 1 && !hideDate"
           :model-value="availableDates[0]"
           label="Date"
           prepend-inner-icon="$calendar"
@@ -14,7 +14,7 @@
         />
         <!-- Use v-select for restricted dates, otherwise v-date-input -->
         <v-select
-          v-else-if="availableSlots && availableSlots.length > 0"
+          v-else-if="schedulingMode === 'Fixed Slots' && availableSlots && availableSlots.length > 0"
           v-model="internalDateStr"
           :items="availableDates"
           label="Select a date"
@@ -41,7 +41,7 @@
       <v-col v-if="!hideTime" cols="12" :md="hideDate ? 12 : 6">
         <!-- If only one time is available for this date, show as read-only -->
         <v-text-field
-          v-if="allowedTimesForDate && allowedTimesForDate.length === 1"
+          v-if="schedulingMode === 'Fixed Slots' && allowedTimesForDate && allowedTimesForDate.length === 1"
           :model-value="allowedTimesForDate[0]"
           label="Time"
           prepend-inner-icon="mdi-clock-time-four-outline"
@@ -52,7 +52,7 @@
         />
         <!-- Use v-select ONLY for specific availableSlots -->
         <v-select
-          v-else-if="availableSlots && availableSlots.length > 0"
+          v-else-if="schedulingMode === 'Fixed Slots' && availableSlots && availableSlots.length > 0"
           v-model="selectedTime"
           :items="allowedTimesForDate || []"
           :disabled="!internalDateStr"
@@ -120,6 +120,7 @@
     duration?: number
     hideDate?: boolean
     hideTime?: boolean
+    schedulingMode?: 'Standard' | 'Fixed Slots'
   }>()
   const emit = defineEmits<{
     (e: 'update:date', v: string | null): void
