@@ -9,8 +9,10 @@
           </v-row>
   
           <!-- Selectores de servicio, proveedor, fecha y hora -->
+          <v-form ref="bookingForm">
           <v-row class="mt-3">
             <v-col cols="12" md="6">
+              <!-- Service selection remains as a dropdown for space efficiency -->
               <v-select
                 v-model="selectedServiceId"
                 :items="serviceItems"
@@ -20,21 +22,39 @@
                 variant="outlined"
                 bg-color="surface"
                 color="primary"
-                hide-details
+                :rules="[v => !!v || 'Service is required']"
               />
             </v-col>
-            <v-col cols="12" md="6">
-              <v-select
-                v-model="selectedProviderId"
-                :items="providerItems"
-                item-title="name"
-                item-value="id"
-                label="Select a provider"
-                variant="outlined"
-                bg-color="surface"
-                color="primary"
-                hide-details
-              />
+          </v-row>
+          
+          <!-- Visual Provider Selection -->
+          <v-row v-if="selectedServiceId" class="mt-4">
+            <v-col cols="12">
+              <div class="text-h6 font-weight-bold mb-3">Choose a Specialist</div>
+              <v-item-group v-model="selectedProviderId" mandatory>
+                <v-row dense>
+                  <v-col v-for="provider in providerItems" :key="provider.id" cols="6" sm="4" md="3">
+                    <v-item v-slot="{ isSelected, toggle }" :value="provider.id">
+                      <v-card
+                        :color="isSelected ? 'primary' : 'surface'"
+                        class="d-flex flex-column align-center pa-4 cursor-pointer"
+                        variant="outlined"
+                        @click="toggle"
+                      >
+                        <v-avatar size="80" class="mb-2">
+                          <v-img :src="provider.image" />
+                        </v-avatar>
+                        <div class="text-subtitle-1 font-weight-medium">{{ provider.name }}</div>
+                        <div class="text-caption opacity-70">{{ provider.status }}</div>
+                        <v-icon v-if="isSelected" icon="mdi-check-circle" color="white" class="mt-1" />
+                      </v-card>
+                    </v-item>
+                  </v-col>
+                </v-row>
+              </v-item-group>
+              <div v-if="providerItems.length === 0" class="text-error mt-2">
+                No specialists available for this service.
+              </div>
             </v-col>
           </v-row>
           <DateTimePicker
@@ -45,13 +65,6 @@
             @update:time="selectedTime = $event"
           />
   
-          <!-- Lista de proveedores -->
-          <v-row class="mt-5">
-            <v-col cols="12">
-              <h2 class="text-h6 font-weight-bold">Provider</h2>
-              <StylistList :providers="providers" />
-            </v-col>
-          </v-row>
   
           <!-- Botón de confirmación -->
           <v-row class="mt-5">
@@ -61,6 +74,7 @@
               </v-btn>
             </v-col>
           </v-row>
+          </v-form>
         </v-container>
 
         <v-snackbar
@@ -99,6 +113,7 @@
   const snackbar = ref(false);
   const snackbarText = ref('');
   
+  const bookingForm = ref<any>(null);
   const selectedServiceId = ref<number | null>(null);
   const selectedProviderId = ref<number | null>(null);
   const selectedDate = ref<string | null>(null);
@@ -137,7 +152,10 @@
 
       // If only one provider available and none selected, auto-select
       if (availableProviders.length === 1 && !selectedProviderId.value) {
-        selectedProviderId.value = availableProviders[0].id;
+        // Delay to allow mandatory group to init
+        setTimeout(() => {
+           selectedProviderId.value = availableProviders[0].id;
+        }, 50);
       }
     }
   });
@@ -163,7 +181,16 @@
     }
   });
 
-  function confirm() {
+  async function confirm() {
+    const { valid } = await bookingForm.value.validate();
+    if (!valid) return;
+
+    if (!selectedDate.value || !selectedTime.value) {
+      snackbarText.value = 'Please select a date and time';
+      snackbar.value = true;
+      return;
+    }
+
     const service = servicesStore.getById(selectedServiceId.value as number);
     const provider = providers.value.find(p => p.id === selectedProviderId.value);
     if (!service || !provider || !selectedDate.value || !selectedTime.value) return;

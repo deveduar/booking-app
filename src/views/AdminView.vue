@@ -47,13 +47,13 @@
         <v-card>
           <v-card-title>Services</v-card-title>
           <v-card-text>
-            <v-form @submit.prevent="addService">
+            <v-form ref="serviceForm" @submit.prevent="addService">
               <v-row dense>
-                <v-col cols="12"><v-text-field v-model="svcName" label="Name" required /></v-col>
-                <v-col cols="12"><v-text-field v-model="svcDescription" label="Description" /></v-col>
-                <v-col cols="6"><v-text-field v-model.number="svcPrice" label="Price" type="number" /></v-col>
-                <v-col cols="6"><v-text-field v-model.number="svcDuration" label="Duration (mins)" type="number" /></v-col>
-                <v-col cols="12"><v-text-field v-model="svcCategory" label="Category" /></v-col>
+                <v-col cols="12"><v-text-field v-model="svcName" label="Name" :rules="[v => !!v || 'Name is required']" required /></v-col>
+                <v-col cols="12"><v-text-field v-model="svcDescription" label="Description" :rules="[v => !!v || 'Description is required']" /></v-col>
+                <v-col cols="6"><v-text-field v-model.number="svcPrice" label="Price" type="number" :rules="[v => (v !== null && v !== undefined && v >= 0) || 'Price must be 0 or more']" /></v-col>
+                <v-col cols="6"><v-text-field v-model.number="svcDuration" label="Duration (mins)" type="number" :rules="[v => (v !== null && v !== undefined && v > 0) || 'Duration must be greater than 0']" /></v-col>
+                <v-col cols="12"><v-text-field v-model="svcCategory" label="Category" :rules="[v => !!v || 'Category is required']" /></v-col>
                 
                 <v-col cols="12">
                   <v-select
@@ -69,13 +69,40 @@
                 </v-col>
                 
                 <v-col cols="12">
-                  <div class="text-subtitle-2 mb-1">Defaults (Optional)</div>
-                   <DateTimePicker
-                    :date="svcDefaultDate"
-                    :time="svcDefaultTime"
-                    @update:date="svcDefaultDate = $event"
-                    @update:time="svcDefaultTime = $event"
-                  />
+                  <div class="text-subtitle-2 mb-1">Specific Availability (Unique Dates)</div>
+                  <v-alert v-if="svcAvailableSlots.length === 0" type="info" density="compact" variant="tonal" class="mb-2">
+                    No unique slots. Service will use default provider availability.
+                  </v-alert>
+                  <v-list v-else lines="one" density="compact">
+                    <v-list-item v-for="(slot, index) in svcAvailableSlots" :key="index">
+                      <v-list-item-title>{{ slot.date }} : {{ slot.times.join(', ') }}</v-list-item-title>
+                      <template #append>
+                        <v-btn icon="mdi-delete" size="x-small" variant="text" @click="removeSlot(index)" />
+                      </template>
+                    </v-list-item>
+                  </v-list>
+                  
+                  <v-row dense class="align-center mt-1">
+                    <v-col cols="12">
+                      <DateTimePicker
+                        :date="newSlotDate"
+                        :time="newSlotTime"
+                        @update:date="newSlotDate = $event"
+                        @update:time="newSlotTime = $event"
+                      />
+                    </v-col>
+                    <v-col cols="12" class="d-flex justify-end">
+                      <v-btn
+                        prepend-icon="mdi-plus"
+                        size="small"
+                        color="secondary"
+                        @click="addSlot"
+                        :disabled="!newSlotDate || !newSlotTime"
+                      >
+                        Add Slot
+                      </v-btn>
+                    </v-col>
+                  </v-row>
                 </v-col>
                </v-row>
               <v-btn type="submit" color="primary" class="mt-2" block>
@@ -105,10 +132,10 @@
         <v-card>
           <v-card-title>Providers</v-card-title>
           <v-card-text>
-            <v-form @submit.prevent="addProvider">
-              <v-text-field v-model="provName" label="Name" required />
-              <v-text-field v-model="provStatus" label="Status" />
-              <v-text-field v-model="provImage" label="Image URL" />
+            <v-form ref="providerForm" @submit.prevent="addProvider">
+              <v-text-field v-model="provName" label="Name" :rules="[v => !!v || 'Name is required']" required />
+              <v-text-field v-model="provStatus" label="Status" :rules="[v => !!v || 'Status is required']" />
+              <v-text-field v-model="provImage" label="Image URL (Experimental)" :rules="[v => !v || /^https?:\/\/.+/.test(v) || 'Must be a valid URL']" />
               <v-btn type="submit" color="primary" class="mt-2" block>Add Provider</v-btn>
             </v-form>
             <v-list class="mt-4">
@@ -183,7 +210,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useServicesStore } from '@/stores/services'
 import { useProvidersStore } from '@/stores/providers'
@@ -208,12 +235,36 @@ const svcDefaultProviderId = ref<number | null>(null)
 
 const svcDefaultDate = ref<string | null>(null)
 const svcDefaultTime = ref<string | null>(null)
+const svcAvailableSlots = ref<{ date: string, times: string[] }[]>([])
+
+const newSlotDate = ref<string | null>(null)
+const newSlotTime = ref<string | null>(null)
+
+function addSlot() {
+  if (!newSlotDate.value || !newSlotTime.value) return
+  const existing = svcAvailableSlots.value.find(s => s.date === newSlotDate.value)
+  if (existing) {
+    if (!existing.times.includes(newSlotTime.value)) {
+      existing.times.push(newSlotTime.value)
+    }
+  } else {
+    svcAvailableSlots.value.push({ date: newSlotDate.value, times: [newSlotTime.value] })
+  }
+  newSlotDate.value = null
+  newSlotTime.value = null
+}
+
+function removeSlot(index: number) {
+  svcAvailableSlots.value.splice(index, 1)
+}
 
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
 
 const editingServiceId = ref<number | null>(null)
+const serviceForm = ref<any>(null)
+const providerForm = ref<any>(null)
 
 function editService(service: any) {
   editingServiceId.value = service.id
@@ -225,6 +276,7 @@ function editService(service: any) {
   svcDefaultProviderId.value = service.defaultProviderId || null
   svcDefaultDate.value = service.defaultDate || null
   svcDefaultTime.value = service.defaultTime || null
+  svcAvailableSlots.value = service.availableSlots ? JSON.parse(JSON.stringify(service.availableSlots)) : []
 }
 
 function cancelEdit() {
@@ -237,10 +289,15 @@ function cancelEdit() {
   svcDefaultProviderId.value = null
   svcDefaultDate.value = null
   svcDefaultTime.value = null
+  svcAvailableSlots.value = []
+  nextTick(() => {
+    if (serviceForm.value) serviceForm.value.resetValidation()
+  })
 }
 
-function addService() {
-  if (!svcName.value) return
+async function addService() {
+  const { valid } = await serviceForm.value.validate()
+  if (!valid) return
   
   const serviceData = {
     name: svcName.value,
@@ -251,7 +308,7 @@ function addService() {
     defaultDate: svcDefaultDate.value || undefined,
     defaultTime: svcDefaultTime.value || undefined,
     defaultProviderId: svcDefaultProviderId.value || undefined,
-    availableSlots: [],
+    availableSlots: svcAvailableSlots.value,
   }
 
   if (editingServiceId.value) {
@@ -284,8 +341,9 @@ const provName = ref('')
 const provStatus = ref('Available')
 const provImage = ref('')
 
-function addProvider() {
-  if (!provName.value) return
+async function addProvider() {
+  const { valid } = await providerForm.value.validate()
+  if (!valid) return
   providersStore.addProvider({
     name: provName.value,
     status: provStatus.value || 'Available',
@@ -295,6 +353,9 @@ function addProvider() {
   provName.value = ''
   provStatus.value = 'Available'
   provImage.value = ''
+  nextTick(() => {
+    if (providerForm.value) providerForm.value.resetValidation()
+  })
 }
 
 function removeProvider(id: number) {

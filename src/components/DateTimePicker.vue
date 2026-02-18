@@ -11,10 +11,26 @@
           bg-color="surface"
           hide-details
           color="primary"
+          hide-actions
         />
       </v-col>
       <v-col cols="12" md="6">
+        <!-- Use v-select for restricted times, otherwise v-text-field with v-time-picker -->
+        <v-select
+          v-if="availableSlots && availableSlots.length > 0"
+          v-model="selectedTime"
+          :items="allowedTimesForDate || []"
+          :disabled="!internalDate"
+          label="Select a time"
+          prepend-inner-icon="mdi-clock-time-four-outline"
+          bg-color="surface"
+          color="primary"
+          variant="outlined"
+          hide-details
+          :placeholder="!internalDate ? 'Select a date first' : 'Select a time'"
+        />
         <v-text-field
+          v-else
           v-model="selectedTime"
           :active="menu2"
           :focus="menu2"
@@ -115,11 +131,21 @@
     return slot ? slot.times : [];
   });
 
-  watch(selectedTime, v => emit('update:time', v || null));
-  
+  // Sync time to parent
+  watch(selectedTime, v => {
+    if (v !== props.time) {
+      emit('update:time', v || null);
+    }
+  });
+
+  // Sync time from props
+  watch(() => props.time, v => { if (v !== selectedTime.value) selectedTime.value = v ?? '' });
+
+  // Sync date from internalDate to parent
   watch(internalDate, (newVal) => {
     let dateStr: string | null = null;
     if (newVal) {
+      // Create date string in YYYY-MM-DD format, handling timezones
       const y = newVal.getFullYear();
       const m = String(newVal.getMonth() + 1).padStart(2, '0');
       const d = String(newVal.getDate()).padStart(2, '0');
@@ -131,11 +157,9 @@
     }
     
     // Reset time if it's no longer valid for the new date
+    // Important: Only reset if there ARE restricted times
     if (allowedTimesForDate.value && selectedTime.value && !allowedTimesForDate.value.includes(selectedTime.value)) {
       selectedTime.value = '';
     }
   });
-
-  // Sync time from props
-  watch(() => props.time, v => { if (v !== selectedTime.value) selectedTime.value = v ?? '' });
   </script>
