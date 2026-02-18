@@ -31,8 +31,6 @@ export const servicesData: Service[] = [
         duration: 180,
         category: 'Coloring',
         schedulingMode: 'Fixed Slots',
-        defaultDate: '2025-06-15',
-        defaultTime: '10:00 AM',
         defaultProviderId: 1, // Alexa
         availableSlots: [
             { date: '2025-06-15', times: ['10:00 AM', '2:00 PM'] },

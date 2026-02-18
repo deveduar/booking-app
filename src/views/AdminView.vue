@@ -64,8 +64,24 @@
 
                 <v-col cols="12">
                   <v-select
-                    v-model="svcDefaultProviderId"
+                    v-model="svcAssignedProviderIds"
                     :items="providers"
+                    item-title="name"
+                    item-value="id"
+                    label="Assigned Specialists"
+                    multiple
+                    chips
+                    closable-chips
+                    variant="outlined"
+                    density="compact"
+                    :rules="[v => (v && v.length > 0) || 'Assign at least one specialist']"
+                  />
+                </v-col>
+
+                <v-col cols="12">
+                  <v-select
+                    v-model="svcDefaultProviderId"
+                    :items="assignedProviders"
                     item-title="name"
                     item-value="id"
                     label="Default Provider (Optional)"
@@ -75,17 +91,6 @@
                   />
                 </v-col>
 
-                <v-col cols="12">
-                  <div class="text-subtitle-2 mb-1">Service Defaults (Optional)</div>
-                  <DateTimePicker
-                    :date="svcDefaultDate"
-                    :time="svcDefaultTime"
-                    :date-range="{ start: svcDateRangeStart, end: svcDateRangeEnd }"
-                    :time-range="{ start: svcTimeRangeStart, end: svcTimeRangeEnd }"
-                    @update:date="svcDefaultDate = $event"
-                    @update:time="svcDefaultTime = $event"
-                  />
-                </v-col>
                 
                 <v-col v-if="svcSchedulingMode === 'Fixed Slots'" cols="12">
                   <div class="text-subtitle-2 mb-1">Specific Availability (Unique Dates)</div>
@@ -108,6 +113,7 @@
                         :time="newSlotTime"
                         @update:date="newSlotDate = $event"
                         @update:time="newSlotTime = $event"
+                        :duration="svcDuration || undefined"
                       />
                     </v-col>
                     <v-col cols="12" class="d-flex justify-end">
@@ -137,11 +143,11 @@
                     </v-col>
                     <v-col cols="12" sm="6">
                       <div class="text-caption">Start Time</div>
-                      <DateTimePicker :date="null" :time="svcTimeRangeStart" hideDate @update:time="svcTimeRangeStart = $event" />
+                      <DateTimePicker :date="null" :time="svcTimeRangeStart" hideDate :duration="svcDuration || undefined" @update:time="svcTimeRangeStart = $event" />
                     </v-col>
                     <v-col cols="12" sm="6">
                       <div class="text-caption">End Time</div>
-                      <DateTimePicker :date="null" :time="svcTimeRangeEnd" hideDate @update:time="svcTimeRangeEnd = $event" />
+                      <DateTimePicker :date="null" :time="svcTimeRangeEnd" hideDate :duration="svcDuration || undefined" @update:time="svcTimeRangeEnd = $event" />
                     </v-col>
                   </v-row>
                 </v-col>
@@ -168,7 +174,7 @@
                     </v-col>
                   </v-row>
 
-                  <div v-if="selectedOverrideProviderId" class="pa-4 bg-grey-lighten-4 rounded-lg">
+                  <div v-if="selectedOverrideProviderId" class="pa-4 bg-surface-variant rounded-lg border">
                     <div class="text-subtitle-2 mb-2">Override for {{ overrideProviderName }}</div>
                     
                     <v-radio-group v-model="overrideSchedulingMode" label="Override Mode" inline>
@@ -243,8 +249,7 @@
               <v-list-item v-for="s in services" :key="s.id">
                 <v-list-item-title>{{ s.name }} · {{ s.category }}</v-list-item-title>
                 <v-list-item-subtitle>
-                  \${{ (Number(s.price) || 0).toFixed(2) }} · {{ Number(s.duration) || 0 }} mins
-                  <div v-if="s.defaultDate" class="text-caption text-primary">Default: {{ s.defaultDate }} {{ s.defaultTime }}</div>
+                  ${{ (Number(s.price) || 0).toFixed(2) }} · {{ Number(s.duration) || 0 }} mins
                 </v-list-item-subtitle>
                  <template #append>
                   <v-btn icon="mdi-pencil" variant="text" @click="editService(s)" />
@@ -362,9 +367,7 @@ const svcDuration = ref<number | null>(null)
 const svcCategory = ref('')
 const svcSchedulingMode = ref<'Standard' | 'Fixed Slots'>('Standard')
 const svcDefaultProviderId = ref<number | null>(null)
-
-const svcDefaultDate = ref<string | null>(null)
-const svcDefaultTime = ref<string | null>(null)
+const svcAssignedProviderIds = ref<number[]>([])
 const svcAvailableSlots = ref<{ date: string, times: string[] }[]>([])
 
 const now = new Date()
@@ -386,8 +389,7 @@ const overDateRangeStart = ref<string | null>(null)
 const overDateRangeEnd = ref<string | null>(null)
 
 const assignedProviders = computed(() => {
-  if (!editingServiceId.value) return []
-  return providers.value.filter(p => p.serviceIds.includes(editingServiceId.value as number))
+  return providers.value.filter(p => svcAssignedProviderIds.value.includes(p.id))
 })
 
 const overrideProviderName = computed(() => {
@@ -476,8 +478,9 @@ function editService(service: any) {
   svcCategory.value = service.category
   svcSchedulingMode.value = service.schedulingMode || 'Standard'
   svcDefaultProviderId.value = service.defaultProviderId || null
-  svcDefaultDate.value = service.defaultDate || null
-  svcDefaultTime.value = service.defaultTime || null
+  svcAssignedProviderIds.value = providers.value
+    .filter(p => p.serviceIds.includes(service.id))
+    .map(p => p.id)
   svcAvailableSlots.value = service.availableSlots ? JSON.parse(JSON.stringify(service.availableSlots)) : []
   svcDateRangeStart.value = service.dateRange?.start || null
   svcDateRangeEnd.value = service.dateRange?.end || null
@@ -495,8 +498,7 @@ function cancelEdit() {
   svcCategory.value = ''
   svcSchedulingMode.value = 'Standard'
   svcDefaultProviderId.value = null
-  svcDefaultDate.value = null
-  svcDefaultTime.value = null
+  svcAssignedProviderIds.value = []
   svcAvailableSlots.value = []
   svcDateRangeStart.value = null
   svcDateRangeEnd.value = null
@@ -520,8 +522,6 @@ async function addService() {
     duration: Number(svcDuration.value ?? 0),
     category: svcCategory.value || 'General',
     schedulingMode: svcSchedulingMode.value,
-    defaultDate: svcDefaultDate.value || undefined,
-    defaultTime: svcDefaultTime.value || undefined,
     defaultProviderId: svcDefaultProviderId.value || undefined,
     availableSlots: svcAvailableSlots.value,
     dateRange: { start: svcDateRangeStart.value, end: svcDateRangeEnd.value },
@@ -531,17 +531,20 @@ async function addService() {
 
   if (editingServiceId.value) {
     servicesStore.updateService(editingServiceId.value, serviceData)
+    providersStore.toggleServiceAssignment(editingServiceId.value, svcAssignedProviderIds.value)
     if (serviceData.defaultProviderId) {
       providersStore.assignService(serviceData.defaultProviderId, editingServiceId.value)
     }
     snackbarText.value = 'Service updated successfully!'
   } else {
     // We need the ID of the new service to assign it to provider
-    // servicesStore.addService returns nothing, but we can find the new max ID
     servicesStore.addService(serviceData)
     const newService = services.value[services.value.length - 1]
-    if (serviceData.defaultProviderId && newService) {
-      providersStore.assignService(serviceData.defaultProviderId, newService.id)
+    if (newService) {
+      providersStore.toggleServiceAssignment(newService.id, svcAssignedProviderIds.value)
+      if (serviceData.defaultProviderId) {
+        providersStore.assignService(serviceData.defaultProviderId, newService.id)
+      }
     }
     snackbarText.value = 'Service added successfully!'
   }

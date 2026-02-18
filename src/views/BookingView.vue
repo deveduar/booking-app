@@ -63,6 +63,7 @@
             :available-slots="activeAvailability?.availableSlots"
             :date-range="activeAvailability?.dateRange"
             :time-range="activeAvailability?.timeRange"
+            :duration="selectedService?.duration"
             @update:date="selectedDate = $event"
             @update:time="selectedTime = $event"
           />
@@ -149,30 +150,72 @@
   
   const canSubmit = computed(() => !!(selectedServiceId.value && selectedProviderId.value && selectedDate.value && selectedTime.value));
   
+  // Watch for availability changes to Auto-Select earliest
+  watch(() => activeAvailability.value, (avail) => {
+    if (!avail) return;
+
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const currentTimeMin = now.getHours() * 60 + now.getMinutes();
+
+    let earliestDate: string | null = null;
+    let earliestTime: string | null = null;
+
+    if (avail.availableSlots && avail.availableSlots.length > 0) {
+      // Find earliest date >= today
+      const sortedSlots = [...avail.availableSlots].sort((a, b) => a.date.localeCompare(b.date));
+      const validSlot = sortedSlots.find(s => s.date >= todayStr);
+      if (validSlot) {
+        earliestDate = validSlot.date;
+        // If today, filter times
+        if (validSlot.date === todayStr) {
+          const parse = (t: string) => {
+            const match = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (!match) return 0;
+            let h = parseInt(match[1]);
+            const m = parseInt(match[2]);
+            const ampm = match[3].toUpperCase();
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            return h * 60 + m;
+          };
+          earliestTime = validSlot.times.find(t => parse(t) > currentTimeMin) || validSlot.times[0];
+        } else {
+          earliestTime = validSlot.times[0];
+        }
+      }
+    } else if (avail.dateRange?.start) {
+      // Range based
+      earliestDate = avail.dateRange.start >= todayStr ? avail.dateRange.start : todayStr;
+      
+      if (avail.timeRange?.start) {
+        // If generated slots logic matches DateTimePicker, we just pick start time
+        // but if today we might need to skip past times.
+        // For simplicity:
+        earliestTime = avail.timeRange.start;
+      }
+    }
+
+    if (earliestDate && (!selectedDate.value || selectedServiceId.value)) {
+        selectedDate.value = earliestDate;
+    }
+    if (earliestTime && (!selectedTime.value || selectedServiceId.value)) {
+        selectedTime.value = earliestTime;
+    }
+  }, { deep: true });
+
   // Watch for service changes to Reset or auto-select provider
   watch(selectedServiceId, (newId, oldId) => {
     if (newId && newId !== oldId) {
-      const service = servicesStore.getById(newId);
       const availableProviders = providersStore.getByService(newId);
       
-      // Apply defaults from service only if not already set by manual selection
-      if (service) {
-        if (service.defaultDate && (!selectedDate.value || oldId === null)) selectedDate.value = service.defaultDate;
-        if (service.defaultTime && (!selectedTime.value || oldId === null)) selectedTime.value = service.defaultTime;
-        if (service.defaultProviderId && (!selectedProviderId.value || oldId === null)) {
-            selectedProviderId.value = service.defaultProviderId;
-        }
-      }
-
       // If current provider is NOT valid for this service, reset it
-      // UNLESS we just set it from default or query
       if (selectedProviderId.value && !availableProviders.find(p => p.id === selectedProviderId.value)) {
         selectedProviderId.value = null;
       }
 
       // If only one provider available and none selected, auto-select
       if (availableProviders.length === 1 && !selectedProviderId.value) {
-        // Delay to allow mandatory group to init
         setTimeout(() => {
            selectedProviderId.value = availableProviders[0].id;
         }, 50);

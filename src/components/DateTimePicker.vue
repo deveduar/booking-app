@@ -28,19 +28,19 @@
         />
       </v-col>
       <v-col v-if="!hideTime" cols="12" :md="hideDate ? 12 : 6">
-        <!-- Use v-select for restricted times, otherwise v-text-field with v-time-picker -->
+        <!-- Use v-select ONLY for specific availableSlots -->
         <v-select
           v-if="availableSlots && availableSlots.length > 0"
           v-model="selectedTime"
           :items="allowedTimesForDate || []"
-          :disabled="!internalDate"
+          :disabled="!internalDateStr"
           label="Select a time"
           prepend-inner-icon="mdi-clock-time-four-outline"
           bg-color="surface"
           color="primary"
           variant="outlined"
           hide-details
-          :placeholder="!internalDate ? 'Select a date first' : 'Select a time'"
+          :placeholder="!internalDateStr ? 'Select a date first' : 'Select a time'"
         />
         <v-text-field
           v-else
@@ -66,6 +66,8 @@
             <v-time-picker
               v-if="menu2"
               v-model="selectedTime"
+              :allowed-hours="allowedHours"
+              :allowed-minutes="allowedMinutes"
               full-width
             />
           </v-menu>
@@ -93,6 +95,7 @@
     availableSlots?: AvailabilitySlot[]
     dateRange?: Range
     timeRange?: Range
+    duration?: number
     hideDate?: boolean
     hideTime?: boolean
   }>()
@@ -185,12 +188,36 @@
       const slot = props.availableSlots.find(s => s.date === internalDateStr.value);
       if (!slot) return [];
       times = slot.times;
+    } else if (props.timeRange?.start && props.timeRange?.end && props.duration) {
+      // Generate slots from range and duration
+      const parse = (t: string) => {
+        const match = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (!match) return 0;
+        let h = parseInt(match[1]);
+        const m = parseInt(match[2]);
+        const ampm = match[3].toUpperCase();
+        if (ampm === 'PM' && h < 12) h += 12;
+        if (ampm === 'AM' && h === 12) h = 0;
+        return h * 60 + m;
+      };
+      
+      const format = (mTotal: number) => {
+        let h = Math.floor(mTotal / 60);
+        const m = mTotal % 60;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        if (h === 0) h = 12;
+        return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+      };
+
+      const startMin = parse(props.timeRange.start);
+      const endMin = parse(props.timeRange.end);
+      const dur = props.duration;
+      
+      for (let cur = startMin; cur + dur <= endMin; cur += 30) { // Step by 30 mins or duration? User said duration but 30 is common. Let's use 30 for options, but ensures total < end.
+        times.push(format(cur));
+      }
     } else {
-      // Default set of times if no specific slots, but ranges might apply
-      // For now, if no slots, we don't return a restricted list unless ranges are active
-      if (!props.timeRange?.start && !props.timeRange?.end) return null;
-      // If ranges active, could define a set of steps. For now, we'll keep it simple:
-      // if no slots, we allow anything (handled by time picker), but if slots exist we restrict.
       return null;
     }
 
@@ -221,6 +248,47 @@
       return true;
     });
   });
+
+  const parseTimeStr = (t: string) => {
+    if (!t) return { h: 0, m: 0 };
+    // Try matching with AM/PM (e.g., 09:00 AM)
+    const matchAmpm = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (matchAmpm) {
+      let h = parseInt(matchAmpm[1]);
+      const m = parseInt(matchAmpm[2]);
+      const ampm = matchAmpm[3].toUpperCase();
+      if (ampm === 'PM' && h < 12) h += 12;
+      if (ampm === 'AM' && h === 12) h = 0;
+      return { h, m };
+    }
+    // Try matching HH:mm 24h (e.g., 14:30)
+    const match24 = t.match(/(\d+):(\d+)/);
+    if (match24) {
+      return { h: parseInt(match24[1]), m: parseInt(match24[2]) };
+    }
+    return { h: 0, m: 0 };
+  };
+
+  const allowedHours = (hour: number) => {
+    if (!props.timeRange?.start || !props.timeRange?.end) return true;
+    const start = parseTimeStr(props.timeRange.start);
+    const end = parseTimeStr(props.timeRange.end);
+    return hour >= start.h && hour <= end.h;
+  };
+
+  const allowedMinutes = (min: number) => {
+    if (!props.timeRange?.start || !props.timeRange?.end || selectedTime.value === '') return true;
+    
+    // We need to know the current hour being selected in the picker.
+    // v-time-picker v-model is the selectedTime string.
+    const current = parseTimeStr(selectedTime.value);
+    const start = parseTimeStr(props.timeRange.start);
+    const end = parseTimeStr(props.timeRange.end);
+
+    if (current.h === start.h) return min >= start.m;
+    if (current.h === end.h) return min <= end.m;
+    return true;
+  };
 
   // Sync time to parent
   watch(selectedTime, v => {

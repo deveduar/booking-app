@@ -49,6 +49,19 @@ export const useProvidersStore = defineStore('providers', () => {
     }
   }
 
+  function toggleServiceAssignment(serviceId: number, providerIds: number[]) {
+    providers.value.forEach(p => {
+      const isAssigned = providerIds.includes(p.id)
+      const hasService = p.serviceIds.includes(serviceId)
+
+      if (isAssigned && !hasService) {
+        p.serviceIds.push(serviceId)
+      } else if (!isAssigned && hasService) {
+        p.serviceIds = p.serviceIds.filter(id => id !== serviceId)
+      }
+    })
+  }
+
   return {
     providers,
     setProviders,
@@ -56,5 +69,6 @@ export const useProvidersStore = defineStore('providers', () => {
     removeProvider,
     getByService,
     assignService,
+    toggleServiceAssignment,
   }
 })
