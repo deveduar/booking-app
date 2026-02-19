@@ -43,15 +43,22 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
     const availableDates = computed(() => {
         if (!props.availableSlots || props.availableSlots.length === 0) return [];
         const todayStr = getTodayStr();
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
 
         return props.availableSlots
-            .map(s => s.date)
-            .filter(d => {
-                if (d < todayStr) return false;
-                if (props.dateRange?.start && d < props.dateRange.start) return false;
-                if (props.dateRange?.end && d > props.dateRange.end) return false;
+            .filter(s => {
+                if (s.date < todayStr) return false;
+                if (props.dateRange?.start && s.date < props.dateRange.start) return false;
+                if (props.dateRange?.end && s.date > props.dateRange.end) return false;
+
+                // Today check: must have at least one future time
+                if (s.date === todayStr) {
+                    return s.times.some(t => parseTimeMin(t) >= currentTime);
+                }
                 return true;
-            });
+            })
+            .map(s => s.date);
     });
 
     /**
@@ -119,6 +126,13 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
     });
 
     const allowedHours = (hour: number) => {
+        const todayStr = getTodayStr();
+        const now = new Date();
+        const currentH = now.getHours();
+
+        // Prevent picking past hours if today
+        if (internalDateStr.value === todayStr && hour < currentH) return false;
+
         if (!props.timeRange) return true;
         const start = props.timeRange.start ? parseTimeMin(props.timeRange.start) : 0;
         const end = props.timeRange.end ? parseTimeMin(props.timeRange.end) : 1439;
@@ -126,9 +140,20 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
     };
 
     const allowedMinutes = (min: number) => {
+        const todayStr = getTodayStr();
+        const now = new Date();
+        const currentM = now.getMinutes();
+        const currentH = now.getHours();
+
+        if (internalDateStr.value === todayStr && selectedTime.value) {
+            const pickedH = Math.floor(parseTimeMin(selectedTime.value) / 60);
+            if (pickedH < currentH) return false;
+            if (pickedH === currentH && min < currentM) return false;
+        }
+
         if (!props.timeRange || selectedTime.value === '') return true;
         const current = parseTimeMin(selectedTime.value);
-        const currentH = Math.floor(current / 60);
+        const pickedH = Math.floor(current / 60);
         const start = props.timeRange.start ? parseTimeMin(props.timeRange.start) : 0;
         const end = props.timeRange.end ? parseTimeMin(props.timeRange.end) : 1439;
         const startH = Math.floor(start / 60);
@@ -136,9 +161,9 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
         const startM = start % 60;
         const endM = end % 60;
 
-        if (currentH === startH && currentH === endH) return min >= startM && min <= endM;
-        if (currentH === startH) return min >= startM;
-        if (currentH === endH) return min <= endM;
+        if (pickedH === startH && pickedH === endH) return min >= startM && min <= endM;
+        if (pickedH === startH) return min >= startM;
+        if (pickedH === endH) return min <= endM;
         return true;
     };
 
