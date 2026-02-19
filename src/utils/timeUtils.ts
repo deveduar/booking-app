@@ -51,3 +51,12 @@ export function dateToYMD(date: Date): string {
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
 }
+
+/**
+ * Validates that the end time is after the start time.
+ */
+export function isTimeRangeValid(start: string | null, end: string | null): boolean {
+    if (!start || !end) return true;
+    return parseTimeMin(end) > parseTimeMin(start);
+}
+

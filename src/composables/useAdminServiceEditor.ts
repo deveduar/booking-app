@@ -1,0 +1,247 @@
+import { ref, computed, nextTick, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useServicesStore, type AvailabilityOverride } from '@/stores/services'
+import { useProvidersStore } from '@/stores/providers'
+import { isTimeRangeValid } from '@/utils/timeUtils'
+
+export function useAdminServiceEditor() {
+    const servicesStore = useServicesStore()
+    const { services } = storeToRefs(servicesStore)
+    const providersStore = useProvidersStore()
+    const { providers } = storeToRefs(providersStore)
+
+    // Service State
+    const svcName = ref('')
+    const svcDescription = ref('')
+    const svcPrice = ref<number | null>(null)
+    const svcDuration = ref<number | null>(null)
+    const svcCategory = ref('')
+    const svcSchedulingMode = ref<'Standard' | 'Fixed Slots'>('Standard')
+    const svcDefaultProviderId = ref<number | null>(null)
+    const svcAssignedProviderIds = ref<number[]>([])
+    const svcAvailableSlots = ref<{ date: string, times: string[] }[]>([])
+    const svcDateRangeStart = ref<string | null>(null)
+    const svcDateRangeEnd = ref<string | null>(null)
+    const svcTimeRangeStart = ref<string | null>(null)
+    const svcTimeRangeEnd = ref<string | null>(null)
+    const svcProviderAvailability = ref<{ [id: number]: AvailabilityOverride }>({})
+
+    // Override State
+    const selectedOverrideProviderId = ref<number | null>(null)
+    const overrideSchedulingMode = ref<'Standard' | 'Fixed Slots'>('Standard')
+    const overrideSlots = ref<{ date: string, times: string[] }[]>([])
+    const overDate = ref<string | null>(null)
+    const overTime = ref<string | null>(null)
+    const overDateRangeStart = ref<string | null>(null)
+    const overDateRangeEnd = ref<string | null>(null)
+    const overTimeRangeStart = ref<string | null>(null)
+    const overTimeRangeEnd = ref<string | null>(null)
+
+    // Form Validity
+    const isSvcFormValid = computed(() => {
+        if (!svcName.value) return false
+        if (svcSchedulingMode.value === 'Standard') {
+            if (svcDateRangeStart.value && svcDateRangeEnd.value && svcDateRangeEnd.value < svcDateRangeStart.value) return false
+        }
+        return true
+    })
+
+    const isOverrideFormValid = computed(() => {
+        if (!selectedOverrideProviderId.value) return false
+        if (overrideSchedulingMode.value === 'Fixed Slots') return overrideSlots.value.length > 0
+        if (overrideSchedulingMode.value === 'Standard') {
+            if (overDateRangeStart.value && overDateRangeEnd.value && overDateRangeEnd.value < overDateRangeStart.value) return false
+            return true
+        }
+        return true
+    })
+
+    // Computed Helpers
+    const assignedProviders = computed(() => {
+        return providers.value.filter(p => svcAssignedProviderIds.value.includes(p.id))
+    })
+
+    const overrideProviderName = computed(() => {
+        return providers.value.find(p => p.id === selectedOverrideProviderId.value)?.name || ''
+    })
+
+    // Methods
+    const editingServiceId = ref<number | null>(null)
+    const serviceForm = ref<any>(null)
+
+    function editService(service: any) {
+        editingServiceId.value = service.id
+        svcName.value = service.name
+        svcDescription.value = service.description
+        svcPrice.value = service.price
+        svcDuration.value = service.duration
+        svcCategory.value = service.category
+        svcSchedulingMode.value = service.schedulingMode || 'Standard'
+        svcDefaultProviderId.value = service.defaultProviderId || null
+        svcAssignedProviderIds.value = providers.value
+            .filter(p => p.serviceIds.includes(service.id))
+            .map(p => p.id)
+        svcAvailableSlots.value = service.availableSlots ? JSON.parse(JSON.stringify(service.availableSlots)) : []
+        svcDateRangeStart.value = service.dateRange?.start || null
+        svcDateRangeEnd.value = service.dateRange?.end || null
+        svcTimeRangeStart.value = service.timeRange?.start || null
+        svcTimeRangeEnd.value = service.timeRange?.end || null
+        svcProviderAvailability.value = service.providerAvailability ? JSON.parse(JSON.stringify(service.providerAvailability)) : {}
+    }
+
+    function cancelEdit() {
+        editingServiceId.value = null
+        svcName.value = ''
+        svcDescription.value = ''
+        svcPrice.value = null
+        svcDuration.value = null
+        svcCategory.value = ''
+        svcSchedulingMode.value = 'Standard'
+        svcDefaultProviderId.value = null
+        svcAssignedProviderIds.value = []
+        svcAvailableSlots.value = []
+        svcDateRangeStart.value = null
+        svcDateRangeEnd.value = null
+        svcTimeRangeStart.value = null
+        svcTimeRangeEnd.value = null
+        svcProviderAvailability.value = {}
+        selectedOverrideProviderId.value = null
+        overTimeRangeStart.value = null
+        overTimeRangeEnd.value = null
+        nextTick(() => {
+            if (serviceForm.value) serviceForm.value.resetValidation()
+        })
+    }
+
+    async function saveService() {
+        if (!serviceForm.value) return { success: false }
+        const { valid } = await serviceForm.value.validate()
+        if (!valid) return { success: false }
+
+        const serviceData = {
+            name: svcName.value,
+            description: svcDescription.value || '',
+            price: Number(svcPrice.value ?? 0),
+            duration: Number(svcDuration.value ?? 0),
+            category: svcCategory.value || 'General',
+            schedulingMode: svcSchedulingMode.value,
+            defaultProviderId: svcDefaultProviderId.value || undefined,
+            availableSlots: svcAvailableSlots.value,
+            dateRange: { start: svcDateRangeStart.value, end: svcDateRangeEnd.value },
+            timeRange: { start: svcTimeRangeStart.value, end: svcTimeRangeEnd.value },
+            providerAvailability: svcProviderAvailability.value,
+        }
+
+        if (editingServiceId.value) {
+            servicesStore.updateService(editingServiceId.value, serviceData)
+            providersStore.toggleServiceAssignment(editingServiceId.value, svcAssignedProviderIds.value)
+            if (serviceData.defaultProviderId) {
+                providersStore.assignService(serviceData.defaultProviderId, editingServiceId.value)
+            }
+        } else {
+            servicesStore.addService(serviceData)
+            const newService = services.value[services.value.length - 1]
+            if (newService) {
+                providersStore.toggleServiceAssignment(newService.id, svcAssignedProviderIds.value)
+                if (serviceData.defaultProviderId) {
+                    providersStore.assignService(serviceData.defaultProviderId, newService.id)
+                }
+            }
+        }
+
+        const mode = editingServiceId.value ? 'update' : 'add'
+        cancelEdit()
+        return { success: true, mode }
+    }
+
+    function addOverrideSlot() {
+        if (!overDate.value || !overTime.value) return
+        const existing = overrideSlots.value.find(s => s.date === overDate.value)
+        if (existing) {
+            if (!existing.times.includes(overTime.value)) existing.times.push(overTime.value)
+        } else {
+            overrideSlots.value.push({ date: overDate.value, times: [overTime.value] })
+        }
+        overTime.value = null
+    }
+
+    function saveOverride() {
+        if (!selectedOverrideProviderId.value) return;
+
+        const mode = overrideSchedulingMode.value;
+        svcProviderAvailability.value[selectedOverrideProviderId.value] = {
+            schedulingMode: mode,
+            availableSlots: mode === 'Fixed Slots' ? JSON.parse(JSON.stringify(overrideSlots.value)) : [],
+            dateRange: mode === 'Standard' ? { start: overDateRangeStart.value, end: overDateRangeEnd.value } : { start: null, end: null },
+            timeRange: mode === 'Standard' ? { start: overTimeRangeStart.value, end: overTimeRangeEnd.value } : { start: null, end: null }
+        }
+        selectedOverrideProviderId.value = null
+    }
+
+    function editOverride(pid: number) {
+        selectedOverrideProviderId.value = pid
+    }
+
+    // Watch for override provider selection to load data
+    watch(selectedOverrideProviderId, (id) => {
+        if (id && svcProviderAvailability.value[id]) {
+            const ov = svcProviderAvailability.value[id]
+            overrideSchedulingMode.value = ov.schedulingMode || 'Standard'
+            overrideSlots.value = JSON.parse(JSON.stringify(ov.availableSlots || []))
+            overDateRangeStart.value = ov.dateRange?.start || null
+            overDateRangeEnd.value = ov.dateRange?.end || null
+            overTimeRangeStart.value = ov.timeRange?.start || null
+            overTimeRangeEnd.value = ov.timeRange?.end || null
+        } else {
+            // Clear if no override exists for this provider or if deselected
+            overrideSchedulingMode.value = 'Standard'
+            overrideSlots.value = []
+            overDateRangeStart.value = null
+            overDateRangeEnd.value = null
+            overTimeRangeStart.value = null
+            overTimeRangeEnd.value = null
+        }
+    })
+
+    const newSlotDate = ref<string | null>(null)
+    const newSlotTime = ref<string | null>(null)
+
+    function addSlot() {
+        if (!newSlotDate.value || !newSlotTime.value) return
+        const existing = svcAvailableSlots.value.find(s => s.date === newSlotDate.value)
+        if (existing) {
+            if (!existing.times.includes(newSlotTime.value)) {
+                existing.times.push(newSlotTime.value)
+            }
+        } else {
+            svcAvailableSlots.value.push({ date: newSlotDate.value, times: [newSlotTime.value] })
+        }
+        newSlotDate.value = null
+        newSlotTime.value = null
+    }
+
+    function removeSlot(index: number) {
+        svcAvailableSlots.value.splice(index, 1)
+    }
+
+    return {
+        // Refs
+        svcName, svcDescription, svcPrice, svcDuration, svcCategory,
+        svcSchedulingMode, svcDefaultProviderId, svcAssignedProviderIds,
+        svcAvailableSlots, svcDateRangeStart, svcDateRangeEnd,
+        svcTimeRangeStart, svcTimeRangeEnd, svcProviderAvailability,
+        editingServiceId, serviceForm,
+        selectedOverrideProviderId, overrideSchedulingMode, overrideSlots,
+        overDate, overTime, overDateRangeStart, overDateRangeEnd,
+        overTimeRangeStart, overTimeRangeEnd,
+        newSlotDate, newSlotTime,
+
+        // Computed
+        isSvcFormValid, isOverrideFormValid, assignedProviders, overrideProviderName,
+
+        // Methods
+        editService, cancelEdit, saveService,
+        addOverrideSlot, saveOverride, editOverride,
+        addSlot, removeSlot
+    }
+}
