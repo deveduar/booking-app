@@ -14,16 +14,30 @@
             <v-text-field v-model.number="internalPrice" label="Price ($)" type="number" prefix="$" />
           </v-col>
           <v-col cols="6">
-            <v-text-field v-model.number="internalDuration" label="Duration (mins)" type="number" suffix="min" />
+            <v-text-field
+              v-model.number="internalDuration"
+              label="Duration (mins)"
+              type="number"
+              suffix="min"
+              :rules="[v => !!v || 'Duration is required', v => v > 0 || 'Must be > 0']"
+              required
+            />
           </v-col>
           <v-col cols="12">
             <v-text-field v-model="internalCategory" label="Category" placeholder="e.g. Nails, Hair" />
           </v-col>
           <v-col cols="12">
-            <v-radio-group v-model="internalMode" label="Availability Type" inline>
-              <v-radio label="Standard (Range)" value="Standard" />
-              <v-radio label="Fixed Slots" value="Fixed Slots" />
-            </v-radio-group>
+            <div class="d-flex align-center">
+              <v-radio-group v-model="internalMode" label="Availability Type" inline hide-details>
+                <v-radio label="Standard (Range)" value="Standard" />
+                <v-radio label="Fixed Slots" value="Fixed Slots" />
+              </v-radio-group>
+              <v-tooltip location="top" text="Standard uses a daily time range. Fixed Slots uses specific manual entries.">
+                <template #activator="{ props }">
+                  <v-icon v-bind="props" icon="mdi-information-outline" size="small" color="grey" class="ml-n2 mt-1" />
+                </template>
+              </v-tooltip>
+            </div>
           </v-col>
           <v-col cols="12">
             <v-select
@@ -63,27 +77,56 @@
               @update:new-date="$emit('update:newSlotDate', $event)"
               @update:new-time="$emit('update:newSlotTime', $event)"
             />
+            <v-alert
+              v-if="isFixedTodayPast"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mt-2"
+              icon="mdi-clock-alert-outline"
+            >
+              Some <strong>Fixed Slots</strong> for today have already passed. These will not be visible to customers.
+            </v-alert>
           </v-col>
 
           <!-- Mode: Standard -->
           <v-col v-if="internalMode === 'Standard'" cols="12">
-            <div class="text-subtitle-2 mb-1">Range Availability (Optional)</div>
+            <div class="d-flex align-center mb-1">
+              <div class="text-subtitle-1 font-weight-bold">Time Range (Standard Mode)</div>
+              <v-tooltip location="top" text="This defines the potential hours available for booking each day. Actual slots will be generated within this window, respecting the current time if the date is Today.">
+                <template #activator="{ props }">
+                  <v-icon v-bind="props" icon="mdi-information-outline" size="small" class="ml-2 opacity-70" />
+                </template>
+              </v-tooltip>
+            </div>
             <v-row dense>
               <v-col cols="12" sm="6">
                 <div class="text-caption">Start Date</div>
-                <DateTimePicker :date="dateRangeStart" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeStart', $event)" />
+                <DateTimePicker :date="dateRangeStart" :time="null" hideTime scheduling-mode="Standard" allow-past @update:date="$emit('update:dateRangeStart', $event)" />
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption">End Date</div>
-                <DateTimePicker :date="dateRangeEnd" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeEnd', $event)" />
+                <DateTimePicker :date="dateRangeEnd" :time="null" hideTime scheduling-mode="Standard" allow-past @update:date="$emit('update:dateRangeEnd', $event)" />
               </v-col>
-              <v-col cols="12" sm="6">
-                <div class="text-caption">Start Time</div>
-                <DateTimePicker :date="null" :time="timeRangeStart" hideDate :duration="internalDuration || undefined" :time-range="{ start: null, end: timeRangeEnd }" scheduling-mode="Standard" @update:time="$emit('update:timeRangeStart', $event)" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <div class="text-caption">End Time</div>
-                <DateTimePicker :date="null" :time="timeRangeEnd" hideDate :duration="internalDuration || undefined" :time-range="{ start: timeRangeStart, end: null }" scheduling-mode="Standard" @update:time="$emit('update:timeRangeEnd', $event)" />
+              <v-col cols="12" class="mt-2">
+                <TimeRangeSlider
+                  :start="timeRangeStart"
+                  :end="timeRangeEnd"
+                  :date="dateRangeStart"
+                  @update:start="$emit('update:timeRangeStart', $event)"
+                  @update:end="$emit('update:timeRangeEnd', $event)"
+                />
+                
+                <v-alert
+                  v-if="isRangeTodayPast"
+                  type="warning"
+                  variant="tonal"
+                  density="compact"
+                  class="mt-2"
+                  icon="mdi-clock-alert-outline"
+                >
+                  Some hours in this range have already passed for <strong>Today</strong>. Customers will only see slots starting from <strong>{{ currentFormatedTime }}</strong>.
+                </v-alert>
               </v-col>
             </v-row>
           </v-col>
@@ -141,9 +184,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { getTodayStr, parseTimeMin, formatTimeMin } from '@/utils/timeUtils'
 import DateTimePicker from '@/components/DateTimePicker.vue'
 import AdminSlotManager from './AdminSlotManager.vue'
 import AdminOverrideManager from './AdminOverrideManager.vue'
+import TimeRangeSlider from './TimeRangeSlider.vue'
 
 const props = defineProps<{
   editingId: number | null;
@@ -211,6 +256,31 @@ const internalDefaultId = computed({ get: () => props.defaultProviderId, set: v 
 
 const assignedProvidersFull = computed(() => {
   return props.providers.filter(p => props.assignedProviderIds.includes(p.id));
+});
+
+// Time Warnings Logic
+const nowMin = computed(() => {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+});
+
+const currentFormatedTime = computed(() => formatTimeMin(nowMin.value));
+
+const isRangeTodayPast = computed(() => {
+  if (props.mode !== 'Standard' || !props.dateRangeStart || !props.timeRangeStart) return false;
+  const today = getTodayStr();
+  if (props.dateRangeStart === today) {
+    return parseTimeMin(props.timeRangeStart) < nowMin.value;
+  }
+  return false;
+});
+
+const isFixedTodayPast = computed(() => {
+  if (props.mode !== 'Fixed Slots' || !props.availableSlots) return false;
+  const today = getTodayStr();
+  return props.availableSlots.some(s => 
+    s.date === today && s.times.some((t: string) => parseTimeMin(t) < nowMin.value)
+  );
 });
 
 defineExpose({

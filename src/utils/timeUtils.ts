@@ -1,6 +1,6 @@
 /**
  * Robustly parses a time string into total minutes from start of day.
- * Supports "HH:mm AM/PM" and "HH:mm" (24h) formats.
+ * Supports "h:mm AM/PM" and "HH:mm" (24h) formats.
  */
 export function parseTimeMin(t: string | null): number {
     if (!t) return 0;
@@ -23,7 +23,8 @@ export function parseTimeMin(t: string | null): number {
 }
 
 /**
- * Formats total minutes into "h:mm AM/PM" string.
+ * Formats total minutes into "h:mm AM/PM" string (display-only).
+ * Use for UI labels, chips, and text display — NOT for v-time-picker v-model.
  */
 export function formatTimeMin(mTotal: number): string {
     let h = Math.floor(mTotal / 60);
@@ -32,6 +33,17 @@ export function formatTimeMin(mTotal: number): string {
     h = h % 12;
     if (h === 0) h = 12;
     return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+/**
+ * Formats total minutes into "HH:mm" 24-hour string.
+ * This is the format Vuetify's v-time-picker expects for its v-model,
+ * and the canonical storage format for timeRange.start / timeRange.end.
+ */
+export function formatTimeHHmm(mTotal: number): string {
+    const h = Math.floor(mTotal / 60);
+    const m = mTotal % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 /**
@@ -59,4 +71,3 @@ export function isTimeRangeValid(start: string | null, end: string | null): bool
     if (!start || !end) return true;
     return parseTimeMin(end) > parseTimeMin(start);
 }
-

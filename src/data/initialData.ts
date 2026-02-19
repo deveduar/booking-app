@@ -11,7 +11,7 @@ export const servicesData: Service[] = [
         duration: 45,
         category: 'Haircuts',
         schedulingMode: 'Standard',
-        timeRange: { start: '09:00 AM', end: '06:00 PM' }
+        timeRange: { start: '09:00', end: '18:00' }
     },
     {
         id: 4,
@@ -21,7 +21,7 @@ export const servicesData: Service[] = [
         duration: 90,
         category: 'Coloring',
         schedulingMode: 'Standard',
-        dateRange: { start: '2025-02-01', end: '2025-12-31' }
+        dateRange: { start: '2026-02-01', end: '2026-12-31' }
     },
     {
         id: 16,
@@ -33,13 +33,13 @@ export const servicesData: Service[] = [
         schedulingMode: 'Fixed Slots',
         defaultProviderId: 1, // Alexa
         availableSlots: [
-            { date: '2025-06-15', times: ['10:00 AM', '2:00 PM'] },
-            { date: '2025-06-16', times: ['11:00 AM'] }
+            { date: '2026-06-15', times: ['10:00', '14:00'] },
+            { date: '2026-06-16', times: ['11:00'] }
         ],
         providerAvailability: {
             2: { // Renee's specific slots for this masterclass
                 schedulingMode: 'Fixed Slots',
-                availableSlots: [{ date: '2025-06-17', times: ['09:00 AM'] }]
+                availableSlots: [{ date: '2026-06-17', times: ['09:00'] }]
             }
         }
     },
@@ -51,14 +51,14 @@ export const servicesData: Service[] = [
         duration: 120,
         category: 'Haircuts',
         schedulingMode: 'Standard',
-        dateRange: { start: '2025-05-01', end: '2025-05-31' },
-        timeRange: { start: '10:00 AM', end: '04:00 PM' },
+        dateRange: { start: '2026-05-01', end: '2026-05-31' },
+        timeRange: { start: '10:00', end: '16:00' },
         providerAvailability: {
             1: { // Alexa's specific slots for this workshop
                 schedulingMode: 'Fixed Slots',
                 availableSlots: [
-                    { date: '2025-05-10', times: ['09:00 AM', '01:00 PM'] },
-                    { date: '2025-05-11', times: ['11:00 AM'] }
+                    { date: '2026-05-10', times: ['09:00', '13:00'] },
+                    { date: '2026-05-11', times: ['11:00'] }
                 ]
             }
         }
@@ -90,8 +90,8 @@ export const providersData: Provider[] = [
 ]
 
 export const appointmentsData: Appointment[] = [
-    { id: 1, date: '2025-01-10', time: '10:00 AM', service: 'Consultation', provider: 'Alex', status: 'Upcoming' },
-    { id: 2, date: '2025-01-08', time: '2:00 PM', service: 'Coloring', provider: 'Sophie', status: 'Completed' },
-    { id: 3, date: '2025-01-06', time: '11:00 AM', service: 'General Service', provider: 'John', status: 'Canceled' },
-    { id: 4, date: '2025-01-12', time: '3:00 PM', service: 'Session', provider: 'Emma', status: 'Upcoming' },
+    { id: 1, date: '2026-02-20', time: '10:00', service: 'Consultation', provider: 'Alex', status: 'Upcoming' },
+    { id: 2, date: '2026-02-18', time: '14:00', service: 'Coloring', provider: 'Sophie', status: 'Completed' },
+    { id: 3, date: '2026-02-16', time: '11:00', service: 'General Service', provider: 'John', status: 'Canceled' },
+    { id: 4, date: '2026-02-22', time: '15:00', service: 'Session', provider: 'Emma', status: 'Upcoming' },
 ]

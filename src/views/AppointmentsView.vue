@@ -17,7 +17,7 @@
               <v-icon color="primary" size="x-large">mdi-calendar-check</v-icon>
             </template>
             <v-card-title class="text-h6 pb-0">{{ next.service }}</v-card-title>
-            <v-card-subtitle>{{ next.date }} at {{ next.time }}</v-card-subtitle>
+            <v-card-subtitle>{{ next.date }} at {{ displayTime(next.time) }}</v-card-subtitle>
           </v-card-item>
 
           <v-card-text>
@@ -53,7 +53,7 @@
               <v-icon color="secondary" size="large">mdi-calendar-clock</v-icon>
             </template>
             <v-card-title class="text-h6 pb-0">{{ item.service }}</v-card-title>
-            <v-card-subtitle>{{ item.date }} at {{ item.time }}</v-card-subtitle>
+            <v-card-subtitle>{{ item.date }} at {{ displayTime(item.time) }}</v-card-subtitle>
             <template v-slot:append>
               <v-btn color="error" variant="text" size="small" @click="cancel(item)">Cancel</v-btn>
             </template>
@@ -99,7 +99,7 @@
                 </template>
                 <v-list-item-title class="font-weight-bold">{{ item.service }}</v-list-item-title>
                 <v-list-item-subtitle>
-                  {{ item.date }} · {{ item.time }}
+                  {{ item.date }} · {{ displayTime(item.time) }}
                   <span v-if="item.provider">· {{ item.provider }}</span>
                 </v-list-item-subtitle>
                 <template v-slot:append>
@@ -139,6 +139,7 @@ import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppointmentsStore } from '@/stores/appointments'
 import type { Appointment } from '@/stores/appointments'
+import { parseTimeMin, formatTimeMin } from '@/utils/timeUtils'
 
 const appointmentsStore = useAppointmentsStore()
 const { appointments, upcoming } = storeToRefs(appointmentsStore)
@@ -146,6 +147,11 @@ const { appointments, upcoming } = storeToRefs(appointmentsStore)
 const sortBy = ref('Date')
 const cancelDialog = ref(false)
 const selectedAppointment = ref<Appointment | null>(null)
+
+/** Display stored HH:mm or h:mm AM/PM time as a user-friendly AM/PM string. */
+function displayTime(t: string): string {
+  return formatTimeMin(parseTimeMin(t));
+}
 
 const next = computed(() => upcoming.value[0] || null)
 const otherUpcoming = computed(() => upcoming.value.slice(1))

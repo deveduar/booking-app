@@ -38,25 +38,47 @@
         @update:new-date="$emit('update:overDate', $event)"
         @update:new-time="$emit('update:overTime', $event)"
       />
+      
+      <v-alert
+        v-if="isFixedTodayPast"
+        type="warning"
+        variant="tonal"
+        density="compact"
+        class="mt-2"
+        icon="mdi-clock-alert-outline"
+      >
+        Some <strong>Override Slots</strong> for today have already passed.
+      </v-alert>
 
       <!-- Mode: Standard -->
       <div v-if="internalMode === 'Standard'">
         <v-row dense>
           <v-col cols="12" sm="6">
             <div class="text-caption">Start Date</div>
-            <DateTimePicker :date="overDateRangeStart" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:overDateRangeStart', $event)" />
+            <DateTimePicker :date="overDateRangeStart" :time="null" hideTime scheduling-mode="Standard" allow-past @update:date="$emit('update:overDateRangeStart', $event)" />
           </v-col>
           <v-col cols="12" sm="6">
             <div class="text-caption">End Date</div>
-            <DateTimePicker :date="overDateRangeEnd" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:overDateRangeEnd', $event)" />
+            <DateTimePicker :date="overDateRangeEnd" :time="null" hideTime scheduling-mode="Standard" allow-past @update:date="$emit('update:overDateRangeEnd', $event)" />
           </v-col>
-          <v-col cols="12" sm="6">
-            <div class="text-caption">Start Time</div>
-            <DateTimePicker :date="null" :time="overTimeRangeStart" hideDate :duration="duration || undefined" :time-range="{ start: null, end: overTimeRangeEnd }" scheduling-mode="Standard" @update:time="$emit('update:overTimeRangeStart', $event)" />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <div class="text-caption">End Time</div>
-            <DateTimePicker :date="null" :time="overTimeRangeEnd" hideDate :duration="duration || undefined" :time-range="{ start: overTimeRangeStart, end: null }" scheduling-mode="Standard" @update:time="$emit('update:overTimeRangeEnd', $event)" />
+          <v-col cols="12" class="mt-2">
+            <TimeRangeSlider
+              :start="overTimeRangeStart"
+              :end="overTimeRangeEnd"
+              :date="overDateRangeStart"
+              @update:start="$emit('update:overTimeRangeStart', $event)"
+              @update:end="$emit('update:overTimeRangeEnd', $event)"
+            />
+            <v-alert
+              v-if="isRangeTodayPast"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mt-2"
+              icon="mdi-clock-alert-outline"
+            >
+              This override range includes past hours for <strong>Today</strong>. Customers will only see slots from <strong>{{ currentFormatedTime }}</strong>.
+            </v-alert>
           </v-col>
         </v-row>
       </div>
@@ -98,7 +120,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { getTodayStr, parseTimeMin, formatTimeMin } from '@/utils/timeUtils'
 import DateTimePicker from '@/components/DateTimePicker.vue'
+import TimeRangeSlider from './TimeRangeSlider.vue'
 import AdminSlotManager from './AdminSlotManager.vue'
 import type { AvailabilityOverride } from '@/stores/services'
 
@@ -145,5 +169,30 @@ const internalSelectedId = computed({
 const internalMode = computed({
   get: () => props.schedulingMode,
   set: (val) => emit('update:schedulingMode', val)
+});
+
+// Time Warnings Logic
+const nowMin = computed(() => {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+});
+
+const currentFormatedTime = computed(() => formatTimeMin(nowMin.value));
+
+const isRangeTodayPast = computed(() => {
+  if (internalMode.value !== 'Standard' || !props.overDateRangeStart || !props.overTimeRangeStart) return false;
+  const today = getTodayStr();
+  if (props.overDateRangeStart === today) {
+    return parseTimeMin(props.overTimeRangeStart) < nowMin.value;
+  }
+  return false;
+});
+
+const isFixedTodayPast = computed(() => {
+  if (internalMode.value !== 'Fixed Slots' || !props.overrideSlots) return false;
+  const today = getTodayStr();
+  return props.overrideSlots.some(s => 
+    s.date === today && s.times.some((t: string) => parseTimeMin(t) < nowMin.value)
+  );
 });
 </script>

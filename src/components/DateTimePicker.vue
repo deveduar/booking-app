@@ -87,9 +87,12 @@
         >
           <v-time-picker
             v-if="menu2"
-            v-model="selectedTime"
+            :model-value="pickerTime"
+            @update:model-value="onPickerTimeUpdate"
             :allowed-hours="allowedHours"
             :allowed-minutes="allowedMinutes"
+            ampm-in-title
+            format="ampm"
             full-width
           />
         </v-menu>
@@ -122,6 +125,8 @@ const emit = defineEmits<{
 const {
   menu2,
   selectedTime,
+  pickerTime,
+  onPickerTimeUpdate,
   internalDate,
   internalDateStr,
   availableDates,

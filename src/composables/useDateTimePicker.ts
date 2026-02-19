@@ -1,5 +1,5 @@
 import { ref, computed, watch, type Ref } from 'vue';
-import { parseTimeMin, getTodayStr, dateToYMD } from '../utils/timeUtils';
+import { parseTimeMin, formatTimeMin, formatTimeHHmm, getTodayStr, dateToYMD } from '../utils/timeUtils';
 
 export type AvailabilitySlot = {
     date: string;
@@ -20,6 +20,7 @@ export interface DateTimePickerProps {
     duration?: number;
     hideDate?: boolean;
     hideTime?: boolean;
+    allowPast?: boolean; // New prop to bypass current time restrictions
     schedulingMode?: 'Standard' | 'Fixed Slots';
 }
 
@@ -41,24 +42,29 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
      * Filtered list of dates that have available slots and fall within the global range.
      */
     const availableDates = computed(() => {
-        if (!props.availableSlots || props.availableSlots.length === 0) return [];
         const todayStr = getTodayStr();
         const now = new Date();
         const currentTime = now.getHours() * 60 + now.getMinutes();
 
-        return props.availableSlots
-            .filter(s => {
-                if (s.date < todayStr) return false;
-                if (props.dateRange?.start && s.date < props.dateRange.start) return false;
-                if (props.dateRange?.end && s.date > props.dateRange.end) return false;
+        // 1. Fixed Slots Mode
+        if (props.availableSlots && props.availableSlots.length > 0) {
+            return props.availableSlots
+                .filter(s => {
+                    if (!props.allowPast && s.date < todayStr) return false;
+                    if (props.dateRange?.start && s.date < props.dateRange.start) return false;
+                    if (props.dateRange?.end && s.date > props.dateRange.end) return false;
 
-                // Today check: must have at least one future time
-                if (s.date === todayStr) {
-                    return s.times.some(t => parseTimeMin(t) >= currentTime);
-                }
-                return true;
-            })
-            .map(s => s.date);
+                    // Today check: must have at least one future time (unless allowPast)
+                    if (!props.allowPast && s.date === todayStr) {
+                        return s.times.some(t => parseTimeMin(t) >= currentTime);
+                    }
+                    return true;
+                })
+                .map(s => s.date);
+        }
+
+        // 2. Standard Mode (Range based)
+        return [];
     });
 
     /**
@@ -69,12 +75,27 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
         const dateStr = dateToYMD(dateObj);
         const todayStr = getTodayStr();
 
+        // Strictly block past dates for everyone
         if (dateStr < todayStr) return false;
+
         if (props.dateRange?.start && dateStr < props.dateRange.start) return false;
         if (props.dateRange?.end && dateStr > props.dateRange.end) return false;
 
-        // Block if not in availableSlots
-        if (props.availableSlots && props.availableSlots.length > 0 && !availableDates.value.includes(dateStr)) return false;
+        // If today, check if any generic time slots remain in the future
+        if (!props.allowPast && dateStr === todayStr) {
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+
+            // Check Fixed Slots for today
+            if (props.availableSlots && props.availableSlots.length > 0) {
+                const slot = props.availableSlots.find(s => s.date === todayStr);
+                if (!slot || !slot.times.some(t => parseTimeMin(t) >= currentTime)) return false;
+            }
+            // Check Standard Range for today
+            else if (props.timeRange?.end) {
+                if (parseTimeMin(props.timeRange.end) <= currentTime) return false;
+            }
+        }
 
         return true;
     };
@@ -89,24 +110,16 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
         if (props.availableSlots && props.availableSlots.length > 0) {
             const slot = props.availableSlots.find(s => s.date === internalDateStr.value);
             if (!slot) return [];
-            times = slot.times;
+            // Normalize to AM/PM display regardless of stored format (HH:mm or h:mm AM/PM)
+            times = slot.times.map(t => formatTimeMin(parseTimeMin(t)));
         } else if (props.timeRange?.start && props.timeRange?.end && props.duration) {
-            // Generate slots from range and duration
+            // Generate slots from range and duration using shared formatter
             const startMin = parseTimeMin(props.timeRange.start);
             const endMin = parseTimeMin(props.timeRange.end);
             const dur = props.duration;
 
-            const format = (mTotal: number) => {
-                let h = Math.floor(mTotal / 60);
-                const m = mTotal % 60;
-                const ampm = h >= 12 ? 'PM' : 'AM';
-                h = h % 12;
-                if (h === 0) h = 12;
-                return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
-            };
-
             for (let cur = startMin; cur + dur <= endMin; cur += 30) {
-                times.push(format(cur));
+                times.push(formatTimeMin(cur));
             }
         } else {
             return null;
@@ -118,7 +131,7 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
 
         return times.filter(t => {
             const tMin = parseTimeMin(t);
-            if (internalDateStr.value === todayStr && tMin < currentTime) return false;
+            if (!props.allowPast && internalDateStr.value === todayStr && tMin < currentTime) return false;
             if (props.timeRange?.start && tMin < parseTimeMin(props.timeRange.start)) return false;
             if (props.timeRange?.end && tMin > parseTimeMin(props.timeRange.end)) return false;
             return true;
@@ -130,32 +143,48 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
         const now = new Date();
         const currentH = now.getHours();
 
-        // Prevent picking past hours if today
-        if (internalDateStr.value === todayStr && hour < currentH) return false;
+        // Prevent picking past hours if today is the selected date (unless allowPast)
+        if (!props.allowPast && internalDateStr.value === todayStr && hour < currentH) return false;
 
         if (!props.timeRange) return true;
+
+        // Start/End restrictions (24h based)
         const start = props.timeRange.start ? parseTimeMin(props.timeRange.start) : 0;
         const end = props.timeRange.end ? parseTimeMin(props.timeRange.end) : 1439;
-        return hour >= Math.floor(start / 60) && hour <= Math.floor(end / 60);
+
+        const startH = Math.floor(start / 60);
+        const endH = Math.floor(end / 60);
+
+        return hour >= startH && hour <= endH;
     };
 
     const allowedMinutes = (min: number) => {
         const todayStr = getTodayStr();
         const now = new Date();
-        const currentM = now.getMinutes();
         const currentH = now.getHours();
+        const currentM = now.getMinutes();
 
-        if (internalDateStr.value === todayStr && selectedTime.value) {
-            const pickedH = Math.floor(parseTimeMin(selectedTime.value) / 60);
+        // If no time is selected yet, we can't restrict minutes based on a phantom hour
+        // unless v-time-picker passes the currently *focused* hour.
+        // Vuetify's allowed-minutes usually receives the currently active hour in its scope.
+        // However, we only have internal state of 'selectedTime'.
+
+        // Robustness: If we have a selected time, use its hour.
+        const pickedTimeMin = selectedTime.value ? parseTimeMin(selectedTime.value) : -1;
+        const pickedH = pickedTimeMin !== -1 ? Math.floor(pickedTimeMin / 60) : -1;
+
+        // 1. Today restriction (unless allowPast)
+        if (!props.allowPast && internalDateStr.value === todayStr && pickedH !== -1) {
             if (pickedH < currentH) return false;
             if (pickedH === currentH && min < currentM) return false;
         }
 
-        if (!props.timeRange || selectedTime.value === '') return true;
-        const current = parseTimeMin(selectedTime.value);
-        const pickedH = Math.floor(current / 60);
+        // 2. Start/End range restriction
+        if (!props.timeRange || pickedTimeMin === -1) return true;
+
         const start = props.timeRange.start ? parseTimeMin(props.timeRange.start) : 0;
         const end = props.timeRange.end ? parseTimeMin(props.timeRange.end) : 1439;
+
         const startH = Math.floor(start / 60);
         const endH = Math.floor(end / 60);
         const startM = start % 60;
@@ -164,8 +193,32 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
         if (pickedH === startH && pickedH === endH) return min >= startM && min <= endM;
         if (pickedH === startH) return min >= startM;
         if (pickedH === endH) return min <= endM;
+
         return true;
     };
+
+    /**
+     * Converts selectedTime (AM/PM display) to HH:mm for v-time-picker v-model.
+     * Vuetify 3's v-time-picker always expects HH:mm regardless of display format.
+     */
+    const pickerTime = computed({
+        get: (): string => {
+            if (!selectedTime.value) return '';
+            const min = parseTimeMin(selectedTime.value);
+            return formatTimeHHmm(min);
+        },
+        set: (val: string) => {
+            // val arrives from v-time-picker as HH:mm — convert to AM/PM for display
+            if (!val) { selectedTime.value = ''; return; }
+            const min = parseTimeMin(val);
+            selectedTime.value = formatTimeMin(min);
+        }
+    });
+
+    /** Called by v-time-picker @update:model-value — receives HH:mm, stores AM/PM. */
+    function onPickerTimeUpdate(val: string) {
+        pickerTime.value = val;
+    }
 
     // --- Watchers Section ---
 
@@ -178,9 +231,12 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
     }, { immediate: true });
 
     watch(() => allowedTimesForDate.value, (times) => {
-        if (times && times.length === 1) selectedTime.value = times[0];
-        else if (selectedTime.value && times && times.length > 0 && !times.includes(selectedTime.value)) {
-            selectedTime.value = '';
+        if (times && times.length === 1) {
+            selectedTime.value = times[0];
+        } else if (times && times.length > 0 && !times.includes(selectedTime.value)) {
+            // Current selection is not in the valid list — auto-select the first slot
+            // instead of clearing to empty (an empty value causes the time picker to display NaN)
+            selectedTime.value = times[0];
         }
     }, { immediate: true });
 
@@ -202,13 +258,6 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
 
     watch(() => props.time, v => { if (v !== selectedTime.value) selectedTime.value = v ?? '' });
 
-    // Reset invalid time on date change
-    watch(() => props.date, () => {
-        if (allowedTimesForDate.value && selectedTime.value && !allowedTimesForDate.value.includes(selectedTime.value)) {
-            selectedTime.value = '';
-        }
-    }, { immediate: true });
-
     // Emit updates to parent
     watch(internalDateStr, (newVal) => {
         if (newVal !== props.date) emit('update:date', newVal);
@@ -226,6 +275,8 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
     return {
         menu2,
         selectedTime,
+        pickerTime,
+        onPickerTimeUpdate,
         internalDate,
         internalDateStr,
         availableDates,

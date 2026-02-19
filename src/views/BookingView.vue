@@ -64,9 +64,46 @@
             density="compact"
             class="mb-4"
             icon="mdi-account-clock-outline"
+            border="start"
           >
-            <strong>Custom Specialist Schedule:</strong> You are viewing unique availability set by this specialist.
+            <div class="d-flex flex-column">
+              <strong>Unique Specialist Schedule</strong>
+              <span class="text-caption">This specialist has defined their own availability for this service, which may differ from the general business hours.</span>
+            </div>
           </v-alert>
+
+          <!-- Service Details Section -->
+          <v-expand-transition>
+            <v-card v-if="selectedService" class="mb-6" variant="tonal" color="secondary" rounded="lg">
+              <v-card-text>
+                <v-row dense align="center">
+                  <v-col cols="12" sm="4" class="d-flex align-center">
+                    <v-icon icon="mdi-tag-outline" size="small" class="mr-2" />
+                    <div>
+                      <div class="text-caption opacity-70">Category</div>
+                      <div class="text-body-2 font-weight-bold">{{ selectedService.category }}</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="4" class="d-flex align-center">
+                    <v-icon icon="mdi-clock-outline" size="small" class="mr-2" />
+                    <div>
+                      <div class="text-caption opacity-70">Duration</div>
+                      <div class="text-body-2 font-weight-bold">{{ selectedService.duration }} mins</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="4" class="d-flex align-center">
+                    <v-icon :icon="activeAvailability?.schedulingMode === 'Fixed Slots' ? 'mdi-calendar-check' : 'mdi-calendar-range'" size="small" class="mr-2" />
+                    <div>
+                      <div class="text-caption opacity-70">Availability Mode</div>
+                      <div class="text-body-2 font-weight-bold">
+                        {{ activeAvailability?.schedulingMode === 'Fixed Slots' ? 'Specific Slots Only' : 'Flexible Range' }}
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-expand-transition>
 
           <DateTimePicker
             :date="selectedDate"
@@ -114,6 +151,7 @@
   import { useAppointmentsStore } from '@/stores/appointments';
    import { ref, computed, onMounted, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
+  import { parseTimeMin, formatTimeMin } from '@/utils/timeUtils';
   
   const providersStore = useProvidersStore();
   const { providers } = storeToRefs(providersStore);
@@ -184,46 +222,64 @@
     let earliestTime: string | null = null;
 
     if (avail.availableSlots && avail.availableSlots.length > 0) {
-      // Find earliest date >= today
+      // Find earliest date >= today that has at least one future time
       const sortedSlots = [...avail.availableSlots].sort((a, b) => a.date.localeCompare(b.date));
-      const validSlot = sortedSlots.find(s => s.date >= todayStr);
+      const validSlot = sortedSlots.find(s => {
+        if (s.date < todayStr) return false;
+        if (s.date === todayStr) return s.times.some(t => parseTimeMin(t) > currentTimeMin);
+        return true;
+      });
+
       if (validSlot) {
         earliestDate = validSlot.date;
-        // If today, filter times
         if (validSlot.date === todayStr) {
-          const parse = (t: string) => {
-            const match = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
-            if (!match) return 0;
-            let h = parseInt(match[1]);
-            const m = parseInt(match[2]);
-            const ampm = match[3].toUpperCase();
-            if (ampm === 'PM' && h < 12) h += 12;
-            if (ampm === 'AM' && h === 12) h = 0;
-            return h * 60 + m;
-          };
-          earliestTime = validSlot.times.find(t => parse(t) > currentTimeMin) || validSlot.times[0];
+          earliestTime = validSlot.times.find(t => parseTimeMin(t) > currentTimeMin) || null;
         } else {
           earliestTime = validSlot.times[0];
         }
       }
     } else if (avail.dateRange?.start) {
       // Range based
-      earliestDate = avail.dateRange.start >= todayStr ? avail.dateRange.start : todayStr;
-      
-      if (avail.timeRange?.start) {
-        // If generated slots logic matches DateTimePicker, we just pick start time
-        // but if today we might need to skip past times.
-        // For simplicity:
-        earliestTime = avail.timeRange.start;
+      const rangeStart = avail.dateRange.start;
+      const rangeEnd = avail.dateRange.end;
+
+      let potentialDate: string | null = rangeStart >= todayStr ? rangeStart : todayStr;
+
+      // Only skip today if the ENTIRE time window has already passed
+      if (potentialDate === todayStr && avail.timeRange?.end) {
+        const endMin = parseTimeMin(avail.timeRange.end);
+        if (currentTimeMin >= endMin) {
+          // The window is truly exhausted — advance to tomorrow
+          const tomorrow = new Date();
+          tomorrow.setDate(now.getDate() + 1);
+          const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+          potentialDate = tomorrowStr;
+          // Check if tomorrow is still within the service's date range
+          if (rangeEnd && potentialDate > rangeEnd) {
+            potentialDate = null;
+          }
+        }
+      }
+
+      earliestDate = potentialDate;
+
+      if (earliestDate && avail.timeRange?.start) {
+        const startMin = parseTimeMin(avail.timeRange.start);
+        // If today and the start time has already passed, let the DateTimePicker
+        // find the first valid future slot automatically (leave earliestTime = null)
+        if (earliestDate === todayStr && startMin <= currentTimeMin) {
+          earliestTime = null;
+        } else {
+          // Use formatTimeMin to guarantee the format matches what allowedTimesForDate generates
+          earliestTime = formatTimeMin(startMin);
+        }
       }
     }
 
-    if (earliestDate && (!selectedDate.value || selectedServiceId.value)) {
-        selectedDate.value = earliestDate;
-    }
-    if (earliestTime && (!selectedTime.value || selectedServiceId.value)) {
-        selectedTime.value = earliestTime;
-    }
+    // Always reset if current selection is invalid or we just switched service/provider
+    selectedDate.value = earliestDate;
+    selectedTime.value = earliestTime;
   }, { deep: true });
 
   // Watch for service changes to Reset or auto-select provider
