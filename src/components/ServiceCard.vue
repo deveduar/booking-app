@@ -35,26 +35,14 @@
   </template>
   
 <script setup lang="ts">
- import { useRouter } from 'vue-router'
-import { computed } from 'vue'
+ import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores/providers'
-
-type Service = {
-  id: number
-  name: string
-  description: string
-  price: number
-  duration: number
-  category: string
-  defaultDate?: string
-   defaultTime?: string
-  defaultProviderId?: number
-  availableSlots?: any[]
-}
+import type { Service } from '@/stores/services'
 
 defineOptions({ name: 'ServiceCard' })
 
- const { service } = defineProps<{ service: Service }>()
+const { service } = defineProps<{ service: Service }>()
 const router = useRouter()
 const providersStore = useProvidersStore()
 

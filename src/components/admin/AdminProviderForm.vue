@@ -42,24 +42,32 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { Provider } from '@/stores/providers'
+
+// Minimal interface for VForm validation
+type VForm = {
+  validate: () => Promise<{ valid: boolean }>;
+  reset: () => void;
+  resetValidation: () => void;
+}
 
 const props = defineProps<{
   name: string;
   status: string;
   image: string;
-  providers: any[];
+  providers: Provider[];
 }>();
 
 const emit = defineEmits(['update:name', 'update:status', 'update:image', 'add', 'remove']);
 
-const formRef = ref<any>(null);
+const formRef = ref<VForm | null>(null);
 
 const internalName = computed({ get: () => props.name, set: v => emit('update:name', v) });
 const internalStatus = computed({ get: () => props.status, set: v => emit('update:status', v) });
 const internalImage = computed({ get: () => props.image, set: v => emit('update:image', v) });
 
 defineExpose({
-  validate: () => formRef.value.validate(),
-  resetValidation: () => formRef.value.resetValidation()
+  validate: () => formRef.value?.validate(),
+  resetValidation: () => formRef.value?.resetValidation()
 });
 </script>

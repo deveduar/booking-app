@@ -18,7 +18,7 @@
       strict
       color="primary"
       track-color="grey-lighten-2"
-      thumb-label="true"
+      thumb-label="hover"
       class="custom-range-slider"
     >
       <template #thumb-label="{ modelValue }">

@@ -183,12 +183,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { getTodayStr, parseTimeMin, formatTimeMin } from '@/utils/timeUtils'
 import DateTimePicker from '@/components/DateTimePicker.vue'
 import AdminSlotManager from './AdminSlotManager.vue'
 import AdminOverrideManager from './AdminOverrideManager.vue'
 import TimeRangeSlider from './TimeRangeSlider.vue'
+import type { AvailabilitySlot, AvailabilityOverride } from '@/stores/services'
+
+// Minimal interface for VForm validation
+type VForm = {
+  validate: () => Promise<{ valid: boolean }>;
+  reset: () => void;
+  resetValidation: () => void;
+}
 
 const props = defineProps<{
   editingId: number | null;
@@ -200,22 +208,22 @@ const props = defineProps<{
   mode: 'Standard' | 'Fixed Slots';
   assignedProviderIds: number[];
   defaultProviderId: number | null;
-  providers: any[];
-  availableSlots: any[];
+  providers: { id: number; name: string }[];
+  availableSlots: AvailabilitySlot[];
   newSlotDate: string | null;
   newSlotTime: string | null;
   dateRangeStart: string | null;
   dateRangeEnd: string | null;
   timeRangeStart: string | null;
   timeRangeEnd: string | null;
-  providerAvailability: any;
+  providerAvailability: { [id: number]: AvailabilityOverride };
   isValid: boolean;
   
   // Override props
   selectedOverrideId: number | null;
   overrideMode: 'Standard' | 'Fixed Slots';
   overrideProviderName: string;
-  overrideSlots: any[];
+  overrideSlots: AvailabilitySlot[];
   overDate: string | null;
   overTime: string | null;
   overDateRangeStart: string | null;
@@ -242,7 +250,7 @@ const emit = defineEmits([
   'edit-override', 'remove-override'
 ]);
 
-const formRef = ref<any>(null);
+const formRef = ref<VForm | null>(null);
 
 // V-model wrappers
 const internalName = computed({ get: () => props.name, set: v => emit('update:name', v) });
@@ -284,7 +292,7 @@ const isFixedTodayPast = computed(() => {
 });
 
 defineExpose({
-  validate: () => formRef.value.validate(),
-  resetValidation: () => formRef.value.resetValidation()
+  validate: () => formRef.value?.validate(),
+  resetValidation: () => formRef.value?.resetValidation()
 });
 </script>

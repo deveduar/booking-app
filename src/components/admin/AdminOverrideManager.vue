@@ -124,15 +124,15 @@ import { getTodayStr, parseTimeMin, formatTimeMin } from '@/utils/timeUtils'
 import DateTimePicker from '@/components/DateTimePicker.vue'
 import TimeRangeSlider from './TimeRangeSlider.vue'
 import AdminSlotManager from './AdminSlotManager.vue'
-import type { AvailabilityOverride } from '@/stores/services'
+import type { AvailabilityOverride, AvailabilitySlot } from '@/stores/services'
 
 const props = defineProps<{
   editingServiceId: number | null;
   selectedProviderId: number | null;
   schedulingMode: 'Standard' | 'Fixed Slots';
-  assignedProviders: any[];
+  assignedProviders: { id: number; name: string }[];
   overrideProviderName: string;
-  overrideSlots: any[];
+  overrideSlots: AvailabilitySlot[];
   overDate: string | null;
   overTime: string | null;
   overDateRangeStart: string | null;

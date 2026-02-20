@@ -35,6 +35,8 @@ export type Service = {
   category: string
   schedulingMode?: SchedulingMode
   defaultProviderId?: number
+  defaultDate?: string
+  defaultTime?: string
   availableSlots?: AvailabilitySlot[]
   dateRange?: DateRange
   timeRange?: TimeRange
