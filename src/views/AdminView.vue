@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useServicesStore } from '@/stores/services'
 import { useProvidersStore } from '@/stores/providers'
@@ -138,7 +138,7 @@ const snackbarColor = ref('success')
 const provName = ref('')
 const provStatus = ref('Available')
 const provImage = ref('')
-const providerForm = ref<any>(null)
+// const providerForm = ref<any>(null)
 
 // Proxying state for v-bind
 const serviceEditorState = computed(() => ({

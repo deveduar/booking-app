@@ -27,26 +27,62 @@
             </v-col>
           </v-row>
           
+          <!-- Service Details Section -->
+          <v-expand-transition>
+            <v-card v-if="selectedService" class="mb-4 mt-n2" variant="tonal" color="secondary" rounded="lg">
+              <v-card-text class="py-2">
+                <v-row dense align="center" justify="space-between">
+                  <v-col cols="auto" class="d-flex align-center">
+                    <v-icon icon="mdi-tag-outline" size="small" class="mr-2" />
+                    <div>
+                      <div class="text-caption opacity-70">Category</div>
+                      <div class="text-body-2 font-weight-bold">{{ selectedService.category }}</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="auto" class="d-flex align-center">
+                    <v-icon icon="mdi-clock-outline" size="small" class="mr-2" />
+                    <div>
+                      <div class="text-caption opacity-70">Duration</div>
+                      <div class="text-body-2 font-weight-bold">{{ selectedService.duration }} mins</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="auto" class="d-flex align-center">
+                    <v-icon :icon="activeAvailability?.schedulingMode === 'Fixed Slots' ? 'mdi-calendar-check' : 'mdi-calendar-range'" size="small" class="mr-2" />
+                    <div>
+                      <div class="text-caption opacity-70">Availability</div>
+                      <div class="text-body-2 font-weight-bold">
+                        {{ activeAvailability?.schedulingMode === 'Fixed Slots' ? 'Slots Only' : 'Flexible' }}
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-expand-transition>
+          
           <!-- Visual Provider Selection -->
-          <v-row v-if="selectedServiceId" class="mt-4">
+          <v-row v-if="selectedServiceId" class="mt-2">
             <v-col cols="12">
-              <div class="text-h6 font-weight-bold mb-3">Choose a Specialist</div>
+              <div class="text-subtitle-1 font-weight-bold mb-2">Choose a Specialist</div>
               <v-item-group v-model="selectedProviderId" mandatory>
                 <v-row dense>
-                  <v-col v-for="provider in providerItems" :key="provider.id" cols="6" sm="4" md="3">
+                  <v-col v-for="provider in providerItems" :key="provider.id" cols="6" sm="3" md="2">
                     <v-item v-slot="{ isSelected, toggle }" :value="provider.id">
                       <v-card
                         :color="isSelected ? 'primary' : 'surface'"
-                        class="d-flex flex-column align-center pa-4 cursor-pointer"
-                        variant="outlined"
+                        :variant="isSelected ? 'tonal' : 'outlined'"
+                        class="d-flex flex-column align-center pa-2 cursor-pointer transition-swing"
                         @click="toggle"
+                        height="100%"
                       >
-                        <v-avatar size="80" class="mb-2">
+                        <v-avatar size="56" class="mb-2">
                           <v-img :src="provider.image" />
                         </v-avatar>
-                        <div class="text-subtitle-1 font-weight-medium">{{ provider.name }}</div>
-                        <div class="text-caption opacity-70">{{ provider.status }}</div>
-                        <v-icon v-if="isSelected" icon="mdi-check-circle" color="white" class="mt-1" />
+                        <div class="text-body-2 font-weight-medium text-center text-truncate w-100" :class="isSelected ? '' : 'text-high-emphasis'">{{ provider.name }}</div>
+                        <div class="text-caption text-center w-100" :class="isSelected ? '' : 'text-medium-emphasis'">{{ provider.status }}</div>
+                        <v-fade-transition>
+                          <v-icon v-if="isSelected" icon="mdi-check-circle" color="primary" size="small" class="mt-1" />
+                        </v-fade-transition>
                       </v-card>
                     </v-item>
                   </v-col>
@@ -57,12 +93,13 @@
               </div>
             </v-col>
           </v-row>
+
           <v-alert
             v-if="isSpecialistOverride"
             type="info"
             variant="tonal"
             density="compact"
-            class="mb-4"
+            class="mb-4 mt-2"
             icon="mdi-account-clock-outline"
             border="start"
           >
@@ -71,39 +108,6 @@
               <span class="text-caption">This specialist has defined their own availability for this service, which may differ from the general business hours.</span>
             </div>
           </v-alert>
-
-          <!-- Service Details Section -->
-          <v-expand-transition>
-            <v-card v-if="selectedService" class="mb-6" variant="tonal" color="secondary" rounded="lg">
-              <v-card-text>
-                <v-row dense align="center">
-                  <v-col cols="12" sm="4" class="d-flex align-center">
-                    <v-icon icon="mdi-tag-outline" size="small" class="mr-2" />
-                    <div>
-                      <div class="text-caption opacity-70">Category</div>
-                      <div class="text-body-2 font-weight-bold">{{ selectedService.category }}</div>
-                    </div>
-                  </v-col>
-                  <v-col cols="12" sm="4" class="d-flex align-center">
-                    <v-icon icon="mdi-clock-outline" size="small" class="mr-2" />
-                    <div>
-                      <div class="text-caption opacity-70">Duration</div>
-                      <div class="text-body-2 font-weight-bold">{{ selectedService.duration }} mins</div>
-                    </div>
-                  </v-col>
-                  <v-col cols="12" sm="4" class="d-flex align-center">
-                    <v-icon :icon="activeAvailability?.schedulingMode === 'Fixed Slots' ? 'mdi-calendar-check' : 'mdi-calendar-range'" size="small" class="mr-2" />
-                    <div>
-                      <div class="text-caption opacity-70">Availability Mode</div>
-                      <div class="text-body-2 font-weight-bold">
-                        {{ activeAvailability?.schedulingMode === 'Fixed Slots' ? 'Specific Slots Only' : 'Flexible Range' }}
-                      </div>
-                    </div>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-expand-transition>
 
           <DateTimePicker
             :date="selectedDate"
