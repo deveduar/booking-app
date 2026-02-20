@@ -1,6 +1,6 @@
 ```html
 <template>
-  <v-card variant="outlined" class="pa-4 bg-surface-variant rounded-lg">
+  <v-card class="pa-4 rounded-lg">
     <div class="d-flex justify-space-between align-center mb-1">
       <div class="text-subtitle-1 font-weight-bold">Daily Booking Window</div>
       <v-chip size="small" color="primary" variant="flat">
@@ -18,7 +18,8 @@
       strict
       color="primary"
       track-color="grey-lighten-2"
-      thumb-label="always"
+      thumb-label="true"
+      class="custom-range-slider"
     >
       <template #thumb-label="{ modelValue }">
         {{ formatLabel(modelValue) }}
@@ -99,3 +100,30 @@ watch([() => props.start, () => props.end], ([s, e]) => {
   }
 });
 </script>
+<style scoped>
+/* Contenedor principal del thumb-label */
+:deep(.v-slider-thumb__label) {
+  background: rgb(var(--v-theme-primary)) !important;
+  color: rgb(var(--v-theme-on-primary)) !important;
+  
+  /* Ajuste de Fuente */
+  font-size: 0.7rem !important; /* Fuente más pequeña */
+  font-weight: 600;
+  
+  /* Ajuste de Espaciado */
+  height: 32px !important;    /* Un poco más de altura para que no sature */
+  width: auto !important;     /* Ancho automático basado en el contenido */
+  padding: 0 8px !important;  /* Margen interno lateral para que no toque bordes */
+  border-radius: 4px !important; /* Bordes menos redondeados para que quepa mejor el texto */
+}
+
+/* Ajuste de la flecha (triángulo inferior) */
+:deep(.v-slider-thumb__label::before) {
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+/* Opacidad para textos secundarios */
+.opacity-70 {
+  opacity: 0.7;
+}
+</style>

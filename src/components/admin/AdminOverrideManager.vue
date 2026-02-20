@@ -18,7 +18,7 @@
       </v-col>
     </v-row>
 
-    <div v-if="internalSelectedId" class="pa-4 bg-surface-variant rounded-lg border">
+    <div v-if="internalSelectedId" class="pa-4  rounded-lg border">
       <div class="text-subtitle-2 mb-2">Override for {{ overrideProviderName }}</div>
       
       <v-radio-group v-model="internalMode" label="Override Mode" inline>
