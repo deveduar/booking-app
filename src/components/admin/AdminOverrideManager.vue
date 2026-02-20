@@ -55,11 +55,11 @@
         <v-row dense>
           <v-col cols="12" sm="6">
             <div class="text-caption">Start Date</div>
-            <DateTimePicker :date="overDateRangeStart" :time="null" hideTime scheduling-mode="Standard" allow-past @update:date="$emit('update:overDateRangeStart', $event)" />
+            <DateTimePicker :date="overDateRangeStart" :time="null" hideTime scheduling-mode="Standard"  @update:date="$emit('update:overDateRangeStart', $event)" />
           </v-col>
           <v-col cols="12" sm="6">
             <div class="text-caption">End Date</div>
-            <DateTimePicker :date="overDateRangeEnd" :time="null" hideTime scheduling-mode="Standard" allow-past @update:date="$emit('update:overDateRangeEnd', $event)" />
+            <DateTimePicker :date="overDateRangeEnd" :time="null" hideTime scheduling-mode="Standard"  @update:date="$emit('update:overDateRangeEnd', $event)" />
           </v-col>
           <v-col cols="12" class="mt-2">
             <TimeRangeSlider

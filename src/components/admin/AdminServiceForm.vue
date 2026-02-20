@@ -102,11 +102,11 @@
             <v-row dense>
               <v-col cols="12" sm="6">
                 <div class="text-caption">Start Date</div>
-                <DateTimePicker :date="dateRangeStart" :time="null" hideTime scheduling-mode="Standard" allow-past @update:date="$emit('update:dateRangeStart', $event)" />
+                <DateTimePicker :date="dateRangeStart" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeStart', $event)" />
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption">End Date</div>
-                <DateTimePicker :date="dateRangeEnd" :time="null" hideTime scheduling-mode="Standard" allow-past @update:date="$emit('update:dateRangeEnd', $event)" />
+                <DateTimePicker :date="dateRangeEnd" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeEnd', $event)" />
               </v-col>
               <v-col cols="12" class="mt-2">
                 <TimeRangeSlider

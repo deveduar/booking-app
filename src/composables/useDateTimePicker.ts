@@ -80,8 +80,8 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePick
         const dateStr = dateToYMD(dateObj);
         const todayStr = getTodayStr();
 
-        // Strictly block past dates for everyone
-        if (dateStr < todayStr) return false;
+        // Strictly block past dates for everyone unless allowPast is true
+        if (!props.allowPast && dateStr < todayStr) return false;
 
         if (props.dateRange?.start && dateStr < props.dateRange.start) return false;
         if (props.dateRange?.end && dateStr > props.dateRange.end) return false;
