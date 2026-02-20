@@ -1,8 +1,8 @@
 import { ref, computed, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useServicesStore, type AvailabilityOverride } from '@/stores/services'
+import { useServicesStore, type AvailabilityOverride, type Service } from '@/stores/services'
 import { useProvidersStore } from '@/stores/providers'
-import { isTimeRangeValid } from '@/utils/timeUtils'
+// import { isTimeRangeValid } from '@/utils/timeUtils'
 
 export function useAdminServiceEditor() {
     const servicesStore = useServicesStore()
@@ -67,9 +67,16 @@ export function useAdminServiceEditor() {
 
     // Methods
     const editingServiceId = ref<number | null>(null)
-    const serviceForm = ref<any>(null)
+    
+    // Define minimal VForm interface
+    type VForm = {
+      validate: () => Promise<{ valid: boolean }>
+      reset: () => void
+      resetValidation: () => void
+    }
+    const serviceForm = ref<VForm | null>(null)
 
-    function editService(service: any) {
+    function editService(service: Service) {
         editingServiceId.value = service.id
         svcName.value = service.name
         svcDescription.value = service.description

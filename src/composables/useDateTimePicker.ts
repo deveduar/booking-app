@@ -1,4 +1,4 @@
-import { ref, computed, watch, type Ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { parseTimeMin, formatTimeMin, formatTimeHHmm, getTodayStr, dateToYMD } from '../utils/timeUtils';
 
 export type AvailabilitySlot = {
@@ -24,11 +24,16 @@ export interface DateTimePickerProps {
     schedulingMode?: 'Standard' | 'Fixed Slots';
 }
 
+export type DateTimePickerEmit = {
+    (e: 'update:date', v: string | null): void;
+    (e: 'update:time', v: string | null): void;
+};
+
 /**
  * Composable for DateTimePicker logic.
  * Encapsulates range filtering, auto-selection, and state synchronization.
  */
-export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
+export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePickerEmit) {
     const menu2 = ref(false);
     const selectedTime = ref(props.time ?? '');
 
@@ -70,8 +75,8 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: any) {
     /**
      * Validation function for v-date-input constraints.
      */
-    const isAllowedDate = (val: any) => {
-        const dateObj = (val instanceof Date) ? val : new Date(val);
+    const isAllowedDate = (val: unknown) => {
+        const dateObj = (val instanceof Date) ? val : new Date(val as string | number);
         const dateStr = dateToYMD(dateObj);
         const todayStr = getTodayStr();
 
