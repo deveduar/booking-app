@@ -69,6 +69,7 @@ export const providersData: Provider[] = [
     {
         id: 1,
         name: 'Alexa',
+        description: 'Specializes in modern cuts and color.',
         status: 'Available',
         image: 'https://cdn.usegalileo.ai/sdxl10/4d0bd9a4-2f47-4eeb-8fbf-5fb13eaf0a0b.png',
         serviceIds: [1, 4, 16, 20],
@@ -76,6 +77,7 @@ export const providersData: Provider[] = [
     {
         id: 2,
         name: 'Renee',
+        description: 'Expert in classic styles and treatments.',
         status: 'Available',
         image: 'https://cdn.usegalileo.ai/sdxl10/7cb6bea5-df1a-43ff-97c9-cc743fe8520d.png',
         serviceIds: [1, 16],
@@ -83,6 +85,7 @@ export const providersData: Provider[] = [
     {
         id: 3,
         name: 'Samantha',
+        description: 'Passionate about creative coloring.',
         status: 'Available',
         image: 'https://cdn.usegalileo.ai/sdxl10/014920d7-e0b4-4ffa-823a-811dd0d3cdbc.png',
         serviceIds: [1],

@@ -5,6 +5,7 @@ import { providersData } from '@/data/initialData'
 export type Provider = {
   id: number
   name: string
+  description?: string
   status: string
   image: string
   serviceIds: number[]
@@ -32,6 +33,13 @@ export const useProvidersStore = defineStore('providers', () => {
     const nextId =
       providers.value.reduce((max, p) => Math.max(max, p.id), 0) + 1
     providers.value.push({ id: nextId, ...provider })
+  }
+
+  function updateProvider(id: number, updates: Partial<Provider>) {
+    const index = providers.value.findIndex(p => p.id === id)
+    if (index !== -1) {
+      providers.value[index] = { ...providers.value[index], ...updates }
+    }
   }
 
   function removeProvider(id: number) {
@@ -67,6 +75,7 @@ export const useProvidersStore = defineStore('providers', () => {
     setProviders,
     addProvider,
     removeProvider,
+    updateProvider,
     getByService,
     assignService,
     toggleServiceAssignment,

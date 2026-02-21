@@ -94,10 +94,14 @@
       <v-col v-for="p in providers" :key="p.id" cols="12" sm="4">
         <v-card class="text-center pa-4">
           <v-avatar size="100" class="mb-4">
-            <v-img :src="p.image" cover />
+            <v-img v-if="p.image" :src="p.image" cover />
+            <v-icon v-else icon="mdi-account" size="64" color="grey-lighten-1" />
           </v-avatar>
           <div class="text-h6 font-weight-bold">{{ p.name }}</div>
-          <div class="text-subtitle-2 text-primary mb-4">{{ p.status }}</div>
+          <div class="text-subtitle-2 text-primary mb-2">{{ p.status }}</div>
+          <div class="text-body-2 mb-4 px-4 text-medium-emphasis" style="min-height: 48px;">
+            {{ p.description || 'Expert stylist ready to help you look your best.' }}
+          </div>
           <v-btn 
             color="primary" 
             variant="tonal" 

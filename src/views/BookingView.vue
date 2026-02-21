@@ -76,10 +76,20 @@
                         height="100%"
                       >
                         <v-avatar size="56" class="mb-2">
-                          <v-img :src="provider.image" />
+                          <v-img v-if="provider.image" :src="provider.image" />
+                          <v-icon v-else icon="mdi-account" size="large" color="grey-lighten-1" />
                         </v-avatar>
                         <div class="text-body-2 font-weight-medium text-center text-truncate w-100" :class="isSelected ? '' : 'text-high-emphasis'">{{ provider.name }}</div>
                         <div class="text-caption text-center w-100" :class="isSelected ? '' : 'text-medium-emphasis'">{{ provider.status }}</div>
+                        
+                        <!-- Tooltip or small description -->
+                        <v-tooltip activator="parent" location="bottom" open-delay="200">
+                          <div class="text-center">
+                            <div class="font-weight-bold">{{ provider.name }}</div>
+                            <div class="text-caption">{{ provider.description || 'Expert stylist' }}</div>
+                          </div>
+                        </v-tooltip>
+
                         <v-fade-transition>
                           <v-icon v-if="isSelected" icon="mdi-check-circle" color="primary" size="small" class="mt-1" />
                         </v-fade-transition>

@@ -65,12 +65,17 @@
       <!-- Specialists Management -->
       <v-col cols="12" md="6">
         <AdminProviderForm
+          ref="providerForm"
           v-model:name="provName"
+          v-model:description="provDescription"
           v-model:status="provStatus"
           v-model:image="provImage"
           :providers="providers"
-          @add="handleAddProvider"
+          :editing-id="editingProviderId"
+          @save="handleSaveProvider"
+          @cancel="cancelProviderEdit"
           @remove="removeProvider"
+          @edit="editProvider"
         />
       </v-col>
     </v-row>
@@ -104,6 +109,7 @@ import AdminProviderForm from '@/components/admin/AdminProviderForm.vue'
 
 // Composables
 import { useAdminServiceEditor } from '@/composables/useAdminServiceEditor'
+import { useAdminProviderEditor } from '@/composables/useAdminProviderEditor'
 
 const servicesStore = useServicesStore()
 const { services } = storeToRefs(servicesStore)
@@ -130,15 +136,17 @@ const {
   addSlot, removeSlot
 } = useAdminServiceEditor()
 
+const {
+  provName, provDescription, provStatus, provImage,
+  editingProviderId, providerForm,
+  editProvider, cancelProviderEdit, saveProvider,
+  removeProvider: removeProviderFromStore
+} = useAdminProviderEditor()
+
 // Local UI state
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
-
-const provName = ref('')
-const provStatus = ref('Available')
-const provImage = ref('')
-// const providerForm = ref<any>(null)
 
 // Proxying state for v-bind
 const serviceEditorState = computed(() => ({
@@ -202,26 +210,17 @@ function removeService(id: number) {
   snackbar.value = true
 }
 
-async function handleAddProvider() {
-  // ProviderForm expose its validation ref if needed, but we can do it simple here
-  if (!provName.value) return
-  
-  providersStore.addProvider({
-    name: provName.value,
-    status: provStatus.value || 'Available',
-    image: provImage.value || '',
-    serviceIds: [],
-  })
-  provName.value = ''
-  provStatus.value = 'Available'
-  provImage.value = ''
-  snackbarText.value = 'Specialist added successfully!'
-  snackbarColor.value = 'success'
-  snackbar.value = true
+async function handleSaveProvider() {
+  const result = await saveProvider()
+  if (result.success) {
+    snackbarText.value = result.mode === 'update' ? 'Specialist updated successfully!' : 'Specialist added successfully!'
+    snackbarColor.value = 'success'
+    snackbar.value = true
+  }
 }
 
 function removeProvider(id: number) {
-  providersStore.removeProvider(id)
+  removeProviderFromStore(id)
   snackbarText.value = 'Specialist removed'
   snackbarColor.value = 'info'
   snackbar.value = true
