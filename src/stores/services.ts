@@ -83,6 +83,36 @@ export const useServicesStore = defineStore('services', () => {
     }
   }
 
+  function removeProviderFromServices(providerId: number) {
+    services.value.forEach(service => {
+      if (service.defaultProviderId === providerId) {
+        service.defaultProviderId = undefined
+      }
+      if (service.providerAvailability && service.providerAvailability[providerId]) {
+        delete service.providerAvailability[providerId]
+      }
+    })
+  }
+
+  function promoteOverrideToGlobal(serviceId: number, providerId: number) {
+    const service = getById(serviceId)
+    if (!service || !service.providerAvailability || !service.providerAvailability[providerId]) return
+
+    const override = service.providerAvailability[providerId]
+    
+    // Promote override settings to service level
+    if (override.schedulingMode) service.schedulingMode = override.schedulingMode
+    if (override.availableSlots) service.availableSlots = JSON.parse(JSON.stringify(override.availableSlots))
+    if (override.dateRange) service.dateRange = { ...override.dateRange }
+    if (override.timeRange) service.timeRange = { ...override.timeRange }
+
+    // Remove the override since it's now the default
+    delete service.providerAvailability[providerId]
+    
+    // Trigger update (for persistence)
+    updateService(serviceId, {})
+  }
+
   return {
     services,
     categories,
@@ -90,6 +120,8 @@ export const useServicesStore = defineStore('services', () => {
     addService,
     removeService,
     updateService,
+    removeProviderFromServices,
+    promoteOverrideToGlobal
   }
 })
 

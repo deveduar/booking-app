@@ -133,7 +133,7 @@
           
           <v-col cols="12">
             <AdminOverrideManager
-              v-if="editingId"
+              v-if="assignedProvidersFull.length > 1"
               :editing-service-id="editingId"
               :selected-provider-id="selectedOverrideId"
               :scheduling-mode="overrideMode"

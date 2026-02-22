@@ -64,6 +64,7 @@
 
       <!-- Specialists Management -->
       <v-col cols="12" md="6">
+        <div id="specialist-form-anchor"></div>
         <AdminProviderForm
           ref="providerForm"
           v-model:name="provName"
@@ -74,11 +75,18 @@
           :editing-id="editingProviderId"
           @save="handleSaveProvider"
           @cancel="cancelProviderEdit"
-          @remove="removeProvider"
-          @edit="editProvider"
+          @remove="handleRemoveProviderClick"
+          @edit="handleEditProviderClick"
         />
       </v-col>
     </v-row>
+
+    <ProviderDeleteDialog
+      v-model="deleteDialogOpen"
+      :provider-name="providerToDeleteName"
+      :conflicts="deleteConflicts"
+      @confirm="confirmDeleteProvider"
+    />
 
     <v-snackbar
       v-model="snackbar"
@@ -106,10 +114,12 @@ import AdminMetrics from '@/components/admin/AdminMetrics.vue'
 import AdminServiceList from '@/components/admin/AdminServiceList.vue'
 import AdminServiceForm from '@/components/admin/AdminServiceForm.vue'
 import AdminProviderForm from '@/components/admin/AdminProviderForm.vue'
+import ProviderDeleteDialog from '@/components/admin/ProviderDeleteDialog.vue'
 
 // Composables
 import { useAdminServiceEditor } from '@/composables/useAdminServiceEditor'
 import { useAdminProviderEditor } from '@/composables/useAdminProviderEditor'
+import type { Provider } from '@/stores/providers'
 
 const servicesStore = useServicesStore()
 const { services } = storeToRefs(servicesStore)
@@ -142,6 +152,20 @@ const {
   editProvider, cancelProviderEdit, saveProvider,
   removeProvider: removeProviderFromStore
 } = useAdminProviderEditor()
+
+// Dialog State
+const deleteDialogOpen = ref(false)
+const providerToDeleteId = ref<number | null>(null)
+const providerToDeleteName = ref('')
+const deleteConflicts = ref<{ serviceId: number; serviceName: string; survivorId: number; survivorName: string }[]>([])
+
+function handleEditProviderClick(provider: Provider) {
+  editProvider(provider)
+  const element = document.getElementById('specialist-form-anchor')
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 
 // Local UI state
 const snackbar = ref(false)
@@ -219,10 +243,91 @@ async function handleSaveProvider() {
   }
 }
 
-function removeProvider(id: number) {
-  removeProviderFromStore(id)
-  snackbarText.value = 'Specialist removed'
+function confirmDeleteProvider(action: 'remove' | 'promote') {
+  if (!providerToDeleteId.value) return
+
+  // Handle conflicts first
+  if (deleteConflicts.value.length > 0) {
+    deleteConflicts.value.forEach(c => {
+      const service = servicesStore.getById(c.serviceId)
+      if (!service) return
+
+      if (action === 'promote') {
+        servicesStore.promoteOverrideToGlobal(c.serviceId, c.survivorId)
+      } else {
+        // Just remove the override
+        if (service.providerAvailability && service.providerAvailability[c.survivorId]) {
+           delete service.providerAvailability[c.survivorId]
+           servicesStore.updateService(c.serviceId, {})
+        }
+      }
+
+      // Sync form if currently editing this service
+      if (editingServiceId.value === c.serviceId) {
+        const updatedService = servicesStore.getById(c.serviceId)
+        if (updatedService) {
+          if (action === 'promote') {
+             svcSchedulingMode.value = updatedService.schedulingMode || 'Standard'
+             svcAvailableSlots.value = updatedService.availableSlots ? JSON.parse(JSON.stringify(updatedService.availableSlots)) : []
+             svcDateRangeStart.value = updatedService.dateRange?.start || null
+             svcDateRangeEnd.value = updatedService.dateRange?.end || null
+             svcTimeRangeStart.value = updatedService.timeRange?.start || null
+             svcTimeRangeEnd.value = updatedService.timeRange?.end || null
+          }
+          // Always sync providerAvailability to reflect removed override
+          svcProviderAvailability.value = updatedService.providerAvailability ? JSON.parse(JSON.stringify(updatedService.providerAvailability)) : {}
+        }
+      }
+    })
+  }
+
+  // Then delete the provider
+  removeProviderFromStore(providerToDeleteId.value)
+  
+  snackbarText.value = 'Specialist removed successfully'
   snackbarColor.value = 'info'
   snackbar.value = true
+  
+  // Reset
+  providerToDeleteId.value = null
+  providerToDeleteName.value = ''
+  deleteConflicts.value = []
+}
+
+function handleRemoveProviderClick(id: number) {
+  const provider = providers.value.find(p => p.id === id)
+  if (!provider) return
+
+  providerToDeleteId.value = id
+  providerToDeleteName.value = provider.name
+  deleteConflicts.value = []
+
+  // Analyze conflicts
+  // A conflict exists if:
+  // 1. The service includes this provider
+  // 2. After removal, only 1 provider remains
+  // 3. That remaining provider has an override
+  services.value.forEach(s => {
+    if (s.providerAvailability) {
+      const assignedIds = providersStore.getByService(s.id).map(p => p.id)
+      if (assignedIds.includes(id)) {
+        const remainingIds = assignedIds.filter(pid => pid !== id)
+        if (remainingIds.length === 1) {
+          const survivorId = remainingIds[0]
+          if (s.providerAvailability[survivorId]) {
+            const survivor = providers.value.find(p => p.id === survivorId)
+            deleteConflicts.value.push({
+              serviceId: s.id,
+              serviceName: s.name,
+              survivorId: survivorId,
+              survivorName: survivor?.name || 'Unknown'
+            })
+          }
+        }
+      }
+    }
+  })
+
+  deleteDialogOpen.value = true
 }
 </script>

@@ -147,11 +147,20 @@ export function useBooking() {
         selectedProviderId.value = null;
       }
 
-      // If only one provider available and none selected, auto-select
-      if (availableProviders.length === 1 && !selectedProviderId.value) {
-        setTimeout(() => {
-           selectedProviderId.value = availableProviders[0].id;
-        }, 50);
+      // Auto-select logic:
+      // 1. Try Default Provider
+      // 2. Fallback to First Provider (if exists)
+      if (!selectedProviderId.value) {
+        const service = servicesStore.getById(newId);
+        if (service?.defaultProviderId && availableProviders.find(p => p.id === service.defaultProviderId)) {
+           setTimeout(() => {
+             selectedProviderId.value = service.defaultProviderId!;
+           }, 50);
+        } else if (availableProviders.length > 0) {
+           setTimeout(() => {
+             selectedProviderId.value = availableProviders[0].id;
+           }, 50);
+        }
       }
     }
   });

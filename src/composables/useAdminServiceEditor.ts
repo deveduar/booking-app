@@ -210,6 +210,35 @@ export function useAdminServiceEditor() {
         }
     })
 
+    // Watch assigned providers to cleanup overrides and default provider
+    watch(svcAssignedProviderIds, (newIds, oldIds) => {
+        // If unassigned, remove from overrides
+        const removedIds = oldIds.filter(id => !newIds.includes(id))
+        
+        removedIds.forEach(id => {
+            if (svcProviderAvailability.value[id]) {
+                delete svcProviderAvailability.value[id]
+            }
+            if (svcDefaultProviderId.value === id) {
+                svcDefaultProviderId.value = null
+            }
+        })
+    }, { deep: true })
+
+    // Watch providers list to cleanup deleted providers from form state
+    watch(providers, (newProviders) => {
+        const currentIds = newProviders.map(p => p.id)
+        
+        // Filter out deleted providers from assigned list
+        // This will trigger the svcAssignedProviderIds watcher above for further cleanup
+        svcAssignedProviderIds.value = svcAssignedProviderIds.value.filter(id => currentIds.includes(id))
+        
+        // Also ensure default provider is cleaned if it wasn't in assigned list for some reason
+        if (svcDefaultProviderId.value && !currentIds.includes(svcDefaultProviderId.value)) {
+            svcDefaultProviderId.value = null
+        }
+    }, { deep: true })
+
     const newSlotDate = ref<string | null>(null)
     const newSlotTime = ref<string | null>(null)
 

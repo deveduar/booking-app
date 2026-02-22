@@ -1,5 +1,5 @@
 <template>
-  <div v-if="editingServiceId" class="mt-4">
+  <div class="mt-4">
     <v-divider class="my-4"></v-divider>
     <div class="text-h6 mb-2">Specialist Overrides (Advanced)</div>
     
