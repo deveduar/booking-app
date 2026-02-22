@@ -26,23 +26,6 @@
           </v-col>
         </v-row>
       </v-form>
-      
-      <v-divider class="my-4"></v-divider>
-      
-      <v-list density="compact">
-        <v-list-item v-for="prov in providers" :key="prov.id" :title="prov.name" :subtitle="prov.status">
-          <template #prepend>
-            <v-avatar size="32" class="mr-2">
-              <v-img v-if="prov.image" :src="prov.image" />
-              <v-icon v-else color="grey">mdi-account</v-icon>
-            </v-avatar>
-          </template>
-          <template #append>
-            <v-btn icon="mdi-pencil" size="x-small" variant="text" color="primary" @click="$emit('edit', prov)" />
-            <v-btn icon="mdi-delete" size="x-small" variant="text" color="error" @click="$emit('remove', prov.id)" />
-          </template>
-        </v-list-item>
-      </v-list>
     </v-card-text>
   </v-card>
 </template>

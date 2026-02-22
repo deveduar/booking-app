@@ -27,19 +27,6 @@
             <v-text-field v-model="internalCategory" label="Category" placeholder="e.g. Nails, Hair" />
           </v-col>
           <v-col cols="12">
-            <div class="d-flex align-center">
-              <v-radio-group v-model="internalMode" label="Availability Type" inline hide-details>
-                <v-radio label="Standard (Range)" value="Standard" />
-                <v-radio label="Fixed Slots" value="Fixed Slots" />
-              </v-radio-group>
-              <v-tooltip location="top" text="Standard uses a daily time range. Fixed Slots uses specific manual entries.">
-                <template #activator="{ props }">
-                  <v-icon v-bind="props" icon="mdi-information-outline" size="small" color="grey" class="ml-n2 mt-1" />
-                </template>
-              </v-tooltip>
-            </div>
-          </v-col>
-          <v-col cols="12">
             <v-select
               v-model="internalAssignedIds"
               :items="providers"
@@ -64,6 +51,19 @@
               density="compact"
               clearable
             />
+          </v-col>
+          <v-col cols="12">
+            <div class="d-flex align-center">
+              <v-radio-group v-model="internalMode" label="Availability Type" inline hide-details>
+                <v-radio label="Standard (Range)" value="Standard" />
+                <v-radio label="Fixed Slots" value="Fixed Slots" />
+              </v-radio-group>
+              <v-tooltip location="top" text="Standard uses a daily time range. Fixed Slots uses specific manual entries.">
+                <template #activator="{ props }">
+                  <v-icon v-bind="props" icon="mdi-information-outline" size="small" color="grey" class="ml-n2 mt-1" />
+                </template>
+              </v-tooltip>
+            </div>
           </v-col>
           
           <!-- Mode: Fixed Slots -->

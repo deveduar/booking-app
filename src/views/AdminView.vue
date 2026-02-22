@@ -14,71 +14,94 @@
 
     <v-row>
       <!-- Service Management -->
-      <v-col cols="12" md="6">
-        <AdminServiceForm
-          ref="serviceForm"
-          v-bind="serviceEditorState"
-          :editing-id="editingServiceId"
-          :providers="providers"
-          :get-provider-name="getProviderName"
-          @update:name="svcName = $event"
-          @update:description="svcDescription = $event"
-          @update:price="svcPrice = $event"
-          @update:duration="svcDuration = $event"
-          @update:category="svcCategory = $event"
-          @update:mode="svcSchedulingMode = $event"
-          @update:assignedProviderIds="svcAssignedProviderIds = $event"
-          @update:defaultProviderId="svcDefaultProviderId = $event"
-          @update:newSlotDate="newSlotDate = $event"
-          @update:newSlotTime="newSlotTime = $event"
-          @update:dateRangeStart="svcDateRangeStart = $event"
-          @update:dateRangeEnd="svcDateRangeEnd = $event"
-          @update:timeRangeStart="svcTimeRangeStart = $event"
-          @update:timeRangeEnd="svcTimeRangeEnd = $event"
-          @add-slot="addSlot"
-          @remove-slot="removeSlot"
-          @save="handleSaveService"
-          @cancel="cancelEdit"
-          
-          @update:selectedOverrideId="selectedOverrideProviderId = $event"
-          @update:overrideMode="overrideSchedulingMode = $event"
-          @update:overDate="overDate = $event"
-          @update:overTime="overTime = $event"
-          @update:overDateRangeStart="overDateRangeStart = $event"
-          @update:overDateRangeEnd="overDateRangeEnd = $event"
-          @update:overTimeRangeStart="overTimeRangeStart = $event"
-          @update:overTimeRangeEnd="overTimeRangeEnd = $event"
-          @add-override-slot="addOverrideSlot"
-          @remove-override-slot="removeOverrideSlot"
-          @save-override="saveOverride"
-          @edit-override="editOverride"
-          @remove-override="removeOverride"
-        />
+      <v-col cols="12">
+        <div class="d-flex align-center justify-space-between mb-4">
+          <div class="text-h6">Services</div>
+          <v-btn color="primary" prepend-icon="mdi-plus" @click="handleAddServiceClick">
+            Add Service
+          </v-btn>
+        </div>
 
         <AdminServiceList
           :services="services"
           :providers="providers"
-          @edit="editService"
+          @edit="handleEditServiceClick"
           @delete="removeService"
         />
+
+        <v-dialog v-model="serviceDialogOpen" max-width="800px" persistent>
+          <AdminServiceForm
+            ref="serviceForm"
+            v-bind="serviceEditorState"
+            :editing-id="editingServiceId"
+            :providers="providers"
+            :get-provider-name="getProviderName"
+            @update:name="svcName = $event"
+            @update:description="svcDescription = $event"
+            @update:price="svcPrice = $event"
+            @update:duration="svcDuration = $event"
+            @update:category="svcCategory = $event"
+            @update:mode="svcSchedulingMode = $event"
+            @update:assignedProviderIds="svcAssignedProviderIds = $event"
+            @update:defaultProviderId="svcDefaultProviderId = $event"
+            @update:newSlotDate="newSlotDate = $event"
+            @update:newSlotTime="newSlotTime = $event"
+            @update:dateRangeStart="svcDateRangeStart = $event"
+            @update:dateRangeEnd="svcDateRangeEnd = $event"
+            @update:timeRangeStart="svcTimeRangeStart = $event"
+            @update:timeRangeEnd="svcTimeRangeEnd = $event"
+            @add-slot="addSlot"
+            @remove-slot="removeSlot"
+            @save="handleSaveService"
+            @cancel="handleCancelService"
+            
+            @update:selectedOverrideId="selectedOverrideProviderId = $event"
+            @update:overrideMode="overrideSchedulingMode = $event"
+            @update:overDate="overDate = $event"
+            @update:overTime="overTime = $event"
+            @update:overDateRangeStart="overDateRangeStart = $event"
+            @update:overDateRangeEnd="overDateRangeEnd = $event"
+            @update:overTimeRangeStart="overTimeRangeStart = $event"
+            @update:overTimeRangeEnd="overTimeRangeEnd = $event"
+            @add-override-slot="addOverrideSlot"
+            @remove-override-slot="removeOverrideSlot"
+            @save-override="saveOverride"
+            @edit-override="editOverride"
+            @remove-override="removeOverride"
+          />
+        </v-dialog>
       </v-col>
 
       <!-- Specialists Management -->
-      <v-col cols="12" md="6">
-        <div id="specialist-form-anchor"></div>
-        <AdminProviderForm
-          ref="providerForm"
-          v-model:name="provName"
-          v-model:description="provDescription"
-          v-model:status="provStatus"
-          v-model:image="provImage"
+      <v-col cols="12" class="mt-4">
+        <div class="d-flex align-center justify-space-between mb-4">
+          <div class="text-h6">Specialists</div>
+          <v-btn color="primary" prepend-icon="mdi-plus" @click="handleAddProviderClick">
+            Add Specialist
+          </v-btn>
+        </div>
+
+        <AdminProviderList
           :providers="providers"
-          :editing-id="editingProviderId"
-          @save="handleSaveProvider"
-          @cancel="cancelProviderEdit"
-          @remove="handleRemoveProviderClick"
           @edit="handleEditProviderClick"
+          @remove="handleRemoveProviderClick"
         />
+
+        <v-dialog v-model="providerDialogOpen" max-width="600px" persistent>
+          <AdminProviderForm
+            ref="providerForm"
+            v-model:name="provName"
+            v-model:description="provDescription"
+            v-model:status="provStatus"
+            v-model:image="provImage"
+            :providers="providers"
+            :editing-id="editingProviderId"
+            @save="handleSaveProvider"
+            @cancel="handleCancelProvider"
+            @remove="handleRemoveProviderClick"
+            @edit="handleEditProviderClick"
+          />
+        </v-dialog>
       </v-col>
     </v-row>
 
@@ -130,12 +153,14 @@ import AdminMetrics from '@/components/admin/AdminMetrics.vue'
 import AdminServiceList from '@/components/admin/AdminServiceList.vue'
 import AdminServiceForm from '@/components/admin/AdminServiceForm.vue'
 import AdminProviderForm from '@/components/admin/AdminProviderForm.vue'
+import AdminProviderList from '@/components/admin/AdminProviderList.vue'
 import ProviderDeleteDialog from '@/components/admin/ProviderDeleteDialog.vue'
 
 // Composables
 import { useAdminServiceEditor } from '@/composables/useAdminServiceEditor'
 import { useAdminProviderEditor } from '@/composables/useAdminProviderEditor'
 import type { Provider } from '@/stores/providers'
+import type { Service } from '@/stores/services'
 
 const servicesStore = useServicesStore()
 const { services } = storeToRefs(servicesStore)
@@ -170,7 +195,60 @@ const {
 } = useAdminProviderEditor()
 
 // Dialog State
+const serviceDialogOpen = ref(false)
+const providerDialogOpen = ref(false)
 const deleteDialogOpen = ref(false)
+
+function handleAddServiceClick() {
+  cancelEdit()
+  serviceDialogOpen.value = true
+}
+
+function handleEditServiceClick(service: Service) {
+  editService(service)
+  serviceDialogOpen.value = true
+}
+
+function handleCancelService() {
+  cancelEdit()
+  serviceDialogOpen.value = false
+}
+
+async function handleSaveService() {
+  const result = await saveService()
+  if (result.success) {
+    snackbarText.value = result.mode === 'update' ? 'Service updated successfully!' : 'Service added successfully!'
+    snackbarColor.value = 'success'
+    snackbar.value = true
+    serviceDialogOpen.value = false
+  }
+}
+
+function handleAddProviderClick() {
+  cancelProviderEdit()
+  providerDialogOpen.value = true
+}
+
+function handleEditProviderClick(provider: Provider) {
+  editProvider(provider)
+  providerDialogOpen.value = true
+}
+
+function handleCancelProvider() {
+  cancelProviderEdit()
+  providerDialogOpen.value = false
+}
+
+async function handleSaveProvider() {
+  const result = await saveProvider()
+  if (result.success) {
+    snackbarText.value = result.mode === 'update' ? 'Specialist updated successfully!' : 'Specialist added successfully!'
+    snackbarColor.value = 'success'
+    snackbar.value = true
+    providerDialogOpen.value = false
+  }
+}
+
 const providerToDeleteId = ref<number | null>(null)
 const providerToDeleteName = ref('')
 const deleteConflicts = ref<{ serviceId: number; serviceName: string; survivorId: number; survivorName: string }[]>([])
@@ -178,14 +256,6 @@ const deleteConflicts = ref<{ serviceId: number; serviceName: string; survivorId
 // Service Delete Dialog State
 const deleteServiceDialogOpen = ref(false)
 const serviceToDeleteId = ref<number | null>(null)
-
-function handleEditProviderClick(provider: Provider) {
-  editProvider(provider)
-  const element = document.getElementById('specialist-form-anchor')
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-}
 
 // Local UI state
 const snackbar = ref(false)
@@ -238,15 +308,6 @@ function removeOverrideSlot(index: number) {
   overrideSlots.value.splice(index, 1)
 }
 
-async function handleSaveService() {
-  const result = await saveService()
-  if (result.success) {
-    snackbarText.value = result.mode === 'update' ? 'Service updated successfully!' : 'Service added successfully!'
-    snackbarColor.value = 'success'
-    snackbar.value = true
-  }
-}
-
 function removeService(id: number) {
   serviceToDeleteId.value = id
   deleteServiceDialogOpen.value = true
@@ -261,15 +322,6 @@ function confirmDeleteService() {
     serviceToDeleteId.value = null
   }
   deleteServiceDialogOpen.value = false
-}
-
-async function handleSaveProvider() {
-  const result = await saveProvider()
-  if (result.success) {
-    snackbarText.value = result.mode === 'update' ? 'Specialist updated successfully!' : 'Specialist added successfully!'
-    snackbarColor.value = 'success'
-    snackbar.value = true
-  }
 }
 
 function confirmDeleteProvider(action: 'remove' | 'promote') {

@@ -23,7 +23,7 @@
           
           <div class="d-flex align-center mt-1 text-caption text-grey-darken-1">
              <v-icon size="x-small" class="mr-1">mdi-account-multiple</v-icon>
-             {{ getAssignedProviders(service.id).length }} Specialists
+             {{ getAssignedProviderNames(service.id) }}
              
              <span class="mx-2">•</span>
              
@@ -82,9 +82,12 @@ defineEmits<{
   (e: 'delete', id: number): void
 }>()
 
-function getAssignedProviders(serviceId: number): Provider[] {
-  if (!props.providers) return []
-  return props.providers.filter(p => p.serviceIds.includes(serviceId))
+function getAssignedProviderNames(serviceId: number): string {
+  if (!props.providers) return '0 Specialists'
+  const assigned = props.providers.filter(p => p.serviceIds.includes(serviceId))
+  if (assigned.length === 0) return '0 Specialists'
+  const names = assigned.map(p => p.name).join(', ')
+  return `${assigned.length} Specialists: ${names}`
 }
 
 function getOverridesCount(service: Service): number {
