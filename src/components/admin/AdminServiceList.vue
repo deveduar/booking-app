@@ -5,13 +5,42 @@
       <v-chip size="small">{{ services.length }} Total</v-chip>
     </v-card-title>
     <v-divider></v-divider>
-    <v-list lines="two">
+    <v-list lines="three">
       <v-list-item
         v-for="service in services"
         :key="service.id"
         :title="service.name"
-        :subtitle="`$${service.price} • ${service.duration} mins • ${service.schedulingMode}`"
       >
+        <v-list-item-subtitle class="mt-1">
+          <div class="d-flex align-center flex-wrap gap-2">
+            <v-chip size="x-small" label color="primary" class="mr-2">{{ service.category }}</v-chip>
+            <span class="mr-2">${{ service.price }}</span>
+            <span class="mr-2">•</span>
+            <span class="mr-2">{{ service.duration }} mins</span>
+            <span class="mr-2">•</span>
+            <span class="text-caption">{{ service.schedulingMode }}</span>
+          </div>
+          
+          <div class="d-flex align-center mt-1 text-caption text-grey-darken-1">
+             <v-icon size="x-small" class="mr-1">mdi-account-multiple</v-icon>
+             {{ getAssignedProviders(service.id).length }} Specialists
+             
+             <span class="mx-2">•</span>
+             
+             <v-icon size="x-small" class="mr-1">mdi-calendar-range</v-icon>
+             {{ getAvailabilitySummary(service) }}
+             
+             <span v-if="getOverridesCount(service) > 0" class="ml-2 text-primary font-weight-medium d-flex align-center">
+                <v-icon size="x-small" color="primary" class="mr-1">mdi-account-star</v-icon>
+                {{ getOverridesCount(service) }} Overrides
+             </span>
+          </div>
+
+          <div v-if="service.description" class="text-caption text-grey mt-1 text-truncate">
+            {{ service.description }}
+          </div>
+        </v-list-item-subtitle>
+
         <template #prepend>
           <v-avatar color="primary-lighten-4" size="40">
             <v-icon color="primary">mdi-tag-outline</v-icon>
@@ -41,13 +70,36 @@
 
 <script setup lang="ts">
 import type { Service } from '@/stores/services'
+import type { Provider } from '@/stores/providers'
 
-defineProps<{
+const props = defineProps<{
   services: Service[]
+  providers?: Provider[]
 }>()
 
 defineEmits<{
   (e: 'edit', service: Service): void
   (e: 'delete', id: number): void
 }>()
+
+function getAssignedProviders(serviceId: number): Provider[] {
+  if (!props.providers) return []
+  return props.providers.filter(p => p.serviceIds.includes(serviceId))
+}
+
+function getOverridesCount(service: Service): number {
+  if (!service.providerAvailability) return 0
+  return Object.keys(service.providerAvailability).length
+}
+
+function getAvailabilitySummary(service: Service): string {
+  if (service.schedulingMode === 'Fixed Slots') {
+    const slots = service.availableSlots?.length || 0
+    return `${slots} Fixed Dates`
+  }
+  if (service.dateRange?.start) {
+    return `${service.dateRange.start} — ${service.dateRange.end || 'Ongoing'}`
+  }
+  return 'Standard Availability'
+}
 </script>

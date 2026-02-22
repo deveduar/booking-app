@@ -57,6 +57,7 @@
 
         <AdminServiceList
           :services="services"
+          :providers="providers"
           @edit="editService"
           @delete="removeService"
         />
@@ -87,6 +88,21 @@
       :conflicts="deleteConflicts"
       @confirm="confirmDeleteProvider"
     />
+
+    <!-- Service Delete Dialog -->
+    <v-dialog v-model="deleteServiceDialogOpen" max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">Delete Service?</v-card-title>
+        <v-card-text>
+          Are you sure you want to delete this service? This action cannot be undone.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="deleteServiceDialogOpen = false">Cancel</v-btn>
+          <v-btn color="error" variant="text" @click="confirmDeleteService">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-snackbar
       v-model="snackbar"
@@ -159,6 +175,10 @@ const providerToDeleteId = ref<number | null>(null)
 const providerToDeleteName = ref('')
 const deleteConflicts = ref<{ serviceId: number; serviceName: string; survivorId: number; survivorName: string }[]>([])
 
+// Service Delete Dialog State
+const deleteServiceDialogOpen = ref(false)
+const serviceToDeleteId = ref<number | null>(null)
+
 function handleEditProviderClick(provider: Provider) {
   editProvider(provider)
   const element = document.getElementById('specialist-form-anchor')
@@ -228,10 +248,19 @@ async function handleSaveService() {
 }
 
 function removeService(id: number) {
-  servicesStore.removeService(id)
-  snackbarText.value = 'Service removed'
-  snackbarColor.value = 'info'
-  snackbar.value = true
+  serviceToDeleteId.value = id
+  deleteServiceDialogOpen.value = true
+}
+
+function confirmDeleteService() {
+  if (serviceToDeleteId.value) {
+    servicesStore.removeService(serviceToDeleteId.value)
+    snackbarText.value = 'Service removed successfully'
+    snackbarColor.value = 'info'
+    snackbar.value = true
+    serviceToDeleteId.value = null
+  }
+  deleteServiceDialogOpen.value = false
 }
 
 async function handleSaveProvider() {

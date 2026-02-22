@@ -97,17 +97,29 @@
             <v-icon icon="mdi-account-star" color="primary" class="mr-2" />
           </template>
           <v-list-item-title>{{ getProviderName(Number(pid)) }}</v-list-item-title>
-          <v-list-item-subtitle>
+          
+          <div class="text-caption mt-1">
             <v-chip size="x-small" label color="primary" variant="flat" class="mr-1">{{ ov.schedulingMode }}</v-chip>
+            
             <span v-if="ov.schedulingMode === 'Standard'">
               {{ ov.dateRange?.start }} — {{ ov.dateRange?.end }}
               <span v-if="ov.timeRange?.start"> ({{ ov.timeRange.start }} — {{ ov.timeRange.end }})</span>
             </span>
-            <span v-else>
-              {{ ov.availableSlots?.map(s => s.date).slice(0, 2).join(', ') }}
-              <span v-if="ov.availableSlots && ov.availableSlots.length > 2">... (+{{ ov.availableSlots.length - 2 }} more)</span>
-            </span>
-          </v-list-item-subtitle>
+
+            <div v-else class="mt-1">
+              <div v-if="ov.availableSlots && ov.availableSlots.length > 0">
+                <div v-for="(slot, idx) in ov.availableSlots.slice(0, 3)" :key="idx" class="ml-2">
+                  • {{ slot.date }} <span class="text-grey">({{ slot.times.join(', ') }})</span>
+                </div>
+                <div v-if="ov.availableSlots.length > 3" class="text-grey font-italic ml-2">
+                  +{{ ov.availableSlots.length - 3 }} more days...
+                </div>
+              </div>
+              <div v-else class="text-grey font-italic ml-2">
+                No slots defined
+              </div>
+            </div>
+          </div>
           <template #append>
             <v-btn icon="mdi-pencil" size="x-small" variant="text" @click="$emit('edit-override', Number(pid))" class="mr-1" />
             <v-btn icon="mdi-delete" size="x-small" variant="text" color="error" @click="$emit('remove-override', Number(pid))" />
