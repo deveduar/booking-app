@@ -1,6 +1,9 @@
 <template>
   <v-card class="mt-6">
-    <v-card-title>{{ editingId ? 'Edit Specialist' : 'Add New Specialist' }}</v-card-title>
+    <v-card-title class="d-flex align-center justify-space-between">
+      {{ editingId ? 'Edit Specialist' : 'Add New Specialist' }}
+      <v-btn icon="mdi-close" variant="text" size="small" @click="$emit('cancel')" />
+    </v-card-title>
     <v-card-text>
       <v-form ref="formRef" @submit.prevent="handleSubmit">
         <v-row dense>
@@ -20,7 +23,7 @@
             <v-btn color="secondary" variant="elevated" type="submit" class="flex-grow-1">
               {{ editingId ? 'Update Specialist' : 'Add Specialist' }}
             </v-btn>
-            <v-btn v-if="editingId" color="error" variant="text" class="ml-2" @click="$emit('cancel')">
+            <v-btn color="error" variant="text" class="ml-2" @click="$emit('cancel')">
               Cancel
             </v-btn>
           </v-col>

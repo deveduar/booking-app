@@ -1,4 +1,4 @@
-import { ref, nextTick } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useProvidersStore, type Provider } from '@/stores/providers'
 
 export function useAdminProviderEditor() {
@@ -10,6 +10,28 @@ export function useAdminProviderEditor() {
     const provStatus = ref('Available')
     const provImage = ref('')
     const editingProviderId = ref<number | null>(null)
+    
+    // Dirty Tracking
+    const initialSnapshot = ref('')
+    
+    function takeSnapshot() {
+        initialSnapshot.value = JSON.stringify({
+            name: provName.value,
+            description: provDescription.value,
+            status: provStatus.value,
+            image: provImage.value
+        })
+    }
+    
+    const isProviderDirty = computed(() => {
+        const current = JSON.stringify({
+            name: provName.value,
+            description: provDescription.value,
+            status: provStatus.value,
+            image: provImage.value
+        })
+        return current !== initialSnapshot.value
+    })
 
     // Form reference
     type VForm = {
@@ -26,6 +48,7 @@ export function useAdminProviderEditor() {
         provDescription.value = provider.description || ''
         provStatus.value = provider.status
         provImage.value = provider.image
+        takeSnapshot()
     }
 
     function cancelProviderEdit() {
@@ -34,6 +57,7 @@ export function useAdminProviderEditor() {
         provDescription.value = ''
         provStatus.value = 'Available'
         provImage.value = ''
+        takeSnapshot()
         nextTick(() => {
             if (providerForm.value) providerForm.value.resetValidation()
         })
@@ -70,6 +94,9 @@ export function useAdminProviderEditor() {
         providersStore.removeProvider(id)
     }
 
+    // Initialize snapshot
+    takeSnapshot()
+
     return {
         provName,
         provDescription,
@@ -77,6 +104,7 @@ export function useAdminProviderEditor() {
         provImage,
         editingProviderId,
         providerForm,
+        isProviderDirty,
         editProvider,
         cancelProviderEdit,
         saveProvider,

@@ -127,6 +127,21 @@
       </v-card>
     </v-dialog>
 
+    <!-- Unsaved Changes Dialog -->
+    <v-dialog v-model="unsavedChangesDialogOpen" max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">Unsaved Changes</v-card-title>
+        <v-card-text>
+          You have unsaved changes. Are you sure you want to close this form? All changes will be lost.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="unsavedChangesDialogOpen = false">Keep Editing</v-btn>
+          <v-btn color="error" variant="text" @click="handleConfirmUnsaved">Discard Changes</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-snackbar
       v-model="snackbar"
       :timeout="3000"
@@ -184,34 +199,60 @@ const {
   isSvcFormValid, isOverrideFormValid, overrideProviderName,
   editService, cancelEdit, saveService,
   addOverrideSlot, saveOverride, editOverride,
-  addSlot, removeSlot
+  addSlot, removeSlot, isServiceDirty
 } = useAdminServiceEditor()
 
 const {
   provName, provDescription, provStatus, provImage,
   editingProviderId, providerForm,
   editProvider, cancelProviderEdit, saveProvider,
-  removeProvider: removeProviderFromStore
+  removeProvider: removeProviderFromStore,
+  isProviderDirty
 } = useAdminProviderEditor()
 
 // Dialog State
 const serviceDialogOpen = ref(false)
 const providerDialogOpen = ref(false)
 const deleteDialogOpen = ref(false)
+const unsavedChangesDialogOpen = ref(false)
+const pendingAction = ref<(() => void) | null>(null)
+
+function checkUnsavedChanges(isDirty: boolean, confirmAction: () => void) {
+  if (isDirty) {
+    pendingAction.value = confirmAction
+    unsavedChangesDialogOpen.value = true
+  } else {
+    confirmAction()
+  }
+}
+
+function handleConfirmUnsaved() {
+  if (pendingAction.value) {
+    pendingAction.value()
+  }
+  unsavedChangesDialogOpen.value = false
+  pendingAction.value = null
+}
 
 function handleAddServiceClick() {
-  cancelEdit()
-  serviceDialogOpen.value = true
+  checkUnsavedChanges(false, () => {
+    cancelEdit()
+    serviceDialogOpen.value = true
+  })
 }
 
 function handleEditServiceClick(service: Service) {
-  editService(service)
-  serviceDialogOpen.value = true
+  checkUnsavedChanges(false, () => {
+    editService(service)
+    serviceDialogOpen.value = true
+  })
 }
 
 function handleCancelService() {
-  cancelEdit()
-  serviceDialogOpen.value = false
+  checkUnsavedChanges(isServiceDirty.value, () => {
+    cancelEdit()
+    serviceDialogOpen.value = false
+  })
 }
 
 async function handleSaveService() {
@@ -225,18 +266,24 @@ async function handleSaveService() {
 }
 
 function handleAddProviderClick() {
-  cancelProviderEdit()
-  providerDialogOpen.value = true
+  checkUnsavedChanges(false, () => {
+    cancelProviderEdit()
+    providerDialogOpen.value = true
+  })
 }
 
 function handleEditProviderClick(provider: Provider) {
-  editProvider(provider)
-  providerDialogOpen.value = true
+  checkUnsavedChanges(false, () => {
+    editProvider(provider)
+    providerDialogOpen.value = true
+  })
 }
 
 function handleCancelProvider() {
-  cancelProviderEdit()
-  providerDialogOpen.value = false
+  checkUnsavedChanges(isProviderDirty.value, () => {
+    cancelProviderEdit()
+    providerDialogOpen.value = false
+  })
 }
 
 async function handleSaveProvider() {

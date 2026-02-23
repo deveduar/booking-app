@@ -37,6 +37,48 @@ export function useAdminServiceEditor() {
     const overTimeRangeStart = ref<string | null>(null)
     const overTimeRangeEnd = ref<string | null>(null)
 
+    // Dirty Tracking
+    const initialServiceSnapshot = ref('')
+
+    function takeServiceSnapshot() {
+        initialServiceSnapshot.value = JSON.stringify({
+            name: svcName.value,
+            description: svcDescription.value,
+            price: svcPrice.value,
+            duration: svcDuration.value,
+            category: svcCategory.value,
+            schedulingMode: svcSchedulingMode.value,
+            defaultProviderId: svcDefaultProviderId.value,
+            assignedProviderIds: svcAssignedProviderIds.value,
+            availableSlots: svcAvailableSlots.value,
+            dateRangeStart: svcDateRangeStart.value,
+            dateRangeEnd: svcDateRangeEnd.value,
+            timeRangeStart: svcTimeRangeStart.value,
+            timeRangeEnd: svcTimeRangeEnd.value,
+            providerAvailability: svcProviderAvailability.value
+        })
+    }
+
+    const isServiceDirty = computed(() => {
+        const current = JSON.stringify({
+            name: svcName.value,
+            description: svcDescription.value,
+            price: svcPrice.value,
+            duration: svcDuration.value,
+            category: svcCategory.value,
+            schedulingMode: svcSchedulingMode.value,
+            defaultProviderId: svcDefaultProviderId.value,
+            assignedProviderIds: svcAssignedProviderIds.value,
+            availableSlots: svcAvailableSlots.value,
+            dateRangeStart: svcDateRangeStart.value,
+            dateRangeEnd: svcDateRangeEnd.value,
+            timeRangeStart: svcTimeRangeStart.value,
+            timeRangeEnd: svcTimeRangeEnd.value,
+            providerAvailability: svcProviderAvailability.value
+        })
+        return current !== initialServiceSnapshot.value
+    })
+
     // Form Validity
     const isSvcFormValid = computed(() => {
         if (!svcName.value) return false
@@ -94,6 +136,7 @@ export function useAdminServiceEditor() {
         svcTimeRangeStart.value = service.timeRange?.start || null
         svcTimeRangeEnd.value = service.timeRange?.end || null
         svcProviderAvailability.value = service.providerAvailability ? JSON.parse(JSON.stringify(service.providerAvailability)) : {}
+        takeServiceSnapshot()
     }
 
     function cancelEdit() {
@@ -115,6 +158,7 @@ export function useAdminServiceEditor() {
         selectedOverrideProviderId.value = null
         overTimeRangeStart.value = null
         overTimeRangeEnd.value = null
+        takeServiceSnapshot()
         nextTick(() => {
             if (serviceForm.value) serviceForm.value.resetValidation()
         })
@@ -260,24 +304,49 @@ export function useAdminServiceEditor() {
         svcAvailableSlots.value.splice(index, 1)
     }
 
+    // Initialize snapshot
+    takeServiceSnapshot()
+
     return {
-        // Refs
-        svcName, svcDescription, svcPrice, svcDuration, svcCategory,
-        svcSchedulingMode, svcDefaultProviderId, svcAssignedProviderIds,
-        svcAvailableSlots, svcDateRangeStart, svcDateRangeEnd,
-        svcTimeRangeStart, svcTimeRangeEnd, svcProviderAvailability,
-        editingServiceId, serviceForm,
-        selectedOverrideProviderId, overrideSchedulingMode, overrideSlots,
-        overDate, overTime, overDateRangeStart, overDateRangeEnd,
-        overTimeRangeStart, overTimeRangeEnd,
-        newSlotDate, newSlotTime,
-
-        // Computed
-        isSvcFormValid, isOverrideFormValid, assignedProviders, overrideProviderName,
-
-        // Methods
-        editService, cancelEdit, saveService,
-        addOverrideSlot, saveOverride, editOverride,
-        addSlot, removeSlot
+        svcName,
+        svcDescription,
+        svcPrice,
+        svcDuration,
+        svcCategory,
+        svcSchedulingMode,
+        svcDefaultProviderId,
+        svcAssignedProviderIds,
+        svcAvailableSlots,
+        svcDateRangeStart,
+        svcDateRangeEnd,
+        svcTimeRangeStart,
+        svcTimeRangeEnd,
+        svcProviderAvailability,
+        editingServiceId,
+        serviceForm,
+        selectedOverrideProviderId,
+        overrideSchedulingMode,
+        overrideSlots,
+        overDate,
+        overTime,
+        overDateRangeStart,
+        overDateRangeEnd,
+        overTimeRangeStart,
+        overTimeRangeEnd,
+        newSlotDate,
+        newSlotTime,
+        isSvcFormValid,
+        isOverrideFormValid,
+        assignedProviders,
+        overrideProviderName,
+        isServiceDirty,
+        editService,
+        cancelEdit,
+        saveService,
+        addOverrideSlot,
+        saveOverride,
+        editOverride,
+        addSlot,
+        removeSlot
     }
 }

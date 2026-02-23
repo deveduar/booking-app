@@ -1,6 +1,9 @@
 <template>
   <v-card>
-    <v-card-title>{{ editingId ? 'Edit Service' : 'Add New Service' }}</v-card-title>
+    <v-card-title class="d-flex align-center justify-space-between">
+      {{ editingId ? 'Edit Service' : 'Add New Service' }}
+      <v-btn icon="mdi-close" variant="text" size="small" @click="$emit('cancel')" />
+    </v-card-title>
     <v-card-text>
       <v-form ref="formRef" @submit.prevent="$emit('save')">
         <v-row dense>
