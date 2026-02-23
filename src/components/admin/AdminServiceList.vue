@@ -29,6 +29,9 @@
              
              <v-icon size="x-small" class="mr-1">mdi-calendar-range</v-icon>
              {{ getAvailabilitySummary(service) }}
+             <span v-if="getAvailabilityDetail(service)" class="text-caption text-grey ml-1">
+               ({{ getAvailabilityDetail(service) }})
+             </span>
              
              <span v-if="getOverridesCount(service) > 0" class="ml-2 text-primary font-weight-medium d-flex align-center">
                 <v-icon size="x-small" color="primary" class="mr-1">mdi-account-star</v-icon>
@@ -104,5 +107,17 @@ function getAvailabilitySummary(service: Service): string {
     return `${service.dateRange.start} — ${service.dateRange.end || 'Ongoing'}`
   }
   return 'Standard Availability'
+}
+
+function getAvailabilityDetail(service: Service): string {
+  if (service.schedulingMode === 'Fixed Slots' && service.availableSlots?.length) {
+    // Show first 2 dates as example
+    const dates = service.availableSlots.slice(0, 2).map(s => `${s.date} (${s.times.join(',')})`).join('; ')
+    return service.availableSlots.length > 2 ? `${dates}...` : dates
+  }
+  if (service.schedulingMode === 'Standard' && service.timeRange?.start) {
+    return `${service.timeRange.start} - ${service.timeRange.end}`
+  }
+  return ''
 }
 </script>

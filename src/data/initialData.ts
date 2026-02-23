@@ -63,6 +63,28 @@ export const servicesData: Service[] = [
             }
         }
     },
+    {
+        id: 21,
+        name: 'Manicure & Pedicure',
+        description: 'Complete nail care service.',
+        price: 50,
+        duration: 60,
+        category: 'Nails',
+        schedulingMode: 'Standard',
+        timeRange: { start: '10:00', end: '19:00' },
+        defaultProviderId: 4
+    },
+    {
+        id: 22,
+        name: 'Facial Treatment',
+        description: 'Rejuvenating facial for all skin types.',
+        price: 90,
+        duration: 60,
+        category: 'Skincare',
+        schedulingMode: 'Standard',
+        timeRange: { start: '09:00', end: '17:00' },
+        defaultProviderId: 5
+    }
 ]
 
 export const providersData: Provider[] = [
@@ -90,6 +112,22 @@ export const providersData: Provider[] = [
         image: 'https://cdn.usegalileo.ai/sdxl10/014920d7-e0b4-4ffa-823a-811dd0d3cdbc.png',
         serviceIds: [1],
     },
+    {
+        id: 4,
+        name: 'Jessica',
+        description: 'Nail art specialist with 5 years experience.',
+        status: 'Available',
+        image: 'https://cdn.usegalileo.ai/sdxl10/e360a77c-7c0b-4767-8765-573577507775.png',
+        serviceIds: [21],
+    },
+    {
+        id: 5,
+        name: 'Michael',
+        description: 'Skincare expert focusing on organic treatments.',
+        status: 'Busy',
+        image: 'https://cdn.usegalileo.ai/sdxl10/84725791-163e-42e1-a05a-277577507776.png',
+        serviceIds: [22],
+    }
 ]
 
 export const appointmentsData: Appointment[] = [

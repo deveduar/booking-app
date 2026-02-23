@@ -99,7 +99,7 @@
           </v-avatar>
           <div class="text-h6 font-weight-bold">{{ p.name }}</div>
           <div class="text-subtitle-2 text-primary mb-2">{{ p.status }}</div>
-          <div class="text-body-2 mb-4 px-4 text-medium-emphasis" style="min-height: 48px;">
+          <div class="text-body-2 mb-4 px-4 text-medium-emphasis text-truncate-2" style="min-height: 48px;">
             {{ p.description || 'Expert stylist ready to help you look your best.' }}
           </div>
           <v-btn 
@@ -179,5 +179,10 @@ const testimonials = ref([
   font-weight: bold;
 }
 
-
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>

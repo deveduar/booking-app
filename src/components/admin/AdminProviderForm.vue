@@ -1,10 +1,10 @@
 <template>
-  <v-card class="mt-6">
-    <v-card-title class="d-flex align-center justify-space-between">
+  <v-card class="mt-6 d-flex flex-column" style="max-height: 90vh;">
+    <v-card-title class="d-flex align-center justify-space-between flex-shrink-0 " style="position: sticky; top: 0; z-index: 10;">
       {{ editingId ? 'Edit Specialist' : 'Add New Specialist' }}
       <v-btn icon="mdi-close" variant="text" size="small" @click="$emit('cancel')" />
     </v-card-title>
-    <v-card-text>
+    <v-card-text class="flex-grow-1 overflow-y-auto">
       <v-form ref="formRef" @submit.prevent="handleSubmit">
         <v-row dense>
           <v-col cols="12">

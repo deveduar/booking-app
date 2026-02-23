@@ -29,7 +29,7 @@
           @delete="removeService"
         />
 
-        <v-dialog v-model="serviceDialogOpen" max-width="800px" persistent>
+        <v-dialog v-model="serviceDialogOpen" max-width="800px" persistent @keydown.esc="handleCancelService">
           <AdminServiceForm
             ref="serviceForm"
             v-bind="serviceEditorState"
@@ -87,7 +87,7 @@
           @remove="handleRemoveProviderClick"
         />
 
-        <v-dialog v-model="providerDialogOpen" max-width="600px" persistent>
+        <v-dialog v-model="providerDialogOpen" max-width="600px" persistent @keydown.esc="handleCancelProvider">
           <AdminProviderForm
             ref="providerForm"
             v-model:name="provName"
