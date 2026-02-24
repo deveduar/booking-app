@@ -83,6 +83,7 @@
 
         <AdminProviderList
           :providers="providers"
+          :services="services"
           @edit="handleEditProviderClick"
           @remove="handleRemoveProviderClick"
         />
@@ -96,6 +97,7 @@
             v-model:image="provImage"
             :providers="providers"
             :editing-id="editingProviderId"
+            :is-dirty="isProviderDirty"
             @save="handleSaveProvider"
             @cancel="handleCancelProvider"
             @remove="handleRemoveProviderClick"

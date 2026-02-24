@@ -20,7 +20,13 @@
             <v-text-field v-model="internalImage" label="Avatar URL (Optional)" placeholder="https://..." />
           </v-col>
           <v-col cols="12" class="d-flex">
-            <v-btn color="secondary" variant="elevated" type="submit" class="flex-grow-1">
+            <v-btn
+              color="secondary"
+              variant="elevated"
+              type="submit"
+              class="flex-grow-1"
+              :disabled="!!editingId && !isDirty"
+            >
               {{ editingId ? 'Update Specialist' : 'Add Specialist' }}
             </v-btn>
             <v-btn color="error" variant="text" class="ml-2" @click="$emit('cancel')">
@@ -51,6 +57,7 @@ const props = defineProps<{
   image: string;
   providers: Provider[];
   editingId?: number | null;
+  isDirty?: boolean;
 }>();
 
 const emit = defineEmits(['update:name', 'update:description', 'update:status', 'update:image', 'save', 'cancel', 'remove', 'edit']);

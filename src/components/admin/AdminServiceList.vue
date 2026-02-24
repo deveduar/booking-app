@@ -12,31 +12,33 @@
         :title="service.name"
       >
         <v-list-item-subtitle class="mt-1">
-          <div class="d-flex align-center flex-wrap gap-2">
-            <v-chip size="x-small" label color="primary" class="mr-2">{{ service.category }}</v-chip>
-            <span class="mr-2">${{ service.price }}</span>
-            <span class="mr-2">•</span>
-            <span class="mr-2">{{ service.duration }} mins</span>
-            <span class="mr-2">•</span>
-            <span class="text-caption">{{ service.schedulingMode }}</span>
+          <div class="d-flex align-center flex-wrap">
+            <v-chip size="x-small" label color="primary" class="mr-2 mb-1">{{ service.category }}</v-chip>
+            <span class="mr-2 mb-1 text-body-2 font-weight-medium">${{ service.price }}</span>
+            <span class="mr-2 mb-1">•</span>
+            <span class="mr-2 mb-1">{{ service.duration }} mins</span>
+            <span class="mr-2 mb-1">•</span>
+            <span class="text-caption mb-1">{{ service.schedulingMode }}</span>
           </div>
           
-          <div class="d-flex align-center mt-1 text-caption text-grey-darken-1">
-             <v-icon size="x-small" class="mr-1">mdi-account-multiple</v-icon>
-             {{ getAssignedProviderNames(service.id) }}
+          <div class="d-flex flex-wrap align-center text-caption text-grey-darken-1">
+             <div class="d-flex align-center mr-3 mb-1">
+                <v-icon size="x-small" class="mr-1">mdi-account-multiple</v-icon>
+                {{ getAssignedProviderNames(service.id) }}
+             </div>
              
-             <span class="mx-2">•</span>
+             <div class="d-flex align-center mr-3 mb-1">
+                <v-icon size="x-small" class="mr-1">mdi-calendar-range</v-icon>
+                {{ getAvailabilitySummary(service) }}
+                <span v-if="getAvailabilityDetail(service)" class="text-caption text-grey ml-1">
+                  ({{ getAvailabilityDetail(service) }})
+                </span>
+             </div>
              
-             <v-icon size="x-small" class="mr-1">mdi-calendar-range</v-icon>
-             {{ getAvailabilitySummary(service) }}
-             <span v-if="getAvailabilityDetail(service)" class="text-caption text-grey ml-1">
-               ({{ getAvailabilityDetail(service) }})
-             </span>
-             
-             <span v-if="getOverridesCount(service) > 0" class="ml-2 text-primary font-weight-medium d-flex align-center">
+             <div v-if="getOverridesCount(service) > 0" class="d-flex align-center text-primary font-weight-medium mb-1">
                 <v-icon size="x-small" color="primary" class="mr-1">mdi-account-star</v-icon>
                 {{ getOverridesCount(service) }} Overrides
-             </span>
+             </div>
           </div>
 
           <div v-if="service.description" class="text-caption text-grey mt-1 text-truncate">

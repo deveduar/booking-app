@@ -5,7 +5,7 @@
       <v-chip size="small">{{ providers.length }} Total</v-chip>
     </v-card-title>
     <v-divider></v-divider>
-    <v-list density="compact">
+    <v-list density="compact" lines="two">
       <v-list-item v-for="prov in providers" :key="prov.id" :title="prov.name" :subtitle="prov.status">
         <template #prepend>
           <v-avatar size="32" class="mr-2">
@@ -13,6 +13,23 @@
             <v-icon v-else color="grey">mdi-account</v-icon>
           </v-avatar>
         </template>
+        
+        <div class="mt-2" v-if="getAssignedServices(prov).length > 0">
+           <v-chip
+             v-for="svc in getAssignedServices(prov)" 
+             :key="svc.id"
+             size="x-small"
+             class="mr-1 mb-1"
+             variant="outlined"
+             color="primary"
+           >
+             {{ svc.name }}: {{ getServiceSchedule(svc, prov.id) }}
+           </v-chip>
+        </div>
+        <div v-else class="text-caption text-grey mt-1">
+          No services assigned
+        </div>
+
         <template #append>
           <v-btn icon="mdi-pencil" size="x-small" variant="text" color="primary" @click="$emit('edit', prov)" />
           <v-btn icon="mdi-delete" size="x-small" variant="text" color="error" @click="$emit('remove', prov.id)" />
@@ -24,13 +41,45 @@
 
 <script setup lang="ts">
 import type { Provider } from '@/stores/providers'
+import type { Service } from '@/stores/services'
 
-defineProps<{
+const props = defineProps<{
   providers: Provider[]
+  services?: Service[]
 }>()
 
 defineEmits<{
   (e: 'edit', provider: Provider): void
   (e: 'remove', id: number): void
 }>()
+
+function getAssignedServices(provider: Provider): Service[] {
+  if (!props.services) return []
+  return props.services.filter(s => provider.serviceIds.includes(s.id))
+}
+
+function getServiceSchedule(service: Service, providerId: number): string {
+  // Check override
+  if (service.providerAvailability && service.providerAvailability[providerId]) {
+     const override = service.providerAvailability[providerId];
+     if (override.schedulingMode === 'Fixed Slots' && override.availableSlots?.length) {
+        const dates = override.availableSlots.slice(0, 2).map(s => `${s.date} (${s.times.join(',')})`).join('; ')
+        return override.availableSlots.length > 2 ? `${dates}...` : dates
+     }
+     if (override.dateRange?.start) {
+        return `${override.dateRange.start} - ${override.dateRange.end || 'Ongoing'}`
+     }
+  }
+  
+  // Default
+  if (service.schedulingMode === 'Fixed Slots' && service.availableSlots?.length) {
+      const dates = service.availableSlots.slice(0, 2).map(s => `${s.date} (${s.times.join(',')})`).join('; ')
+      return service.availableSlots.length > 2 ? `${dates}...` : dates
+  }
+  if (service.dateRange?.start) {
+      return `${service.dateRange.start} - ${service.dateRange.end || 'Ongoing'}`
+  }
+  
+  return 'Standard'
+}
 </script>
