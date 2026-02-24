@@ -24,19 +24,39 @@
         color="primary"
         hide-details
       />
-      <v-date-input
+      <v-text-field
         v-else
-        v-model="internalDate"
-        :allowed-dates="isAllowedDate"
+        :model-value="internalDate ? formatDate(internalDateStr) : ''"
+        :placeholder="dateFormat"
         label="Select a date"
-        prepend-icon=""
         prepend-inner-icon="$calendar"
         variant="outlined"
         bg-color="surface"
         hide-details
         color="primary"
-        hide-actions
-      />
+        readonly
+        @click="menu1 = true"
+      >
+        <v-menu
+          v-model="menu1"
+          :close-on-content-click="false"
+          activator="parent"
+          transition="scale-transition"
+          @click:outside="cancelDate"
+        >
+          <v-date-picker
+            v-model="tempDate"
+            :allowed-dates="isAllowedDate"
+            color="primary"
+            rounded="lg"
+          >
+            <template v-slot:actions>
+              <v-btn variant="text" @click="cancelDate">Cancel</v-btn>
+              <v-btn color="primary" @click="saveDate">OK</v-btn>
+            </template>
+          </v-date-picker>
+        </v-menu>
+      </v-text-field>
     </v-col>
     <v-col v-if="!hideTime" cols="12" :md="hideDate ? 12 : 6">
       <!-- If only one time is available for this date, show as read-only -->
@@ -83,18 +103,24 @@
           :close-on-content-click="false"
           activator="parent"
           transition="scale-transition"
-          @click:outside="menu2 = false"
+          @click:outside="cancelTime"
         >
           <v-time-picker
             v-if="menu2"
-            :model-value="pickerTime"
+            :model-value="tempPickerTime"
             @update:model-value="onPickerTimeUpdate"
             :allowed-hours="allowedHours"
             :allowed-minutes="allowedMinutes"
-            ampm-in-title
-            format="ampm"
+            :ampm-in-title="pickerFormat === 'ampm'"
+            :format="pickerFormat"
             full-width
-          />
+            rounded="lg"
+          >
+            <template v-slot:actions>
+              <v-btn variant="text" @click="cancelTime">Cancel</v-btn>
+              <v-btn color="primary" @click="saveTime">OK</v-btn>
+            </template>
+          </v-time-picker>
         </v-menu>
       </v-text-field>
     </v-col>
@@ -103,6 +129,7 @@
 
 <script setup lang="ts">
 import { useDateTimePicker, type DateTimePickerProps } from '../composables/useDateTimePicker';
+import { useSettings } from '@/composables/useSettings';
 
 /**
  * DateTimePicker Component
@@ -122,10 +149,20 @@ const emit = defineEmits<{
   (e: 'update:time', v: string | null): void
 }>();
 
+const { formatDate, dateFormat } = useSettings();
+
 const {
+  menu1,
   menu2,
   selectedTime,
-  pickerTime,
+  // pickerTime,
+  tempPickerTime,
+  tempDate,
+  pickerFormat,
+  saveTime,
+  cancelTime,
+  saveDate,
+  cancelDate,
   onPickerTimeUpdate,
   internalDate,
   internalDateStr,

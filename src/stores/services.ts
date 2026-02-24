@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { servicesData } from '@/data/initialData'
+import { useSettingsStore } from './settings'
 
 export type AvailabilitySlot = {
   date: string
@@ -74,6 +75,9 @@ export const useServicesStore = defineStore('services', () => {
 
   function removeService(id: number) {
     services.value = services.value.filter(s => s.id !== id)
+    // Remove from settings store if featured
+    const settingsStore = useSettingsStore()
+    settingsStore.removeService(id)
   }
 
   function updateService(id: number, updated: Partial<Omit<Service, 'id'>>) {

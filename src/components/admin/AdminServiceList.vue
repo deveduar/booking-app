@@ -76,11 +76,14 @@
 <script setup lang="ts">
 import type { Service } from '@/stores/services'
 import type { Provider } from '@/stores/providers'
+import { useSettings } from '@/composables/useSettings'
 
 const props = defineProps<{
   services: Service[]
   providers?: Provider[]
 }>()
+
+const { formatDate, formatTime } = useSettings()
 
 defineEmits<{
   (e: 'edit', service: Service): void
@@ -106,7 +109,7 @@ function getAvailabilitySummary(service: Service): string {
     return `${slots} Fixed Dates`
   }
   if (service.dateRange?.start) {
-    return `${service.dateRange.start} — ${service.dateRange.end || 'Ongoing'}`
+    return `${formatDate(service.dateRange.start)} — ${service.dateRange.end ? formatDate(service.dateRange.end) : 'Ongoing'}`
   }
   return 'Standard Availability'
 }
@@ -114,11 +117,11 @@ function getAvailabilitySummary(service: Service): string {
 function getAvailabilityDetail(service: Service): string {
   if (service.schedulingMode === 'Fixed Slots' && service.availableSlots?.length) {
     // Show first 2 dates as example
-    const dates = service.availableSlots.slice(0, 2).map(s => `${s.date} (${s.times.join(',')})`).join('; ')
+    const dates = service.availableSlots.slice(0, 2).map(s => `${formatDate(s.date)} (${s.times.map(t => formatTime(t)).join(', ')})`).join('; ')
     return service.availableSlots.length > 2 ? `${dates}...` : dates
   }
   if (service.schedulingMode === 'Standard' && service.timeRange?.start) {
-    return `${service.timeRange.start} - ${service.timeRange.end}`
+    return `${formatTime(service.timeRange.start)} - ${formatTime(service.timeRange.end)}`
   }
   return ''
 }

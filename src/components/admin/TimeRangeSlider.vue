@@ -27,9 +27,9 @@
     </v-range-slider>
 
     <div class="d-flex justify-space-between mt-2 text-caption opacity-70">
-      <span>12:00 AM</span>
-      <span>12:00 PM</span>
-      <span>12:00 AM</span>
+      <span>{{ formatTimeMin(0, timeFormat as '12h'|'24h') }}</span>
+      <span>{{ formatTimeMin(720, timeFormat as '12h'|'24h') }}</span>
+      <span>{{ formatTimeMin(1440, timeFormat as '12h'|'24h') }}</span>
     </div>
 
     <v-alert
@@ -48,12 +48,15 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { parseTimeMin, formatTimeMin, formatTimeHHmm } from '@/utils/timeUtils';
+import { useSettings } from '@/composables/useSettings';
 
 const props = defineProps<{
   start: string | null;
   end: string | null;
   date?: string | null; // For "today" context
 }>();
+
+const { timeFormat } = useSettings();
 
 const emit = defineEmits<{
   (e: 'update:start', v: string | null): void;
@@ -74,15 +77,15 @@ const isToday = computed(() => {
 
 const currentFormatedTime = computed(() => {
   const now = new Date();
-  return formatTimeMin(now.getHours() * 60 + now.getMinutes());
+  return formatTimeMin(now.getHours() * 60 + now.getMinutes(), timeFormat.value as '12h'|'24h');
 });
 
 const formatLabel = (val: number) => {
-  return formatTimeMin(val);
+  return formatTimeMin(val, timeFormat.value as '12h'|'24h');
 };
 
 const formattedRange = computed(() => {
-  return `${formatTimeMin(sliderValue.value[0])} - ${formatTimeMin(sliderValue.value[1])}`;
+  return `${formatTimeMin(sliderValue.value[0], timeFormat.value as '12h'|'24h')} - ${formatTimeMin(sliderValue.value[1], timeFormat.value as '12h'|'24h')}`;
 });
 
 watch(sliderValue, (newVal) => {

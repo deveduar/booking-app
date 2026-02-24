@@ -188,6 +188,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { getTodayStr, parseTimeMin, formatTimeMin } from '@/utils/timeUtils'
+import { useSettings } from '@/composables/useSettings'
 import DateTimePicker from '@/components/DateTimePicker.vue'
 import AdminSlotManager from './AdminSlotManager.vue'
 import AdminOverrideManager from './AdminOverrideManager.vue'
@@ -253,6 +254,8 @@ const emit = defineEmits([
   'edit-override', 'remove-override'
 ]);
 
+const { timeFormat } = useSettings();
+
 const formRef = ref<VForm | null>(null);
 
 // V-model wrappers
@@ -275,7 +278,7 @@ const nowMin = computed(() => {
   return d.getHours() * 60 + d.getMinutes();
 });
 
-const currentFormatedTime = computed(() => formatTimeMin(nowMin.value));
+const currentFormatedTime = computed(() => formatTimeMin(nowMin.value, timeFormat.value as '12h'|'24h'));
 
 const isRangeTodayPast = computed(() => {
   if (props.mode !== 'Standard' || !props.dateRangeStart || !props.timeRangeStart) return false;

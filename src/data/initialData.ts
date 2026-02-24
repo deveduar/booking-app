@@ -136,3 +136,32 @@ export const appointmentsData: Appointment[] = [
     { id: 3, date: '2026-02-16', time: '11:00', service: 'General Service', provider: 'John', status: 'Canceled' },
     { id: 4, date: '2026-02-22', time: '15:00', service: 'Session', provider: 'Emma', status: 'Upcoming' },
 ]
+
+export const initialSettings = {
+    dateFormat: 'YYYY-MM-DD',
+    timeFormat: '12h' as '12h' | '24h',
+    timezone: 'UTC',
+    hero: {
+        title: 'Glamour Salon',
+        subtitle: 'Your go-to destination for premium hair care and styling.',
+        images: [
+            { src: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+            { src: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+            { src: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+        ],
+        ctaText: 'Book Now',
+        ctaLink: '/booking'
+    },
+    company: {
+        brandName: 'YourBrand',
+        footerText: 'Get connected with us on social networks!',
+        socialLinks: [
+            { platform: 'Facebook', url: '#', icon: 'mdi-facebook' },
+            { platform: 'Twitter', url: '#', icon: 'mdi-twitter' },
+            { platform: 'LinkedIn', url: '#', icon: 'mdi-linkedin' },
+            { platform: 'Instagram', url: '#', icon: 'mdi-instagram' }
+        ]
+    },
+    featuredServiceIds: [1, 2, 3],
+    featuredExpertIds: [1, 2, 3]
+}

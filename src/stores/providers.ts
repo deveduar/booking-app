@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useServicesStore } from './services'
+import { useSettingsStore } from './settings'
 import { providersData } from '@/data/initialData'
 
 export type Provider = {
@@ -47,6 +48,10 @@ export const useProvidersStore = defineStore('providers', () => {
     providers.value = providers.value.filter(p => p.id !== id)
     const servicesStore = useServicesStore()
     servicesStore.removeProviderFromServices(id)
+    
+    // Remove from settings store if featured
+    const settingsStore = useSettingsStore()
+    settingsStore.removeExpert(id)
   }
 
   function getByService(serviceId: number) {

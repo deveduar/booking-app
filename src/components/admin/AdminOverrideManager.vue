@@ -103,13 +103,13 @@
             
             <span v-if="ov.schedulingMode === 'Standard'">
               {{ ov.dateRange?.start }} — {{ ov.dateRange?.end }}
-              <span v-if="ov.timeRange?.start"> ({{ ov.timeRange.start }} — {{ ov.timeRange.end }})</span>
+              <span v-if="ov.timeRange?.start"> ({{ formatTime(ov.timeRange.start) }} — {{ formatTime(ov.timeRange.end) }})</span>
             </span>
 
             <div v-else class="mt-1">
               <div v-if="ov.availableSlots && ov.availableSlots.length > 0">
                 <div v-for="(slot, idx) in ov.availableSlots.slice(0, 3)" :key="idx" class="ml-2">
-                  • {{ slot.date }} <span class="text-grey">({{ slot.times.join(', ') }})</span>
+                  • {{ slot.date }} <span class="text-grey">({{ slot.times.map(t => formatTime(t)).join(', ') }})</span>
                 </div>
                 <div v-if="ov.availableSlots.length > 3" class="text-grey font-italic ml-2">
                   +{{ ov.availableSlots.length - 3 }} more days...
@@ -133,6 +133,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getTodayStr, parseTimeMin, formatTimeMin } from '@/utils/timeUtils'
+import { useSettings } from '@/composables/useSettings'
 import DateTimePicker from '@/components/DateTimePicker.vue'
 import TimeRangeSlider from './TimeRangeSlider.vue'
 import AdminSlotManager from './AdminSlotManager.vue'
@@ -173,6 +174,8 @@ const emit = defineEmits([
   'remove-override'
 ]);
 
+const { timeFormat, formatTime } = useSettings();
+
 const internalSelectedId = computed({
   get: () => props.selectedProviderId,
   set: (val) => emit('update:selectedProviderId', val)
@@ -189,7 +192,7 @@ const nowMin = computed(() => {
   return d.getHours() * 60 + d.getMinutes();
 });
 
-const currentFormatedTime = computed(() => formatTimeMin(nowMin.value));
+const currentFormatedTime = computed(() => formatTimeMin(nowMin.value, timeFormat.value as '12h'|'24h'));
 
 const isRangeTodayPast = computed(() => {
   if (internalMode.value !== 'Standard' || !props.overDateRangeStart || !props.overTimeRangeStart) return false;

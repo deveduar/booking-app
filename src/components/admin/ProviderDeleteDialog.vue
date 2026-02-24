@@ -34,7 +34,7 @@
           </ul>
         </v-alert>
 
-        <div v-if="conflicts.length > 0" class="mt-4 pa-3 bg-grey-lighten-4 rounded">
+        <div v-if="conflicts.length > 0" class="mt-4 pa-3  rounded">
           <div class="text-subtitle-2 mb-2 font-weight-bold">Resolution Action</div>
           <div class="text-caption mb-2">How should we handle the survivor's overrides?</div>
           <v-radio-group v-model="resolutionAction" density="compact" hide-details>

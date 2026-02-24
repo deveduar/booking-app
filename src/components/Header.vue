@@ -7,7 +7,7 @@
     <v-app-bar-nav-icon @click="$emit('toggle-drawer')" />
 
     <!-- Título del toolbar -->
-    <v-toolbar-title>YourBrand</v-toolbar-title>
+    <v-toolbar-title>{{ company.brandName }}</v-toolbar-title>
 
     <!-- Espaciador para separar el título de los botones -->
     <v-spacer></v-spacer>
@@ -37,15 +37,21 @@
 defineOptions({ name: 'AppHeader' })
 import { useTheme } from 'vuetify';
 import { ref, onMounted } from 'vue';
+import { useSettingsStore } from '@/stores/settings';
+import { storeToRefs } from 'pinia';
 
 // Tipo explícito para el tema
 const theme = useTheme();
+
+const settingsStore = useSettingsStore();
+const { company } = storeToRefs(settingsStore);
 
 const navbarItems = ref([
   { label: 'Home', to: '/' },
   { label: 'Booking', to: '/booking' },
   { label: 'Services', to: '/services' },
   { label: 'Admin', to: '/admin' },
+  { label: 'Settings', to: '/settings' },
   { label: 'Appointments', to: '/appointments' },
   { label: 'Sign In', to: '/login' },
   { label: 'Sign Up', to: '/register' },

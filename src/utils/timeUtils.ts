@@ -23,16 +23,25 @@ export function parseTimeMin(t: string | null): number {
 }
 
 /**
- * Formats total minutes into "h:mm AM/PM" string (display-only).
- * Use for UI labels, chips, and text display — NOT for v-time-picker v-model.
+ * Formats total minutes into string based on format preference.
+ * @param mTotal Total minutes from midnight
+ * @param format '12h' or '24h'
  */
-export function formatTimeMin(mTotal: number): string {
-    let h = Math.floor(mTotal / 60);
+export function formatTimeMin(mTotal: number, format: '12h' | '24h' = '12h'): string {
+    let hTotal = Math.floor(mTotal / 60);
     const m = mTotal % 60;
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12;
-    if (h === 0) h = 12;
-    return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+    
+    // Normalize 24:xx to 00:xx
+    if (hTotal >= 24) hTotal = hTotal % 24;
+
+    if (format === '24h') {
+        return `${String(hTotal).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    } else {
+        const ampm = hTotal >= 12 ? 'PM' : 'AM';
+        let h = hTotal % 12;
+        if (h === 0) h = 12;
+        return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
 }
 
 /**

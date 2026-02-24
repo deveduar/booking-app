@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue';
 import { parseTimeMin, formatTimeMin, formatTimeHHmm, getTodayStr, dateToYMD } from '../utils/timeUtils';
+import { useSettings } from '@/composables/useSettings';
 
 export type AvailabilitySlot = {
     date: string;
@@ -34,6 +35,7 @@ export type DateTimePickerEmit = {
  * Encapsulates range filtering, auto-selection, and state synchronization.
  */
 export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePickerEmit) {
+    const { timeFormat } = useSettings();
     const menu2 = ref(false);
     const selectedTime = ref(props.time ?? '');
 
@@ -115,8 +117,8 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePick
         if (props.availableSlots && props.availableSlots.length > 0) {
             const slot = props.availableSlots.find(s => s.date === internalDateStr.value);
             if (!slot) return [];
-            // Normalize to AM/PM display regardless of stored format (HH:mm or h:mm AM/PM)
-            times = slot.times.map(t => formatTimeMin(parseTimeMin(t)));
+            // Normalize to display format based on settings
+            times = slot.times.map(t => formatTimeMin(parseTimeMin(t), timeFormat.value as '12h' | '24h'));
         } else if (props.timeRange?.start && props.timeRange?.end && props.duration) {
             // Generate slots from range and duration using shared formatter
             const startMin = parseTimeMin(props.timeRange.start);
@@ -124,7 +126,7 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePick
             const dur = props.duration;
 
             for (let cur = startMin; cur + dur <= endMin; cur += 30) {
-                times.push(formatTimeMin(cur));
+                times.push(formatTimeMin(cur, timeFormat.value as '12h' | '24h'));
             }
         } else {
             return null;
@@ -213,16 +215,78 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePick
             return formatTimeHHmm(min);
         },
         set: (val: string) => {
-            // val arrives from v-time-picker as HH:mm — convert to AM/PM for display
+            // val arrives from v-time-picker as HH:mm — convert to configured format for display
             if (!val) { selectedTime.value = ''; return; }
             const min = parseTimeMin(val);
-            selectedTime.value = formatTimeMin(min);
+            selectedTime.value = formatTimeMin(min, timeFormat.value as '12h' | '24h');
         }
     });
 
+    // --- Time Picker Confirmation Logic ---
+    const tempPickerTime = ref('');
+    const pickerFormat = computed(() => timeFormat.value === '12h' ? 'ampm' : '24hr');
+
+    // When menu opens, initialize temp value and handle smart default
+    watch(menu2, (isOpen) => {
+        if (isOpen) {
+            if (pickerTime.value) {
+                tempPickerTime.value = pickerTime.value;
+            } else {
+                // Smart Default: Find first allowed hour
+                let min = 0;
+                
+                // If allowedTimesForDate (Fixed Slots or Duration-based) has values, pick first
+                if (allowedTimesForDate.value && allowedTimesForDate.value.length > 0) {
+                     const firstTime = allowedTimesForDate.value[0]; // e.g., "02:00 PM"
+                     min = parseTimeMin(firstTime);
+                } 
+                // Else if Range exists, pick start of range
+                else if (props.timeRange?.start) {
+                    min = parseTimeMin(props.timeRange.start);
+                }
+                // Else pick current time (or next 30 min block)
+                else {
+                    const now = new Date();
+                    min = now.getHours() * 60 + now.getMinutes();
+                }
+                tempPickerTime.value = formatTimeHHmm(min);
+            }
+        }
+    });
+
+    function saveTime() {
+        pickerTime.value = tempPickerTime.value;
+        menu2.value = false;
+    }
+
+    function cancelTime() {
+        menu2.value = false;
+    }
+
     /** Called by v-time-picker @update:model-value — receives HH:mm, stores AM/PM. */
     function onPickerTimeUpdate(val: string) {
-        pickerTime.value = val;
+        // pickerTime.value = val; // Old immediate update
+        tempPickerTime.value = val; // Update temp instead
+    }
+
+    // --- Date Picker Confirmation Logic ---
+    const menu1 = ref(false);
+    const tempDate = ref<Date | null>(null);
+
+    // Initialize temp date when menu opens
+    watch(menu1, (isOpen) => {
+        if (isOpen) {
+            tempDate.value = internalDate.value;
+        }
+    });
+
+    function saveDate() {
+        internalDate.value = tempDate.value;
+        menu1.value = false;
+    }
+
+    function cancelDate() {
+        menu1.value = false;
     }
 
     // --- Watchers Section ---
@@ -278,9 +342,17 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePick
     });
 
     return {
+        menu1,
         menu2,
         selectedTime,
         pickerTime,
+        tempPickerTime,
+        tempDate,
+        pickerFormat,
+        saveTime,
+        cancelTime,
+        saveDate,
+        cancelDate,
         onPickerTimeUpdate,
         internalDate,
         internalDateStr,

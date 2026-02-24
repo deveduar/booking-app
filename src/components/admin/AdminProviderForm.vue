@@ -25,7 +25,7 @@
               variant="elevated"
               type="submit"
               class="flex-grow-1"
-              :disabled="!!editingId && !isDirty"
+              :disabled="isSaveDisabled"
             >
               {{ editingId ? 'Update Specialist' : 'Add Specialist' }}
             </v-btn>
@@ -68,6 +68,15 @@ const internalName = computed({ get: () => props.name, set: v => emit('update:na
 const internalDescription = computed({ get: () => props.description || '', set: v => emit('update:description', v) });
 const internalStatus = computed({ get: () => props.status, set: v => emit('update:status', v) });
 const internalImage = computed({ get: () => props.image, set: v => emit('update:image', v) });
+
+const isSaveDisabled = computed(() => {
+  // If editing, disable save until changes are made (isDirty is true)
+  if (props.editingId !== null && props.editingId !== undefined) {
+    return !props.isDirty;
+  }
+  // If adding, always enabled (or could check validation)
+  return false;
+});
 
 function handleSubmit() {
   emit('save')

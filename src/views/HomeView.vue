@@ -13,7 +13,7 @@
           >
             <!-- Carrusel Item 1 -->
             <v-carousel-item
-              v-for="(item, i) in images"
+              v-for="(item, i) in hero.images"
               :key="i"
               :src="item.src"
               cover
@@ -24,19 +24,19 @@
                 >
                   <!-- CTA Info -->
                   <h1 class="text-white display-2 font-weight-bold mb-2">
-                    Glamour Salon
+                    {{ hero.title }}
                   </h1>
                   <p class="text-white text-h6">
-                    Your go-to destination for premium hair care and styling.
+                    {{ hero.subtitle }}
                   </p>
                   <!-- CTA Button -->
                   <v-btn
                     color="primary"
-                    to="/booking"
+                    :to="hero.ctaLink"
                     large
                     class="mt-4"
                   >
-                    Book Now
+                    {{ hero.ctaText }}
                   </v-btn>
                 </v-container>
             </v-carousel-item>
@@ -46,27 +46,14 @@
 
     <h1 class="text-h5 font-weight-bold mt-10 ml-2">Featured services</h1>
     <v-row class="mt-2">
-      <v-col cols="12" sm="4">
-        <ServiceCard 
-          v-if="highlightedServices[0]"
-          :service="highlightedServices[0]"
-        />
+      <v-col 
+        v-for="service in featuredServices" 
+        :key="service.id"
+        cols="12" 
+        sm="4"
+      >
+        <ServiceCard :service="service" />
       </v-col>
-      <v-col cols="12" sm="4">
-        <ServiceCard 
-          v-if="highlightedServices[1]"
-          :service="highlightedServices[1]"
-        />
-      </v-col>
-      <v-col cols="12" sm="4">
-        <ServiceCard 
-          v-if="highlightedServices[2]"
-          :service="highlightedServices[2]"
-        />
-      </v-col>
-
-
-
     </v-row>
   
     <!-- Navigation Links -->
@@ -91,7 +78,7 @@
     <!-- Experts Section -->
     <h1 class="text-h5 font-weight-bold mt-10 ml-2">Our Experts</h1>
     <v-row class="mt-2">
-      <v-col v-for="p in providers" :key="p.id" cols="12" sm="4">
+      <v-col v-for="p in featuredExperts" :key="p.id" cols="12" sm="4">
         <v-card class="text-center pa-4">
           <v-avatar size="100" class="mb-4">
             <v-img v-if="p.image" :src="p.image" cover />
@@ -150,6 +137,7 @@ import { storeToRefs } from 'pinia';
 import ServiceCard from '@/components/ServiceCard.vue'
 import { useServicesStore } from '@/stores/services';
 import { useProvidersStore } from '@/stores/providers';
+import { useSettingsStore } from '@/stores/settings';
 
 const servicesStore = useServicesStore();
 const { services } = storeToRefs(servicesStore);
@@ -157,14 +145,16 @@ const { services } = storeToRefs(servicesStore);
 const providersStore = useProvidersStore();
 const { providers } = storeToRefs(providersStore);
 
-const highlightedServices = computed(() => services.value.slice(0, 3));
+const settingsStore = useSettingsStore();
+const { hero, featuredServiceIds, featuredExpertIds } = storeToRefs(settingsStore);
 
-// Array of images for the carousel
-const images = ref([
-  { src: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { src: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { src: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-]);
+const featuredServices = computed(() => {
+  return services.value.filter(s => featuredServiceIds.value.includes(s.id));
+});
+
+const featuredExperts = computed(() => {
+  return providers.value.filter(p => featuredExpertIds.value.includes(p.id));
+});
 
 // Optional testimonials for the homepage
 const testimonials = ref([

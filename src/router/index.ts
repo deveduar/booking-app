@@ -7,6 +7,7 @@ import ServicesView from '@/views/ServicesView.vue';
 import AboutView from '@/views/AboutView.vue';
 import AdminView from '@/views/AdminView.vue';
 import AppointmentsView from '@/views/AppointmentsView.vue';
+import SettingsView from '@/views/SettingsView.vue';
 
 const routes = [
   {
@@ -48,6 +49,11 @@ const routes = [
     path: '/admin',
     name: 'Admin',
     component: AdminView,
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: SettingsView,
   },
 ];
 

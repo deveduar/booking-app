@@ -4,9 +4,11 @@ import { useProvidersStore } from '@/stores/providers';
 import { useServicesStore } from '@/stores/services';
 import { useAppointmentsStore } from '@/stores/appointments';
 import { parseTimeMin, formatTimeMin } from '@/utils/timeUtils';
+import { useSettings } from '@/composables/useSettings';
 // import type { Service, AvailabilityOverride } from '@/stores/services';
 
 export function useBooking() {
+  const { timeFormat } = useSettings();
   const providersStore = useProvidersStore();
   const { providers } = storeToRefs(providersStore);
   
@@ -127,7 +129,7 @@ export function useBooking() {
           earliestTime = null;
         } else {
           // Use formatTimeMin to guarantee the format matches what allowedTimesForDate generates
-          earliestTime = formatTimeMin(startMin);
+          earliestTime = formatTimeMin(startMin, timeFormat.value as '12h'|'24h');
         }
       }
     }

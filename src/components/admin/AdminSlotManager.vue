@@ -5,7 +5,7 @@
     <!-- Slots list -->
     <v-list density="compact" bg-color="transparent" v-if="slots.length > 0">
       <v-list-item v-for="(slot, index) in slots" :key="index">
-        {{ slot.date }}: {{ slot.times.join(', ') }}
+        {{ formatDate(slot.date) }}: {{ slot.times.map(t => formatTime(t)).join(', ') }}
         <template #append>
           <v-btn icon="mdi-delete" size="x-small" variant="text" @click="$emit('remove', index)" />
         </template>
@@ -41,6 +41,9 @@
 
 <script setup lang="ts">
 import DateTimePicker from '@/components/DateTimePicker.vue'
+import { useSettings } from '@/composables/useSettings'
+
+const { formatDate, formatTime } = useSettings()
 
 defineProps<{
   slots: { date: string, times: string[] }[];
