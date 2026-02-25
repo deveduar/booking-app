@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia';
 import { useProvidersStore } from '@/stores/providers';
 import { useServicesStore } from '@/stores/services';
 import { useAppointmentsStore } from '@/stores/appointments';
+import { useAuthStore } from '@/stores/auth';
 import { parseTimeMin, formatTimeMin } from '@/utils/timeUtils';
 import { useSettings } from '@/composables/useSettings';
 // import type { Service, AvailabilityOverride } from '@/stores/services';
@@ -16,6 +17,7 @@ export function useBooking() {
   const { services } = storeToRefs(servicesStore);
 
   const appointmentsStore = useAppointmentsStore();
+  const authStore = useAuthStore();
 
   const selectedServiceId = ref<number | null>(null);
   const selectedProviderId = ref<number | null>(null);
@@ -184,14 +186,16 @@ export function useBooking() {
   const createAppointment = () => {
     const service = servicesStore.getById(selectedServiceId.value as number);
     const provider = providers.value.find(p => p.id === selectedProviderId.value);
+    const user = authStore.user;
 
-    if (!service || !provider || !selectedDate.value || !selectedTime.value) return false;
+    if (!service || !provider || !selectedDate.value || !selectedTime.value || !user) return false;
 
     appointmentsStore.addAppointment({
       date: selectedDate.value,
       time: selectedTime.value,
       service: service.name,
       provider: provider.name,
+      userName: user.name,
       status: 'Upcoming',
     });
 

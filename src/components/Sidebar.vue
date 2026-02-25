@@ -26,7 +26,7 @@
 
     <v-list density="compact" nav>
       <v-list-item
-        v-for="(item, index) in navItems"
+        v-for="(item, index) in filteredNavItems"
         :key="index"
         :to="item.to"
         :prepend-icon="item.icon"
@@ -41,6 +41,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
+import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
 import { navItems } from '@/constants/navigation';
 
@@ -53,9 +54,21 @@ const emit = defineEmits(['update:modelValue']);
 const settingsStore = useSettingsStore();
 const { company } = storeToRefs(settingsStore);
 
+const authStore = useAuthStore();
+const { user, isAuthenticated } = storeToRefs(authStore);
+
 const drawerInternal = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
+});
+
+const filteredNavItems = computed(() => {
+  return navItems.filter(i => {
+    if (i.guestOnly && isAuthenticated.value) return false;
+    if (i.requiresAuth && !isAuthenticated.value) return false;
+    if (i.role && user.value?.role !== i.role) return false;
+    return true;
+  });
 });
 </script>
 

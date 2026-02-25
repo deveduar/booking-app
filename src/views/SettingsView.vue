@@ -1,18 +1,70 @@
 <template>
-  <v-container class="py-6" v-if="draftSettings">
+  <v-container class="py-6">
     <h1 class="text-h4 font-weight-bold mb-6">Settings</h1>
 
-    <v-card>
+    <v-card v-if="draftSettings">
       <v-tabs v-model="tab" color="primary">
-        <v-tab value="general">General</v-tab>
-        <v-tab value="company">Company Info</v-tab>
-        <v-tab value="home">Home Page Editor</v-tab>
+        <v-tab value="profile">My Profile</v-tab>
+        <v-tab v-if="isAdmin" value="general">General</v-tab>
+        <v-tab v-if="isAdmin" value="company">Company Info</v-tab>
+        <v-tab v-if="isAdmin" value="home">Home Page Editor</v-tab>
       </v-tabs>
 
       <v-card-text>
         <v-window v-model="tab">
-          <!-- General Settings -->
-          <v-window-item value="general">
+          <!-- My Profile -->
+          <v-window-item value="profile">
+            <v-row v-if="user">
+              <v-col cols="12" md="4" class="text-center">
+                <v-avatar size="150" class="mb-4" border>
+                  <v-img :src="profileDraft.avatar || 'https://cdn.vuetifyjs.com/images/john.jpg'"></v-img>
+                </v-avatar>
+                <div class="text-h6">{{ user.name }}</div>
+                <div class="text-subtitle-1 text-grey">{{ user.role }}</div>
+              </v-col>
+              <v-col cols="12" md="8">
+                 <v-form @submit.prevent="handleSaveProfile">
+                  <v-row>
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="profileDraft.name"
+                        label="Full Name"
+                        variant="outlined"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="profileDraft.email"
+                        label="Email Address"
+                        variant="outlined"
+                        readonly
+                        disabled
+                        hint="Email cannot be changed"
+                        persistent-hint
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="profileDraft.avatar"
+                        label="Avatar URL"
+                        variant="outlined"
+                        hint="Link to your profile picture"
+                        persistent-hint
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" class="d-flex justify-end mt-4">
+                      <v-btn color="primary" type="submit" prepend-icon="mdi-account-check">
+                        Update Profile
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+                </v-form>
+              </v-col>
+            </v-row>
+          </v-window-item>
+
+          <!-- General Settings (Admin Only) -->
+          <v-window-item v-if="isAdmin" value="general">
             <v-row>
               <v-col cols="12" md="6">
                 <v-select
@@ -43,8 +95,8 @@
             </v-row>
           </v-window-item>
 
-          <!-- Company Info -->
-          <v-window-item value="company">
+          <!-- Company Info (Admin Only) -->
+          <v-window-item v-if="isAdmin" value="company">
             <v-row>
               <v-col cols="12" md="6">
                 <v-text-field
@@ -117,8 +169,8 @@
             </v-btn>
           </v-window-item>
 
-          <!-- Home Page Editor -->
-          <v-window-item value="home">
+          <!-- Home Page Editor (Admin Only) -->
+          <v-window-item v-if="isAdmin" value="home">
             <v-expansion-panels variant="accordion" multiple>
               
               <!-- Hero Section -->
@@ -155,6 +207,7 @@
                       ></v-text-field>
                     </v-col>
                   </v-row>
+                  <!-- ... rest of hero images code ... -->
 
                   <div class="text-subtitle-1 font-weight-bold mt-4 mb-2">Hero Images</div>
                   <v-row v-for="(img, index) in draftSettings.hero.images" :key="index" align="center" dense>
@@ -258,6 +311,7 @@ import { storeToRefs } from 'pinia'
 import { useSettings } from '@/composables/useSettings'
 import { useServicesStore } from '@/stores/services'
 import { useProvidersStore } from '@/stores/providers'
+import { useAuthStore } from '@/stores/auth'
 
 const { draftSettings, resetDraft, commitSettings } = useSettings()
 
@@ -267,19 +321,38 @@ const { services: allServices } = storeToRefs(servicesStore)
 const providersStore = useProvidersStore()
 const { providers: allProviders } = storeToRefs(providersStore)
 
+const authStore = useAuthStore()
+const { user, isAdmin } = storeToRefs(authStore)
+
+const profileDraft = ref({
+  name: '',
+  email: '',
+  avatar: ''
+})
+
 // Local state for featured items (only apply on save)
 const localFeaturedServiceIds = ref<number[]>([])
 const localFeaturedExpertIds = ref<number[]>([])
 
 onMounted(() => {
   resetDraft()
+  
+  if (user.value) {
+    profileDraft.value = {
+      name: user.value.name,
+      email: user.value.email,
+      avatar: user.value.avatar || ''
+    }
+  }
+
   // Load current featured IDs
   localFeaturedServiceIds.value = allServices.value.filter(s => s.isFeatured).map(s => s.id)
   localFeaturedExpertIds.value = allProviders.value.filter(p => p.isFeatured).map(p => p.id)
 })
 
-const tab = ref('general')
+const tab = ref('profile')
 const snackbar = ref(false)
+const snackbarText = ref('Settings saved successfully!')
 
 function addHeroImage() {
   if (draftSettings.value) {
@@ -305,6 +378,15 @@ function removeSocialLink(index: number) {
   }
 }
 
+function handleSaveProfile() {
+  authStore.updateProfile({
+    name: profileDraft.value.name,
+    avatar: profileDraft.value.avatar
+  })
+  snackbarText.value = 'Profile updated successfully!'
+  snackbar.value = true
+}
+
 function handleSave() {
   // 1. Commit general settings
   commitSettings()
@@ -317,6 +399,7 @@ function handleSave() {
     p.isFeatured = localFeaturedExpertIds.value.includes(p.id)
   })
 
+  snackbarText.value = 'Salon settings saved successfully!'
   snackbar.value = true
 }
 </script>

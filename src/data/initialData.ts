@@ -142,11 +142,36 @@ export const providersData: Provider[] = [
     }
 ]
 
-export const appointmentsData: Appointment[] = [
-    { id: 1, date: '2026-02-20', time: '10:00', service: 'Consultation', provider: 'Alex', status: 'Upcoming' },
-    { id: 2, date: '2026-02-18', time: '14:00', service: 'Coloring', provider: 'Sophie', status: 'Completed' },
-    { id: 3, date: '2026-02-16', time: '11:00', service: 'General Service', provider: 'John', status: 'Canceled' },
-    { id: 4, date: '2026-02-22', time: '15:00', service: 'Session', provider: 'Emma', status: 'Upcoming' },
+export const appointmentsData: Appointment[] = []
+
+export type UserRole = 'Admin' | 'User'
+
+export type User = {
+    id: number
+    name: string
+    email: string
+    password?: string
+    role: UserRole
+    avatar?: string
+}
+
+export const usersData: User[] = [
+    {
+        id: 1,
+        name: 'Admin User',
+        email: 'admin@example.com',
+        password: 'password',
+        role: 'Admin',
+        avatar: 'https://cdn.usegalileo.ai/sdxl10/84725791-163e-42e1-a05a-277577507776.png'
+    },
+    {
+        id: 2,
+        name: 'John Doe',
+        email: 'user@example.com',
+        password: 'password',
+        role: 'User',
+        avatar: 'https://cdn.usegalileo.ai/sdxl10/014920d7-e0b4-4ffa-823a-811dd0d3cdbc.png'
+    }
 ]
 
 export const initialSettings = {

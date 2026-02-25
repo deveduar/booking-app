@@ -1,26 +1,27 @@
 <template>
   <v-container >
-    <!-- Header Section -->
-    <HomeHero :hero="hero" />
+    <!-- Admin Dashboard -->
+    <HomeAdminDashboard v-if="isAdmin && user" :user-name="user.name" />
+
+    <!-- User Dashboard -->
+    <HomeUserDashboard v-else-if="isAuthenticated && user" :user-name="user.name" />
+
+    <!-- Guest Hero -->
+    <HomeHero v-else :hero="hero" />
 
     <!-- Featured Services Section -->
     <HomeFeaturedServices :featured-services="featuredServices" />
   
-    <!-- Navigation Links -->
-    <v-row class="my-6">
-      <v-col cols="12" sm="4">
-        <v-btn to="/services" block variant="outlined" color="secondary">
-          Services
+    <!-- Navigation Links (Guest Only) -->
+    <v-row class="my-6" v-if="!isAuthenticated">
+      <v-col cols="12" sm="6">
+        <v-btn to="/register" block variant="outlined" color="primary" size="large">
+          Create Account
         </v-btn>
       </v-col>
-      <v-col cols="12" sm="4">
-        <v-btn to="/register" block variant="outlined" color="secondary">
-          Register
-        </v-btn>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-btn to="/login" block variant="outlined" color="secondary">
-          Login
+      <v-col cols="12" sm="6">
+        <v-btn to="/login" block variant="elevated" color="primary" size="large">
+          Sign In
         </v-btn>
       </v-col>
     </v-row>
@@ -58,6 +59,7 @@ import { useRouter } from 'vue-router';
 import { useServicesStore } from '@/stores/services';
 import { useProvidersStore } from '@/stores/providers';
 import { useSettingsStore } from '@/stores/settings';
+import { useAuthStore } from '@/stores/auth';
 
 // Types
 import type { Provider } from '@/stores/providers';
@@ -67,6 +69,8 @@ import HomeHero from '@/components/home/HomeHero.vue';
 import HomeFeaturedServices from '@/components/home/HomeFeaturedServices.vue';
 import HomeFeaturedExperts from '@/components/home/HomeFeaturedExperts.vue';
 import HomeTestimonials from '@/components/home/HomeTestimonials.vue';
+import HomeAdminDashboard from '@/components/home/HomeAdminDashboard.vue';
+import HomeUserDashboard from '@/components/home/HomeUserDashboard.vue';
 
 const servicesStore = useServicesStore();
 const { services } = storeToRefs(servicesStore);
@@ -76,6 +80,9 @@ const { providers } = storeToRefs(providersStore);
 
 const settingsStore = useSettingsStore();
 const { hero } = storeToRefs(settingsStore);
+
+const authStore = useAuthStore();
+const { user, isAuthenticated, isAdmin } = storeToRefs(authStore);
 
 const featuredServices = computed(() => {
   return services.value.filter(s => s.isFeatured && s.isVisible !== false);

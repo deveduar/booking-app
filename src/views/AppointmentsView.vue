@@ -140,9 +140,13 @@ import { storeToRefs } from 'pinia'
 import { useAppointmentsStore } from '@/stores/appointments'
 import type { Appointment } from '@/stores/appointments'
 import { useSettings } from '@/composables/useSettings'
+import { useAuthStore } from '@/stores/auth'
 
 const appointmentsStore = useAppointmentsStore()
-const { appointments, upcoming } = storeToRefs(appointmentsStore)
+const authStore = useAuthStore()
+const { user, isAdmin } = storeToRefs(authStore)
+
+const { appointments } = storeToRefs(appointmentsStore)
 const { formatDate, formatTime } = useSettings()
 
 const sortBy = ref('Date')
@@ -158,9 +162,20 @@ function displayDate(d: string): string {
   return formatDate(d);
 }
 
+// Role-based filtering
+const filteredAppointments = computed(() => {
+  if (isAdmin.value) return appointments.value
+  return appointments.value.filter(a => a.userName === user.value?.name)
+})
+
+const upcoming = computed(() => 
+  filteredAppointments.value.filter(a => a.status === 'Upcoming')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+)
+
 const next = computed(() => upcoming.value[0] || null)
 const otherUpcoming = computed(() => upcoming.value.slice(1))
-const history = computed(() => appointments.value.filter(a => a.status !== 'Upcoming'))
+const history = computed(() => filteredAppointments.value.filter(a => a.status !== 'Upcoming'))
 
 const sortedHistory = computed(() => {
   const list = [...history.value]

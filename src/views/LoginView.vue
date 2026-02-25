@@ -10,8 +10,17 @@
       <h1 class="text-h4 font-weight-bold text-center mb-4">Sign In</h1>
       <!-- Formulario de Login -->
       <v-form ref="form" @submit.prevent="handleLogin" v-model="isFormValid">
+        <v-alert
+          v-if="loginError"
+          type="error"
+          variant="tonal"
+          class="mb-4"
+          density="compact"
+        >
+          Invalid email or password.
+        </v-alert>
         <v-text-field
-          v-model="form.email"
+          v-model="loginForm.email"
           label="Email Address"
           type="email"
           outlined
@@ -22,7 +31,7 @@
         ></v-text-field>
 
         <v-text-field
-          v-model="form.password"
+          v-model="loginForm.password"
           label="Password"
           :type="showPassword ? 'text' : 'password'"
           outlined
@@ -64,57 +73,56 @@
   </v-container>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 
-export default {
-  name: 'LoginView',
-  setup() {
-    // Estado del formulario
-    const form = ref({
-      email: '',
-      password: '',
-    });
+const router = useRouter();
+const route = useRoute();
+const authStore = useAuthStore();
 
-    // Estado para la validación del formulario
-    const isFormValid = ref(false);
+// Estado del formulario
+const loginForm = ref({
+  email: '',
+  password: '',
+});
 
-    // Reglas de validación
-    const rules = {
-      required: (value: string) => !!value || 'This field is required',
-      email: (value: string) =>
-        /^\S+@\S+\.\S+$/.test(value) || 'Enter a valid email',
-    };
+// Estado para la validación del formulario
+const isFormValid = ref(false);
+const loginError = ref(false);
 
-    // Estado para mostrar/ocultar la contraseña
-    const showPassword = ref(false);
+// Reglas de validación
+const rules = {
+  required: (value: string) => !!value || 'This field is required',
+  email: (value: string) =>
+    /^\S+@\S+\.\S+$/.test(value) || 'Enter a valid email',
+};
 
-    // Función para alternar la visibilidad de la contraseña
-    const togglePasswordVisibility = () => {
-      showPassword.value = !showPassword.value;
-    };
+// Estado para mostrar/ocultar la contraseña
+const showPassword = ref(false);
 
-    // Función para manejar el login
-    const handleLogin = () => {
-      console.log('Logging in user:', form.value);
-    };
+// Función para alternar la visibilidad de la contraseña
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
 
-    // Función para redirigir a la página de registro
-    const goToRegister = () => {
-      window.location.href = '/register'; // Reemplaza con navegación del router si usas Vue Router
-    };
+// Función para manejar el login
+const handleLogin = () => {
+  loginError.value = false;
+  const success = authStore.login(loginForm.value.email, loginForm.value.password);
+  
+  if (success) {
+    const redirectPath = (route.query.redirect as string) || '/';
+    router.push(redirectPath);
+  } else {
+    loginError.value = true;
+  }
+};
 
-    // Devuelve las propiedades y funciones necesarias para el template
-    return {
-      form,
-      isFormValid,
-      rules,
-      showPassword,
-      togglePasswordVisibility,
-      handleLogin,
-      goToRegister,
-    };
-  },
+// Función para redirigir a la página de registro
+const goToRegister = () => {
+  router.push('/register');
 };
 </script>
 

@@ -12,8 +12,17 @@
       
       <!-- Formulario de Registro -->
       <v-form ref="form" @submit.prevent="handleRegister" v-model="isFormValid">
+        <v-alert
+          v-if="registerError"
+          type="error"
+          variant="tonal"
+          class="mb-4"
+          density="compact"
+        >
+          {{ registerError }}
+        </v-alert>
         <v-text-field
-          v-model="form.fullName"
+          v-model="registerForm.fullName"
           label="Full Name"
           outlined
           dense
@@ -23,7 +32,7 @@
         ></v-text-field>
 
         <v-text-field
-          v-model="form.email"
+          v-model="registerForm.email"
           label="Email Address"
           type="email"
           outlined
@@ -34,7 +43,7 @@
         ></v-text-field>
 
         <v-text-field
-          v-model="form.password"
+          v-model="registerForm.password"
           label="Password"
           :type="showPassword ? 'text' : 'password'"
           outlined
@@ -47,7 +56,7 @@
         ></v-text-field>
 
         <v-text-field
-          v-model="form.confirmPassword"
+          v-model="registerForm.confirmPassword"
           label="Confirm Password"
           type="password"
           outlined
@@ -87,66 +96,68 @@
   </v-container>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 
-export default {
-  name: 'RegisterView',
-  setup() {
-    // Estado del formulario
-    const form = ref({
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    });
+const router = useRouter();
+const authStore = useAuthStore();
 
-    // Estado para la validación del formulario
-    const isFormValid = ref(false);
+// Estado del formulario
+const registerForm = ref({
+  fullName: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+});
 
-    // Reglas de validación
-    const rules = {
-      required: (value: string) => !!value || 'This field is required',
-      email: (value: string) =>
-        /^\S+@\S+\.\S+$/.test(value) || 'Enter a valid email',
-      password: (value: string) =>
-        value.length >= 6 || 'Password must be at least 6 characters long',
-    };
+// Estado para la validación del formulario
+const isFormValid = ref(false);
+const registerError = ref('');
 
-    const passwordsMatch = () =>
-      form.value.password === form.value.confirmPassword ||
-      'Passwords must match';
+// Reglas de validación
+const rules = {
+  required: (value: string) => !!value || 'This field is required',
+  email: (value: string) =>
+    /^\S+@\S+\.\S+$/.test(value) || 'Enter a valid email',
+  password: (value: string) =>
+    value.length >= 6 || 'Password must be at least 6 characters long',
+};
 
-    // Estado para mostrar/ocultar la contraseña
-    const showPassword = ref(false);
+const passwordsMatch = () =>
+  registerForm.value.password === registerForm.value.confirmPassword ||
+  'Passwords must match';
 
-    // Función para alternar la visibilidad de la contraseña
-    const togglePasswordVisibility = () => {
-      showPassword.value = !showPassword.value;
-    };
+// Estado para mostrar/ocultar la contraseña
+const showPassword = ref(false);
 
-    // Función para manejar el registro
-    const handleRegister = () => {
-      console.log('Registering user:', form.value);
-    };
+// Función para alternar la visibilidad de la contraseña
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
 
-    // Función para redirigir a la página de login
-    const goToLogin = () => {
-      window.location.href = '/login'; // Reemplaza con navegación del router
-    };
+// Función para manejar el registro
+const handleRegister = () => {
+  registerError.value = '';
+  
+  const success = authStore.register({
+    name: registerForm.value.fullName,
+    email: registerForm.value.email,
+    password: registerForm.value.password,
+    role: 'User' // Default role for registration
+  });
 
-    // Devuelve las propiedades y funciones necesarias para el template
-    return {
-      form,
-      isFormValid,
-      rules,
-      passwordsMatch,
-      showPassword,
-      togglePasswordVisibility,
-      handleRegister,
-      goToLogin,
-    };
-  },
+  if (success) {
+    router.push('/');
+  } else {
+    registerError.value = 'Email already exists.';
+  }
+};
+
+// Función para redirigir a la página de login
+const goToLogin = () => {
+  router.push('/login');
 };
 </script>
 

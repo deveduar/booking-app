@@ -48,6 +48,27 @@
         </template>
       </v-btn>
 
+      <!-- User Menu -->
+      <v-menu v-if="isAuthenticated && user" location="bottom end">
+        <template v-slot:activator="{ props }">
+          <v-btn icon v-bind="props" class="ml-2">
+            <v-avatar size="32">
+              <v-img :src="user.avatar || 'https://cdn.vuetifyjs.com/images/john.jpg'"></v-img>
+            </v-avatar>
+          </v-btn>
+        </template>
+        <v-list density="compact" width="200">
+          <v-list-item
+            :prepend-avatar="user.avatar || 'https://cdn.vuetifyjs.com/images/john.jpg'"
+            :title="user.name"
+            :subtitle="user.role"
+          ></v-list-item>
+          <v-divider class="my-2"></v-divider>
+          <v-list-item to="/settings" prepend-icon="mdi-account-cog" title="Profile Editor"></v-list-item>
+          <v-list-item @click="handleLogout" prepend-icon="mdi-logout" title="Logout" color="error"></v-list-item>
+        </v-list>
+      </v-menu>
+
       <!-- Interruptor de tema -->
       <v-switch
         inset
@@ -70,18 +91,45 @@ const props = defineProps<{
 
 import { useTheme } from 'vuetify';
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useSettingsStore } from '@/stores/settings';
+import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
 import { navItems } from '@/constants/navigation';
 
 // Tipo explícito para el tema
 const theme = useTheme();
+const router = useRouter();
 
 const settingsStore = useSettingsStore();
 const { company } = storeToRefs(settingsStore);
 
-const leftNavItems = computed(() => navItems.filter(i => (i as any).position === 'left'));
-const rightNavItems = computed(() => navItems.filter(i => (i as any).position === 'right'));
+const authStore = useAuthStore();
+const { user, isAuthenticated, isAdmin } = storeToRefs(authStore);
+
+const leftNavItems = computed(() => {
+  return navItems.filter(i => {
+    if (i.position !== 'left') return false;
+    if (i.requiresAuth && !isAuthenticated.value) return false;
+    if (i.role && user.value?.role !== i.role) return false;
+    return true;
+  });
+});
+
+const rightNavItems = computed(() => {
+  return navItems.filter(i => {
+    if (i.position !== 'right') return false;
+    if (i.guestOnly && isAuthenticated.value) return false;
+    if (i.requiresAuth && !isAuthenticated.value) return false;
+    if (i.role && user.value?.role !== i.role) return false;
+    return true;
+  });
+});
+
+function handleLogout() {
+  authStore.logout();
+  router.push('/');
+}
 
 // Estado del interruptor (dark/light theme)
 const isDarkTheme = ref<boolean>(false);

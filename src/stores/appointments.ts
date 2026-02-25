@@ -10,6 +10,7 @@ export type Appointment = {
   time: string
   service: string
   provider?: string
+  userName: string // The name of the user who booked
   status: AppointmentStatus
 }
 
