@@ -50,6 +50,8 @@
             @update:dateRangeEnd="svcDateRangeEnd = $event"
             @update:timeRangeStart="svcTimeRangeStart = $event"
             @update:timeRangeEnd="svcTimeRangeEnd = $event"
+            @update:isVisible="svcIsVisible = $event"
+            @update:isFeatured="svcIsFeatured = $event"
             @add-slot="addSlot"
             @remove-slot="removeSlot"
             @save="handleSaveService"
@@ -95,6 +97,7 @@
             v-model:description="provDescription"
             v-model:status="provStatus"
             v-model:image="provImage"
+            v-model:is-featured="provIsFeatured"
             :providers="providers"
             :editing-id="editingProviderId"
             :is-dirty="isProviderDirty"
@@ -193,6 +196,7 @@ const {
   svcSchedulingMode, svcDefaultProviderId, svcAssignedProviderIds,
   svcAvailableSlots, svcDateRangeStart, svcDateRangeEnd,
   svcTimeRangeStart, svcTimeRangeEnd, svcProviderAvailability,
+  svcIsVisible, svcIsFeatured,
   editingServiceId, serviceForm,
   selectedOverrideProviderId, overrideSchedulingMode, overrideSlots,
   overDate, overTime, overDateRangeStart, overDateRangeEnd,
@@ -205,7 +209,7 @@ const {
 } = useAdminServiceEditor()
 
 const {
-  provName, provDescription, provStatus, provImage,
+  provName, provDescription, provStatus, provImage, provIsFeatured,
   editingProviderId, providerForm,
   editProvider, cancelProviderEdit, saveProvider,
   removeProvider: removeProviderFromStore,
@@ -329,6 +333,8 @@ const serviceEditorState = computed(() => ({
   timeRangeStart: svcTimeRangeStart.value,
   timeRangeEnd: svcTimeRangeEnd.value,
   providerAvailability: svcProviderAvailability.value,
+  isVisible: svcIsVisible.value,
+  isFeatured: svcIsFeatured.value,
   isValid: isSvcFormValid.value,
 
   // Override props

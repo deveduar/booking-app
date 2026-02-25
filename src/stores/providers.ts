@@ -11,6 +11,7 @@ export type Provider = {
   status: string
   image: string
   serviceIds: number[]
+  isFeatured?: boolean
 }
 
 const STORAGE_KEY = 'salon_providers'
@@ -48,10 +49,6 @@ export const useProvidersStore = defineStore('providers', () => {
     providers.value = providers.value.filter(p => p.id !== id)
     const servicesStore = useServicesStore()
     servicesStore.removeProviderFromServices(id)
-    
-    // Remove from settings store if featured
-    const settingsStore = useSettingsStore()
-    settingsStore.removeExpert(id)
   }
 
   function getByService(serviceId: number) {

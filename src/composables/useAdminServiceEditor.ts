@@ -25,6 +25,8 @@ export function useAdminServiceEditor() {
     const svcTimeRangeStart = ref<string | null>(null)
     const svcTimeRangeEnd = ref<string | null>(null)
     const svcProviderAvailability = ref<{ [id: number]: AvailabilityOverride }>({})
+    const svcIsFeatured = ref(false)
+    const svcIsVisible = ref(true)
 
     // Override State
     const selectedOverrideProviderId = ref<number | null>(null)
@@ -55,7 +57,9 @@ export function useAdminServiceEditor() {
             dateRangeEnd: svcDateRangeEnd.value,
             timeRangeStart: svcTimeRangeStart.value,
             timeRangeEnd: svcTimeRangeEnd.value,
-            providerAvailability: svcProviderAvailability.value
+            providerAvailability: svcProviderAvailability.value,
+            isFeatured: svcIsFeatured.value,
+            isVisible: svcIsVisible.value
         })
     }
 
@@ -74,7 +78,9 @@ export function useAdminServiceEditor() {
             dateRangeEnd: svcDateRangeEnd.value,
             timeRangeStart: svcTimeRangeStart.value,
             timeRangeEnd: svcTimeRangeEnd.value,
-            providerAvailability: svcProviderAvailability.value
+            providerAvailability: svcProviderAvailability.value,
+            isFeatured: svcIsFeatured.value,
+            isVisible: svcIsVisible.value
         })
         return current !== initialServiceSnapshot.value
     })
@@ -109,12 +115,12 @@ export function useAdminServiceEditor() {
 
     // Methods
     const editingServiceId = ref<number | null>(null)
-    
+
     // Define minimal VForm interface
     type VForm = {
-      validate: () => Promise<{ valid: boolean }>
-      reset: () => void
-      resetValidation: () => void
+        validate: () => Promise<{ valid: boolean }>
+        reset: () => void
+        resetValidation: () => void
     }
     const serviceForm = ref<VForm | null>(null)
 
@@ -136,6 +142,8 @@ export function useAdminServiceEditor() {
         svcTimeRangeStart.value = service.timeRange?.start || null
         svcTimeRangeEnd.value = service.timeRange?.end || null
         svcProviderAvailability.value = service.providerAvailability ? JSON.parse(JSON.stringify(service.providerAvailability)) : {}
+        svcIsFeatured.value = service.isFeatured || false
+        svcIsVisible.value = service.isVisible !== false // Default to true if undefined
         takeServiceSnapshot()
     }
 
@@ -155,6 +163,8 @@ export function useAdminServiceEditor() {
         svcTimeRangeStart.value = null
         svcTimeRangeEnd.value = null
         svcProviderAvailability.value = {}
+        svcIsFeatured.value = false
+        svcIsVisible.value = true
         selectedOverrideProviderId.value = null
         overTimeRangeStart.value = null
         overTimeRangeEnd.value = null
@@ -181,6 +191,8 @@ export function useAdminServiceEditor() {
             dateRange: { start: svcDateRangeStart.value, end: svcDateRangeEnd.value },
             timeRange: { start: svcTimeRangeStart.value, end: svcTimeRangeEnd.value },
             providerAvailability: svcProviderAvailability.value,
+            isFeatured: svcIsFeatured.value,
+            isVisible: svcIsVisible.value,
         }
 
         if (editingServiceId.value) {
@@ -258,7 +270,7 @@ export function useAdminServiceEditor() {
     watch(svcAssignedProviderIds, (newIds, oldIds) => {
         // If unassigned, remove from overrides
         const removedIds = oldIds.filter(id => !newIds.includes(id))
-        
+
         removedIds.forEach(id => {
             if (svcProviderAvailability.value[id]) {
                 delete svcProviderAvailability.value[id]
@@ -272,11 +284,11 @@ export function useAdminServiceEditor() {
     // Watch providers list to cleanup deleted providers from form state
     watch(providers, (newProviders) => {
         const currentIds = newProviders.map(p => p.id)
-        
+
         // Filter out deleted providers from assigned list
         // This will trigger the svcAssignedProviderIds watcher above for further cleanup
         svcAssignedProviderIds.value = svcAssignedProviderIds.value.filter(id => currentIds.includes(id))
-        
+
         // Also ensure default provider is cleaned if it wasn't in assigned list for some reason
         if (svcDefaultProviderId.value && !currentIds.includes(svcDefaultProviderId.value)) {
             svcDefaultProviderId.value = null
@@ -322,6 +334,8 @@ export function useAdminServiceEditor() {
         svcTimeRangeStart,
         svcTimeRangeEnd,
         svcProviderAvailability,
+        svcIsFeatured,
+        svcIsVisible,
         editingServiceId,
         serviceForm,
         selectedOverrideProviderId,

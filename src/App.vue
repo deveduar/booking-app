@@ -1,21 +1,10 @@
 <template>
   <v-app>
-    <!-- Navigation Drawer -->
-    <v-navigation-drawer v-model="drawer" app>
-      <v-list>
-        <v-list-item
-          v-for="(item, index) in navItems"
-          :key="index"
-          :to="item.to"
-          link
-        >
-          <v-list-item-title>{{ item.title }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+    <!-- Navigation Drawer extracted to component -->
+    <Sidebar v-model="drawer" />
 
     <!-- Header -->
-    <Header @toggle-drawer="toggleDrawer" />
+    <Header :drawer="drawer" @toggle-drawer="toggleDrawer" />
 
     <!-- Main Content -->
     <v-main>
@@ -30,22 +19,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import Header from './components/Header.vue';
+import Sidebar from './components/Sidebar.vue';
 import Footer from './components/Footer.vue';
 
 // Estado del drawer
 const drawer = ref(false);
-
-// Ítems de navegación
-const navItems = [
-  { title: 'Home', to: '/' },
-  { title: 'Booking', to: '/booking' },
-  { title: 'Services', to: '/services' },
-  { title: 'History', to: '/history' },
-  { title: 'Sign In', to: '/login' },
-  { title: 'Sign Up', to: '/register' },
-  { title: 'About', to: '/about' },
-
-];
 
 // Método para alternar el drawer
 function toggleDrawer() {

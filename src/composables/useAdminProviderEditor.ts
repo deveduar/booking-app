@@ -3,32 +3,35 @@ import { useProvidersStore, type Provider } from '@/stores/providers'
 
 export function useAdminProviderEditor() {
     const providersStore = useProvidersStore()
-    
+
     // State
     const provName = ref('')
     const provDescription = ref('')
     const provStatus = ref('Available')
     const provImage = ref('')
+    const provIsFeatured = ref(false)
     const editingProviderId = ref<number | null>(null)
-    
+
     // Dirty Tracking
     const initialSnapshot = ref('')
-    
+
     function takeSnapshot() {
         initialSnapshot.value = JSON.stringify({
             name: provName.value,
             description: provDescription.value,
             status: provStatus.value,
-            image: provImage.value
+            image: provImage.value,
+            isFeatured: provIsFeatured.value
         })
     }
-    
+
     const isProviderDirty = computed(() => {
         const current = JSON.stringify({
             name: provName.value,
             description: provDescription.value,
             status: provStatus.value,
-            image: provImage.value
+            image: provImage.value,
+            isFeatured: provIsFeatured.value
         })
         return current !== initialSnapshot.value
     })
@@ -48,6 +51,7 @@ export function useAdminProviderEditor() {
         provDescription.value = provider.description || ''
         provStatus.value = provider.status
         provImage.value = provider.image
+        provIsFeatured.value = provider.isFeatured || false
         takeSnapshot()
     }
 
@@ -57,6 +61,7 @@ export function useAdminProviderEditor() {
         provDescription.value = ''
         provStatus.value = 'Available'
         provImage.value = ''
+        provIsFeatured.value = false
         takeSnapshot()
         nextTick(() => {
             if (providerForm.value) providerForm.value.resetValidation()
@@ -73,6 +78,7 @@ export function useAdminProviderEditor() {
             description: provDescription.value,
             status: provStatus.value || 'Available',
             image: provImage.value || '',
+            isFeatured: provIsFeatured.value,
         }
 
         const mode = editingProviderId.value ? 'update' : 'add'
@@ -89,7 +95,7 @@ export function useAdminProviderEditor() {
         cancelProviderEdit()
         return { success: true, mode }
     }
-    
+
     function removeProvider(id: number) {
         providersStore.removeProvider(id)
     }
@@ -102,6 +108,7 @@ export function useAdminProviderEditor() {
         provDescription,
         provStatus,
         provImage,
+        provIsFeatured,
         editingProviderId,
         providerForm,
         isProviderDirty,

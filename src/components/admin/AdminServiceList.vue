@@ -10,7 +10,32 @@
         v-for="service in services"
         :key="service.id"
         :title="service.name"
+        :class="{ 'opacity-60': service.isVisible === false }"
       >
+        <template #title>
+          <div class="d-flex align-center">
+            {{ service.name }}
+            <v-chip
+              v-if="service.isVisible === false"
+              size="x-small"
+              color="grey"
+              variant="flat"
+              class="ml-2"
+            >
+              Hidden
+            </v-chip>
+            <v-chip
+              v-if="service.isFeatured"
+              size="x-small"
+              color="amber"
+              variant="flat"
+              class="ml-2"
+              prepend-icon="mdi-star"
+            >
+              Featured
+            </v-chip>
+          </div>
+        </template>
         <v-list-item-subtitle class="mt-1">
           <div class="d-flex align-center flex-wrap">
             <v-chip size="x-small" label color="primary" class="mr-2 mb-1">{{ service.category }}</v-chip>

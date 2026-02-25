@@ -6,7 +6,17 @@
     </v-card-title>
     <v-divider></v-divider>
     <v-list density="compact" lines="two">
-      <v-list-item v-for="prov in providers" :key="prov.id" :title="prov.name" :subtitle="prov.status">
+      <v-list-item v-for="prov in providers" :key="prov.id" :subtitle="prov.status">
+        <template #title>
+          <div class="d-flex align-center">
+            {{ prov.name }}
+            <v-tooltip v-if="prov.isFeatured" text="Featured Expert">
+              <template #activator="{ props }">
+                <v-icon v-bind="props" color="amber" size="x-small" class="ml-2">mdi-star</v-icon>
+              </template>
+            </v-tooltip>
+          </div>
+        </template>
         <template #prepend>
           <v-avatar size="32" class="mr-2">
             <v-img v-if="prov.image" :src="prov.image" />

@@ -11,7 +11,9 @@ export const servicesData: Service[] = [
         duration: 45,
         category: 'Haircuts',
         schedulingMode: 'Standard',
-        timeRange: { start: '09:00', end: '18:00' }
+        timeRange: { start: '09:00', end: '18:00' },
+        isFeatured: true,
+        isVisible: true
     },
     {
         id: 4,
@@ -21,7 +23,9 @@ export const servicesData: Service[] = [
         duration: 90,
         category: 'Coloring',
         schedulingMode: 'Standard',
-        dateRange: { start: '2026-02-01', end: '2026-12-31' }
+        dateRange: { start: '2026-02-01', end: '2026-12-31' },
+        isFeatured: true,
+        isVisible: true
     },
     {
         id: 16,
@@ -41,7 +45,9 @@ export const servicesData: Service[] = [
                 schedulingMode: 'Fixed Slots',
                 availableSlots: [{ date: '2026-06-17', times: ['09:00'] }]
             }
-        }
+        },
+        isFeatured: true,
+        isVisible: true
     },
     {
         id: 20,
@@ -61,7 +67,8 @@ export const servicesData: Service[] = [
                     { date: '2026-05-11', times: ['11:00'] }
                 ]
             }
-        }
+        },
+        isVisible: true
     },
     {
         id: 21,
@@ -72,7 +79,8 @@ export const servicesData: Service[] = [
         category: 'Nails',
         schedulingMode: 'Standard',
         timeRange: { start: '10:00', end: '19:00' },
-        defaultProviderId: 4
+        defaultProviderId: 4,
+        isVisible: true
     },
     {
         id: 22,
@@ -83,7 +91,8 @@ export const servicesData: Service[] = [
         category: 'Skincare',
         schedulingMode: 'Standard',
         timeRange: { start: '09:00', end: '17:00' },
-        defaultProviderId: 5
+        defaultProviderId: 5,
+        isVisible: true
     }
 ]
 
@@ -95,6 +104,7 @@ export const providersData: Provider[] = [
         status: 'Available',
         image: 'https://cdn.usegalileo.ai/sdxl10/4d0bd9a4-2f47-4eeb-8fbf-5fb13eaf0a0b.png',
         serviceIds: [1, 4, 16, 20],
+        isFeatured: true,
     },
     {
         id: 2,
@@ -103,6 +113,7 @@ export const providersData: Provider[] = [
         status: 'Available',
         image: 'https://cdn.usegalileo.ai/sdxl10/7cb6bea5-df1a-43ff-97c9-cc743fe8520d.png',
         serviceIds: [1, 16],
+        isFeatured: true,
     },
     {
         id: 3,
@@ -111,6 +122,7 @@ export const providersData: Provider[] = [
         status: 'Available',
         image: 'https://cdn.usegalileo.ai/sdxl10/014920d7-e0b4-4ffa-823a-811dd0d3cdbc.png',
         serviceIds: [1],
+        isFeatured: true,
     },
     {
         id: 4,
@@ -161,7 +173,5 @@ export const initialSettings = {
             { platform: 'LinkedIn', url: '#', icon: 'mdi-linkedin' },
             { platform: 'Instagram', url: '#', icon: 'mdi-instagram' }
         ]
-    },
-    featuredServiceIds: [1, 2, 3],
-    featuredExpertIds: [1, 2, 3]
+    }
 }

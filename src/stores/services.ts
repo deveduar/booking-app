@@ -42,6 +42,8 @@ export type Service = {
   dateRange?: DateRange
   timeRange?: TimeRange
   providerAvailability?: { [providerId: number]: AvailabilityOverride }
+  isFeatured?: boolean
+  isVisible?: boolean
 }
 
 const STORAGE_KEY = 'salon_services'
@@ -75,9 +77,6 @@ export const useServicesStore = defineStore('services', () => {
 
   function removeService(id: number) {
     services.value = services.value.filter(s => s.id !== id)
-    // Remove from settings store if featured
-    const settingsStore = useSettingsStore()
-    settingsStore.removeService(id)
   }
 
   function updateService(id: number, updated: Partial<Omit<Service, 'id'>>) {
@@ -103,7 +102,7 @@ export const useServicesStore = defineStore('services', () => {
     if (!service || !service.providerAvailability || !service.providerAvailability[providerId]) return
 
     const override = service.providerAvailability[providerId]
-    
+
     // Promote override settings to service level
     if (override.schedulingMode) service.schedulingMode = override.schedulingMode
     if (override.availableSlots) service.availableSlots = JSON.parse(JSON.stringify(override.availableSlots))
@@ -112,7 +111,7 @@ export const useServicesStore = defineStore('services', () => {
 
     // Remove the override since it's now the default
     delete service.providerAvailability[providerId]
-    
+
     // Trigger update (for persistence)
     updateService(serviceId, {})
   }

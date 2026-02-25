@@ -7,6 +7,23 @@
     <v-card-text class="flex-grow-1 overflow-y-auto">
       <v-form ref="formRef" @submit.prevent="$emit('save')">
         <v-row dense>
+            <v-col cols="12" class="mt-n2 d-flex flex-wrap">
+            <v-switch
+              v-model="internalIsVisible"
+              label="Public Visibility"
+              color="success"
+              hide-details
+              density="compact"
+              class="mr-4"
+            />
+            <v-switch
+              v-model="internalIsFeatured"
+              label="Featured Service"
+              color="amber"
+              hide-details
+              density="compact"
+            />
+          </v-col>
           <v-col cols="12">
             <v-text-field v-model="internalName" label="Name" :rules="[v => !!v || 'Name is required']" required />
           </v-col>
@@ -68,6 +85,8 @@
               </v-tooltip>
             </div>
           </v-col>
+
+
           
           <!-- Mode: Fixed Slots -->
           <v-col v-if="internalMode === 'Fixed Slots'" cols="12">
@@ -221,6 +240,8 @@ const props = defineProps<{
   timeRangeStart: string | null;
   timeRangeEnd: string | null;
   providerAvailability: { [id: number]: AvailabilityOverride };
+  isVisible: boolean;
+  isFeatured: boolean;
   isValid: boolean;
   
   // Override props
@@ -243,6 +264,7 @@ const emit = defineEmits([
   'update:mode', 'update:assignedProviderIds', 'update:defaultProviderId',
   'update:newSlotDate', 'update:newSlotTime', 'add-slot', 'remove-slot',
   'update:dateRangeStart', 'update:dateRangeEnd', 'update:timeRangeStart', 'update:timeRangeEnd',
+  'update:isVisible', 'update:isFeatured',
   'save', 'cancel',
   
   // Override emits
@@ -267,6 +289,8 @@ const internalCategory = computed({ get: () => props.category, set: v => emit('u
 const internalMode = computed({ get: () => props.mode, set: v => emit('update:mode', v) });
 const internalAssignedIds = computed({ get: () => props.assignedProviderIds, set: v => emit('update:assignedProviderIds', v) });
 const internalDefaultId = computed({ get: () => props.defaultProviderId, set: v => emit('update:defaultProviderId', v) });
+const internalIsVisible = computed({ get: () => props.isVisible, set: v => emit('update:isVisible', v) });
+const internalIsFeatured = computed({ get: () => props.isFeatured, set: v => emit('update:isFeatured', v) });
 
 const assignedProvidersFull = computed(() => {
   return props.providers.filter(p => props.assignedProviderIds.includes(p.id));

@@ -117,8 +117,10 @@
             rounded="lg"
           >
             <template v-slot:actions>
-              <v-btn variant="text" @click="cancelTime">Cancel</v-btn>
-              <v-btn color="primary" @click="saveTime">OK</v-btn>
+              <div class="d-flex justify-end w-100 pt-2">
+                <v-btn variant="text" @click="cancelTime">Cancel</v-btn>
+                <v-btn color="primary" @click="saveTime">OK</v-btn>
+              </div>
             </template>
           </v-time-picker>
         </v-menu>

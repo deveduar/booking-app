@@ -76,7 +76,7 @@ export default {
 
     // Computed property to filter and sort services
     const filteredServices = computed(() => {
-      let filtered = [...services.value]; // Create a shallow copy of services
+      let filtered = services.value.filter(s => s.isVisible !== false); // Filter visible services only
 
       // If 'All' is selected or no category is selected, show all services
       if (selectedCategory.value && selectedCategory.value !== 'All') {

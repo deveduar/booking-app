@@ -146,14 +146,14 @@ const providersStore = useProvidersStore();
 const { providers } = storeToRefs(providersStore);
 
 const settingsStore = useSettingsStore();
-const { hero, featuredServiceIds, featuredExpertIds } = storeToRefs(settingsStore);
+const { hero } = storeToRefs(settingsStore);
 
 const featuredServices = computed(() => {
-  return services.value.filter(s => featuredServiceIds.value.includes(s.id));
+  return services.value.filter(s => s.isFeatured && s.isVisible !== false);
 });
 
 const featuredExperts = computed(() => {
-  return providers.value.filter(p => featuredExpertIds.value.includes(p.id));
+  return providers.value.filter(p => p.isFeatured);
 });
 
 // Optional testimonials for the homepage

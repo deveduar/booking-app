@@ -4,19 +4,20 @@
     app
   >
     <!-- Botón para alternar el menú lateral -->
-    <v-app-bar-nav-icon @click="$emit('toggle-drawer')" />
+    <v-app-bar-nav-icon 
+      :icon="drawer ? 'mdi-close' : 'mdi-menu'" 
+      @click="$emit('toggle-drawer')" 
+    />
 
-    <!-- Título del toolbar -->
-    <v-toolbar-title>{{ company.brandName }}</v-toolbar-title>
-
-    <!-- Espaciador para separar el título de los botones -->
+    <!-- Espaciador para separar el icono de los botones -->
     <v-spacer></v-spacer>
 
     <!-- Botones de navegación -->
     <v-btn
-      v-for="(item, index) in navbarItems"
+      v-for="(item, index) in navItems"
       :key="index"
       :to="item.to"
+      :prepend-icon="item.icon"
       variant="text"
     >
       {{ item.label }}
@@ -35,28 +36,22 @@
 
 <script setup lang="ts">
 defineOptions({ name: 'AppHeader' })
+
+const props = defineProps<{
+  drawer: boolean;
+}>();
+
 import { useTheme } from 'vuetify';
 import { ref, onMounted } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { storeToRefs } from 'pinia';
+import { navItems } from '@/constants/navigation';
 
 // Tipo explícito para el tema
 const theme = useTheme();
 
 const settingsStore = useSettingsStore();
 const { company } = storeToRefs(settingsStore);
-
-const navbarItems = ref([
-  { label: 'Home', to: '/' },
-  { label: 'Booking', to: '/booking' },
-  { label: 'Services', to: '/services' },
-  { label: 'Admin', to: '/admin' },
-  { label: 'Settings', to: '/settings' },
-  { label: 'Appointments', to: '/appointments' },
-  { label: 'Sign In', to: '/login' },
-  { label: 'Sign Up', to: '/register' },
-  { label: 'About', to: '/about' },
-]);
 
 
 // Estado del interruptor (dark/light theme)

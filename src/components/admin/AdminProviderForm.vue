@@ -19,6 +19,15 @@
           <v-col cols="12" sm="6">
             <v-text-field v-model="internalImage" label="Avatar URL (Optional)" placeholder="https://..." />
           </v-col>
+          <v-col cols="12" class="mt-n2">
+            <v-switch
+              v-model="internalIsFeatured"
+              label="Featured Expert (Show on Home Page)"
+              color="amber"
+              hide-details
+              density="compact"
+            />
+          </v-col>
           <v-col cols="12" class="d-flex">
             <v-btn
               color="secondary"
@@ -55,12 +64,13 @@ const props = defineProps<{
   description?: string;
   status: string;
   image: string;
+  isFeatured: boolean;
   providers: Provider[];
   editingId?: number | null;
   isDirty?: boolean;
 }>();
 
-const emit = defineEmits(['update:name', 'update:description', 'update:status', 'update:image', 'save', 'cancel', 'remove', 'edit']);
+const emit = defineEmits(['update:name', 'update:description', 'update:status', 'update:image', 'update:isFeatured', 'save', 'cancel', 'remove', 'edit']);
 
 const formRef = ref<VForm | null>(null);
 
@@ -68,6 +78,7 @@ const internalName = computed({ get: () => props.name, set: v => emit('update:na
 const internalDescription = computed({ get: () => props.description || '', set: v => emit('update:description', v) });
 const internalStatus = computed({ get: () => props.status, set: v => emit('update:status', v) });
 const internalImage = computed({ get: () => props.image, set: v => emit('update:image', v) });
+const internalIsFeatured = computed({ get: () => props.isFeatured, set: v => emit('update:isFeatured', v) });
 
 const isSaveDisabled = computed(() => {
   // If editing, disable save until changes are made (isDirty is true)

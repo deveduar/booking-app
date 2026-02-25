@@ -257,13 +257,33 @@ import { useServicesStore } from '@/stores/services'
 import { useProvidersStore } from '@/stores/providers'
 
 const settingsStore = useSettingsStore()
-const { dateFormat, timeFormat, timezone, hero, company, featuredServiceIds, featuredExpertIds } = storeToRefs(settingsStore)
+const { dateFormat, timeFormat, timezone, hero, company } = storeToRefs(settingsStore)
 
 const servicesStore = useServicesStore()
 const { services: allServices } = storeToRefs(servicesStore)
 
 const providersStore = useProvidersStore()
 const { providers: allProviders } = storeToRefs(providersStore)
+
+// Computed for featured services (get IDs of featured, set updates isFeatured on items)
+const featuredServiceIds = computed({
+  get: () => allServices.value.filter(s => s.isFeatured).map(s => s.id),
+  set: (newIds) => {
+    allServices.value.forEach(s => {
+      s.isFeatured = newIds.includes(s.id)
+    })
+  }
+})
+
+// Computed for featured experts
+const featuredExpertIds = computed({
+  get: () => allProviders.value.filter(p => p.isFeatured).map(p => p.id),
+  set: (newIds) => {
+    allProviders.value.forEach(p => {
+      p.isFeatured = newIds.includes(p.id)
+    })
+  }
+})
 
 const tab = ref('general')
 const snackbar = ref(false)
