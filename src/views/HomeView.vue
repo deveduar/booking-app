@@ -1,60 +1,10 @@
 <template>
   <v-container >
     <!-- Header Section -->
-    <v-row class="d-flex  justify-center">
-      <!-- Carrusel con CTA superpuesto -->
-      <v-col cols="12">
-          <v-carousel
-            height="400px"
-            :show-arrows="false"
-            hide-delimiter-background
-            hide-delimiters
-            cycle
-          >
-            <!-- Carrusel Item 1 -->
-            <v-carousel-item
-              v-for="(item, i) in hero.images"
-              :key="i"
-              :src="item.src"
-              cover
-            >
-              <!-- Overlay para el CTA -->
-                <v-container
-                  class="fill-height d-flex flex-column justify-center align-center text-center"
-                >
-                  <!-- CTA Info -->
-                  <h1 class="text-white display-2 font-weight-bold mb-2">
-                    {{ hero.title }}
-                  </h1>
-                  <p class="text-white text-h6">
-                    {{ hero.subtitle }}
-                  </p>
-                  <!-- CTA Button -->
-                  <v-btn
-                    color="primary"
-                    :to="hero.ctaLink"
-                    large
-                    class="mt-4"
-                  >
-                    {{ hero.ctaText }}
-                  </v-btn>
-                </v-container>
-            </v-carousel-item>
-          </v-carousel>
-      </v-col>
-    </v-row>
+    <HomeHero :hero="hero" />
 
-    <h1 class="text-h5 font-weight-bold mt-10 ml-2">Featured services</h1>
-    <v-row class="mt-2">
-      <v-col 
-        v-for="service in featuredServices" 
-        :key="service.id"
-        cols="12" 
-        sm="4"
-      >
-        <ServiceCard :service="service" />
-      </v-col>
-    </v-row>
+    <!-- Featured Services Section -->
+    <HomeFeaturedServices :featured-services="featuredServices" />
   
     <!-- Navigation Links -->
     <v-row class="my-6">
@@ -76,68 +26,47 @@
     </v-row>
 
     <!-- Experts Section -->
-    <h1 class="text-h5 font-weight-bold mt-10 ml-2">Our Experts</h1>
-    <v-row class="mt-2">
-      <v-col v-for="p in featuredExperts" :key="p.id" cols="12" sm="4">
-        <v-card class="text-center pa-4">
-          <v-avatar size="100" class="mb-4">
-            <v-img v-if="p.image" :src="p.image" cover />
-            <v-icon v-else icon="mdi-account" size="64" color="grey-lighten-1" />
-          </v-avatar>
-          <div class="text-h6 font-weight-bold">{{ p.name }}</div>
-          <div class="text-subtitle-2 text-primary mb-2">{{ p.status }}</div>
-          <div class="text-body-2 mb-4 px-4 text-medium-emphasis text-truncate-2" style="min-height: 48px;">
-            {{ p.description || 'Expert stylist ready to help you look your best.' }}
-          </div>
-          <v-btn 
-            color="primary" 
-            variant="tonal" 
-            block 
-            :to="{ path: '/booking', query: { providerId: p.id } }"
-          >
-            Book with {{ p.name }}
-          </v-btn>
-        </v-card>
-      </v-col>
-    </v-row>
+    <HomeFeaturedExperts 
+      :featured-experts="featuredExperts" 
+      @book="handleBookWithProvider"
+    />
 
-    <!-- Testimonials Section (Optional) -->
-    <v-row>
-      <v-col cols="12">
-        <h2 class="text-center">What Our Clients Say</h2>
-        <v-carousel
-          height="200"
-          width="100"
-          cycle
-          hide-delimiter-background
-          :show-arrows="false"
-          hide-delimiters
-        >
-          <v-carousel-item
-            v-for="(item, i) in testimonials"
-            :key="i"
-            
-          >
-            <v-card class="mx-auto mt-10" max-width="400">
-              <v-card-text class="text-center">
-                <p>"{{ item.testimonial }}"</p>
-                <p><strong>- {{ item.name }}</strong></p>
-              </v-card-text>
-            </v-card>
-          </v-carousel-item>
-        </v-carousel>
-      </v-col>
-    </v-row>
+    <!-- Testimonials Section -->
+    <HomeTestimonials :testimonials="testimonials" />
+
+    <!-- Notification Snackbar -->
+    <v-snackbar
+      v-model="snackbar"
+      :timeout="3000"
+      color="error"
+      elevation="24"
+    >
+      {{ snackbarText }}
+      <template #actions>
+        <v-btn variant="text" @click="snackbar = false">Close</v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
-import ServiceCard from '@/components/ServiceCard.vue'
+import { useRouter } from 'vue-router';
+
+// Stores
 import { useServicesStore } from '@/stores/services';
 import { useProvidersStore } from '@/stores/providers';
 import { useSettingsStore } from '@/stores/settings';
+
+// Types
+import type { Provider } from '@/stores/providers';
+
+// Components
+import HomeHero from '@/components/home/HomeHero.vue';
+import HomeFeaturedServices from '@/components/home/HomeFeaturedServices.vue';
+import HomeFeaturedExperts from '@/components/home/HomeFeaturedExperts.vue';
+import HomeTestimonials from '@/components/home/HomeTestimonials.vue';
 
 const servicesStore = useServicesStore();
 const { services } = storeToRefs(servicesStore);
@@ -161,6 +90,36 @@ const testimonials = ref([
   { name: 'Jane Doe', testimonial: 'I love the services here, always feel pampered!' },
   { name: 'John Smith', testimonial: 'Best salon experience I’ve had, highly recommend!' },
 ]);
+
+
+
+const router = useRouter();
+const snackbar = ref(false);
+const snackbarText = ref('');
+
+function handleBookWithProvider(provider: Provider) {
+  if (!provider.serviceIds || provider.serviceIds.length === 0) {
+    snackbarText.value = `${provider.name} is currently not available for bookings.`;
+    snackbar.value = true;
+    return;
+  }
+
+  // Determine service to pre-select
+  let serviceId = provider.preferredServiceId;
+  
+  // If preferred service is not in the assigned list (e.g. removed), fallback to first
+  if (!serviceId || !provider.serviceIds.includes(serviceId)) {
+    serviceId = provider.serviceIds[0];
+  }
+
+  router.push({
+    path: '/booking',
+    query: {
+      providerId: provider.id,
+      serviceId: serviceId
+    }
+  });
+}
 </script>
 
 <style scoped>

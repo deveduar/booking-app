@@ -23,6 +23,7 @@
                 bg-color="surface"
                 color="primary"
                 :rules="[v => !!v || 'Service is required']"
+                class="cursor-pointer"
               />
             </v-col>
           </v-row>
@@ -234,3 +235,20 @@ async function confirm() {
   }
 }
 </script>
+
+<style scoped>
+.cursor-pointer :deep(input),
+.cursor-pointer :deep(.v-field__input),
+.cursor-pointer :deep(.v-field__append-inner),
+.cursor-pointer :deep(.v-field__prepend-inner),
+.cursor-pointer :deep(.v-select__selection),
+.cursor-pointer :deep(.v-select__slot),
+.cursor-pointer :deep(.v-field),
+.cursor-pointer :deep(.v-card) {
+  cursor: pointer !important;
+}
+
+.transition-swing {
+  transition: 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+}
+</style>

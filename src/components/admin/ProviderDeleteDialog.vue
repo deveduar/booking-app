@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="internalOpen" max-width="500">
-    <v-card>
-      <v-toolbar color="error" density="compact">
+    <v-card class="d-flex flex-column" style="max-height: 90vh;">
+      <v-toolbar color="error" density="compact" class="flex-shrink-0">
         <v-toolbar-title class="text-h6 text-white">
           Delete Specialist
         </v-toolbar-title>
@@ -9,7 +9,7 @@
         <v-btn icon="mdi-close" variant="text" color="white" @click="close"></v-btn>
       </v-toolbar>
       
-      <v-card-text class="pt-4">
+      <v-card-text class="pt-4 flex-grow-1 overflow-y-auto">
         <p class="mb-4 text-body-1">
           Are you sure you want to delete <strong>{{ providerName }}</strong>?
         </p>

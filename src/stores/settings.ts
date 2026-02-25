@@ -53,21 +53,15 @@ export const useSettingsStore = defineStore('settings', () => {
   const hero = ref(initialState.hero)
   const company = ref(initialState.company)
 
-  // Persist changes
-  watch(
-    [dateFormat, timeFormat, timezone, hero, company],
-    () => {
-      const state: SettingsState = {
-        dateFormat: dateFormat.value,
-        timeFormat: timeFormat.value,
-        timezone: timezone.value,
-        hero: hero.value,
-        company: company.value
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-    },
-    { deep: true }
-  )
+  function saveSettings(state: SettingsState) {
+    dateFormat.value = state.dateFormat
+    timeFormat.value = state.timeFormat
+    timezone.value = state.timezone
+    hero.value = JSON.parse(JSON.stringify(state.hero))
+    company.value = JSON.parse(JSON.stringify(state.company))
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  }
 
   function updateHero(newHero: Partial<HeroSection>) {
     hero.value = { ...hero.value, ...newHero }
@@ -84,6 +78,7 @@ export const useSettingsStore = defineStore('settings', () => {
     hero,
     company,
     updateHero,
-    updateCompany
+    updateCompany,
+    saveSettings
   }
 })

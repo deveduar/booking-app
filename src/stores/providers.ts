@@ -12,6 +12,7 @@ export type Provider = {
   image: string
   serviceIds: number[]
   isFeatured?: boolean
+  preferredServiceId?: number
 }
 
 const STORAGE_KEY = 'salon_providers'
@@ -75,6 +76,17 @@ export const useProvidersStore = defineStore('providers', () => {
     })
   }
 
+  function removeServiceFromProviders(serviceId: number) {
+    providers.value.forEach(p => {
+      if (p.serviceIds.includes(serviceId)) {
+        p.serviceIds = p.serviceIds.filter(id => id !== serviceId)
+      }
+      if (p.preferredServiceId === serviceId) {
+        p.preferredServiceId = undefined
+      }
+    })
+  }
+
   return {
     providers,
     setProviders,
@@ -84,5 +96,6 @@ export const useProvidersStore = defineStore('providers', () => {
     getByService,
     assignService,
     toggleServiceAssignment,
+    removeServiceFromProviders,
   }
 })

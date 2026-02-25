@@ -1,5 +1,5 @@
 <template>
-  <v-container class="py-6">
+  <v-container class="py-6" v-if="draftSettings">
     <h1 class="text-h4 font-weight-bold mb-6">Settings</h1>
 
     <v-card>
@@ -16,7 +16,7 @@
             <v-row>
               <v-col cols="12" md="6">
                 <v-select
-                  v-model="dateFormat"
+                  v-model="draftSettings.dateFormat"
                   label="Date Format"
                   :items="['YYYY-MM-DD', 'MM/DD/YYYY', 'DD/MM/YYYY']"
                   variant="outlined"
@@ -26,7 +26,7 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-select
-                  v-model="timeFormat"
+                  v-model="draftSettings.timeFormat"
                   label="Time Format"
                   :items="['12h', '24h']"
                   variant="outlined"
@@ -34,7 +34,7 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-select
-                  v-model="timezone"
+                  v-model="draftSettings.timezone"
                   label="Timezone"
                   :items="['UTC', 'America/New_York', 'Europe/London', 'Asia/Tokyo']"
                   variant="outlined"
@@ -48,7 +48,7 @@
             <v-row>
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model="company.brandName"
+                  v-model="draftSettings.company.brandName"
                   label="Brand Name"
                   variant="outlined"
                   hint="Displayed in Header and Footer"
@@ -57,7 +57,7 @@
               </v-col>
               <v-col cols="12">
                 <v-textarea
-                  v-model="company.footerText"
+                  v-model="draftSettings.company.footerText"
                   label="Footer Text"
                   variant="outlined"
                   rows="2"
@@ -68,7 +68,7 @@
             </v-row>
 
             <div class="text-h6 mt-6 mb-4">Social Links</div>
-            <v-row v-for="(link, index) in company.socialLinks" :key="index" align="center">
+            <v-row v-for="(link, index) in draftSettings.company.socialLinks" :key="index" align="center">
               <v-col cols="12" sm="3">
                  <v-text-field
                   v-model="link.platform"
@@ -127,21 +127,21 @@
                   <v-row>
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model="hero.title"
+                        v-model="draftSettings.hero.title"
                         label="Hero Title"
                         variant="outlined"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model="hero.ctaText"
+                        v-model="draftSettings.hero.ctaText"
                         label="CTA Button Text"
                         variant="outlined"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12">
                       <v-textarea
-                        v-model="hero.subtitle"
+                        v-model="draftSettings.hero.subtitle"
                         label="Hero Subtitle"
                         variant="outlined"
                         rows="2"
@@ -149,7 +149,7 @@
                     </v-col>
                      <v-col cols="12">
                       <v-text-field
-                        v-model="hero.ctaLink"
+                        v-model="draftSettings.hero.ctaLink"
                         label="CTA Button Link"
                         variant="outlined"
                       ></v-text-field>
@@ -157,7 +157,7 @@
                   </v-row>
 
                   <div class="text-subtitle-1 font-weight-bold mt-4 mb-2">Hero Images</div>
-                  <v-row v-for="(img, index) in hero.images" :key="index" align="center" dense>
+                  <v-row v-for="(img, index) in draftSettings.hero.images" :key="index" align="center" dense>
                     <v-col cols="10">
                       <v-text-field
                         v-model="img.src"
@@ -174,7 +174,7 @@
                         variant="text"
                         size="small"
                         @click="removeHeroImage(index)"
-                        :disabled="hero.images.length <= 1"
+                        :disabled="draftSettings.hero.images.length <= 1"
                       ></v-btn>
                     </v-col>
                   </v-row>
@@ -196,7 +196,7 @@
                   <v-row>
                     <v-col cols="12">
                       <v-autocomplete
-                        v-model="featuredServiceIds"
+                        v-model="localFeaturedServiceIds"
                         :items="allServices"
                         item-title="name"
                         item-value="id"
@@ -211,7 +211,7 @@
                     </v-col>
                     <v-col cols="12">
                       <v-autocomplete
-                        v-model="featuredExpertIds"
+                        v-model="localFeaturedExpertIds"
                         :items="allProviders"
                         item-title="name"
                         item-value="id"
@@ -234,7 +234,10 @@
       </v-card-text>
       
       <v-card-actions class="justify-end pa-4">
-          <v-btn color="primary" variant="elevated" @click="saveSettings">
+          <v-btn color="grey" variant="text" @click="resetDraft" class="mr-2">
+            Reset Changes
+          </v-btn>
+          <v-btn color="primary" variant="elevated" @click="handleSave">
             Save Changes
           </v-btn>
       </v-card-actions>
@@ -250,14 +253,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useSettingsStore } from '@/stores/settings'
+import { useSettings } from '@/composables/useSettings'
 import { useServicesStore } from '@/stores/services'
 import { useProvidersStore } from '@/stores/providers'
 
-const settingsStore = useSettingsStore()
-const { dateFormat, timeFormat, timezone, hero, company } = storeToRefs(settingsStore)
+const { draftSettings, resetDraft, commitSettings } = useSettings()
 
 const servicesStore = useServicesStore()
 const { services: allServices } = storeToRefs(servicesStore)
@@ -265,52 +267,56 @@ const { services: allServices } = storeToRefs(servicesStore)
 const providersStore = useProvidersStore()
 const { providers: allProviders } = storeToRefs(providersStore)
 
-// Computed for featured services (get IDs of featured, set updates isFeatured on items)
-const featuredServiceIds = computed({
-  get: () => allServices.value.filter(s => s.isFeatured).map(s => s.id),
-  set: (newIds) => {
-    allServices.value.forEach(s => {
-      s.isFeatured = newIds.includes(s.id)
-    })
-  }
-})
+// Local state for featured items (only apply on save)
+const localFeaturedServiceIds = ref<number[]>([])
+const localFeaturedExpertIds = ref<number[]>([])
 
-// Computed for featured experts
-const featuredExpertIds = computed({
-  get: () => allProviders.value.filter(p => p.isFeatured).map(p => p.id),
-  set: (newIds) => {
-    allProviders.value.forEach(p => {
-      p.isFeatured = newIds.includes(p.id)
-    })
-  }
+onMounted(() => {
+  resetDraft()
+  // Load current featured IDs
+  localFeaturedServiceIds.value = allServices.value.filter(s => s.isFeatured).map(s => s.id)
+  localFeaturedExpertIds.value = allProviders.value.filter(p => p.isFeatured).map(p => p.id)
 })
 
 const tab = ref('general')
 const snackbar = ref(false)
 
 function addHeroImage() {
-  hero.value.images.push({ src: '' })
+  if (draftSettings.value) {
+    draftSettings.value.hero.images.push({ src: '' })
+  }
 }
 
 function removeHeroImage(index: number) {
-  if (hero.value.images.length > 1) {
-    hero.value.images.splice(index, 1)
+  if (draftSettings.value && draftSettings.value.hero.images.length > 1) {
+    draftSettings.value.hero.images.splice(index, 1)
   }
 }
 
 function addSocialLink() {
-  company.value.socialLinks.push({ platform: 'New Platform', url: '#', icon: 'mdi-web' })
+  if (draftSettings.value) {
+    draftSettings.value.company.socialLinks.push({ platform: 'New Platform', url: '#', icon: 'mdi-web' })
+  }
 }
 
 function removeSocialLink(index: number) {
-  company.value.socialLinks.splice(index, 1)
+  if (draftSettings.value) {
+    draftSettings.value.company.socialLinks.splice(index, 1)
+  }
 }
 
-function saveSettings() {
-  // Logic is handled by Pinia reactivity/watchers automatically for simple values,
-  // but we can trigger explicit actions if needed. 
-  // For now, the v-model binding directly updates the store state which is watched.
-  // We just show a confirmation.
+function handleSave() {
+  // 1. Commit general settings
+  commitSettings()
+
+  // 2. Apply featured content changes to stores
+  allServices.value.forEach(s => {
+    s.isFeatured = localFeaturedServiceIds.value.includes(s.id)
+  })
+  allProviders.value.forEach(p => {
+    p.isFeatured = localFeaturedExpertIds.value.includes(p.id)
+  })
+
   snackbar.value = true
 }
 </script>

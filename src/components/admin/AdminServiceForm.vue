@@ -44,7 +44,16 @@
             />
           </v-col>
           <v-col cols="12">
-            <v-text-field v-model="internalCategory" label="Category" placeholder="e.g. Nails, Hair" />
+            <v-combobox
+              v-model="internalCategory"
+              :items="allCategories"
+              label="Category"
+              placeholder="e.g. Nails, Hair"
+              hint="Select an existing category or type a new one"
+              persistent-hint
+              variant="outlined"
+              density="compact"
+            />
           </v-col>
           <v-col cols="12">
             <v-select
@@ -130,6 +139,18 @@
                 <div class="text-caption">End Date</div>
                 <DateTimePicker :date="dateRangeEnd" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeEnd', $event)" />
               </v-col>
+              
+              <v-col cols="12" v-if="dateRangeStart && dateRangeEnd && dateRangeStart > dateRangeEnd">
+                <v-alert
+                  type="error"
+                  variant="tonal"
+                  density="compact"
+                  icon="mdi-calendar-alert"
+                  class="mt-1"
+                >
+                  <strong>Invalid Range:</strong> Start Date cannot be after End Date.
+                </v-alert>
+              </v-col>
               <v-col cols="12" class="mt-2">
                 <TimeRangeSlider
                   :start="timeRangeStart"
@@ -212,7 +233,13 @@ import DateTimePicker from '@/components/DateTimePicker.vue'
 import AdminSlotManager from './AdminSlotManager.vue'
 import AdminOverrideManager from './AdminOverrideManager.vue'
 import TimeRangeSlider from './TimeRangeSlider.vue'
+import { useServicesStore } from '@/stores/services'
 import type { AvailabilitySlot, AvailabilityOverride } from '@/stores/services'
+
+const servicesStore = useServicesStore()
+const allCategories = computed(() => {
+  return [...new Set(servicesStore.services.map(s => s.category))].filter(Boolean)
+})
 
 // Minimal interface for VForm validation
 type VForm = {

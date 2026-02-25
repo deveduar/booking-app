@@ -33,7 +33,9 @@
              variant="outlined"
              color="primary"
            >
+             <v-icon v-if="prov.preferredServiceId === svc.id" size="x-small" class="mr-1">mdi-star</v-icon>
              {{ svc.name }}: {{ getServiceSchedule(svc, prov.id) }}
+             <span v-if="prov.preferredServiceId === svc.id" class="ml-1 text-uppercase font-weight-bold" style="font-size: 8px;">(Preferred)</span>
            </v-chip>
         </div>
         <div v-else class="text-caption text-grey mt-1">

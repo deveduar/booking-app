@@ -11,10 +11,10 @@ export function useBooking() {
   const { timeFormat } = useSettings();
   const providersStore = useProvidersStore();
   const { providers } = storeToRefs(providersStore);
-  
+
   const servicesStore = useServicesStore();
   const { services } = storeToRefs(servicesStore);
-  
+
   const appointmentsStore = useAppointmentsStore();
 
   const selectedServiceId = ref<number | null>(null);
@@ -23,13 +23,13 @@ export function useBooking() {
   const selectedTime = ref<string | null>(null);
 
   const serviceItems = computed(() => services.value);
-  
+
   const providerItems = computed(() => {
     if (!selectedServiceId.value) return providers.value;
     return providersStore.getByService(selectedServiceId.value);
   });
-  
-  const selectedService = computed(() => 
+
+  const selectedService = computed(() =>
     services.value.find(s => s.id === selectedServiceId.value)
   );
 
@@ -37,7 +37,7 @@ export function useBooking() {
     if (!selectedService.value) return null;
     const service = selectedService.value;
     const providerId = selectedProviderId.value;
-    
+
     // Check for provider override
     if (providerId && service.providerAvailability && service.providerAvailability[providerId]) {
       const ov = service.providerAvailability[providerId];
@@ -50,7 +50,7 @@ export function useBooking() {
         timeRange: ov.timeRange
       };
     }
-    
+
     // Fallback to service defaults based on mode
     return {
       schedulingMode: service.schedulingMode,
@@ -64,7 +64,7 @@ export function useBooking() {
     if (!selectedService.value || !selectedProviderId.value) return false;
     return !!(selectedService.value.providerAvailability?.[selectedProviderId.value]);
   });
-  
+
   const canSubmit = computed(() => !!(selectedServiceId.value && selectedProviderId.value && selectedDate.value && selectedTime.value));
 
   // Watch for availability changes to Auto-Select earliest
@@ -129,7 +129,7 @@ export function useBooking() {
           earliestTime = null;
         } else {
           // Use formatTimeMin to guarantee the format matches what allowedTimesForDate generates
-          earliestTime = formatTimeMin(startMin, timeFormat.value as '12h'|'24h');
+          earliestTime = formatTimeMin(startMin, timeFormat.value as '12h' | '24h');
         }
       }
     }
@@ -139,11 +139,25 @@ export function useBooking() {
     selectedTime.value = earliestTime;
   }, { deep: true });
 
+  // Watch for provider changes to auto-select service if none selected
+  watch(selectedProviderId, (newProvId) => {
+    if (newProvId && !selectedServiceId.value) {
+      const provider = providers.value.find(p => p.id === newProvId);
+      if (provider && provider.serviceIds.length > 0) {
+        let serviceId = provider.preferredServiceId;
+        if (!serviceId || !provider.serviceIds.includes(serviceId)) {
+          serviceId = provider.serviceIds[0];
+        }
+        selectedServiceId.value = serviceId;
+      }
+    }
+  });
+
   // Watch for service changes to Reset or auto-select provider
   watch(selectedServiceId, (newId, oldId) => {
     if (newId && newId !== oldId) {
       const availableProviders = providersStore.getByService(newId);
-      
+
       // If current provider is NOT valid for this service, reset it
       if (selectedProviderId.value && !availableProviders.find(p => p.id === selectedProviderId.value)) {
         selectedProviderId.value = null;
@@ -155,13 +169,13 @@ export function useBooking() {
       if (!selectedProviderId.value) {
         const service = servicesStore.getById(newId);
         if (service?.defaultProviderId && availableProviders.find(p => p.id === service.defaultProviderId)) {
-           setTimeout(() => {
-             selectedProviderId.value = service.defaultProviderId!;
-           }, 50);
+          setTimeout(() => {
+            selectedProviderId.value = service.defaultProviderId!;
+          }, 50);
         } else if (availableProviders.length > 0) {
-           setTimeout(() => {
-             selectedProviderId.value = availableProviders[0].id;
-           }, 50);
+          setTimeout(() => {
+            selectedProviderId.value = availableProviders[0].id;
+          }, 50);
         }
       }
     }
@@ -170,9 +184,9 @@ export function useBooking() {
   const createAppointment = () => {
     const service = servicesStore.getById(selectedServiceId.value as number);
     const provider = providers.value.find(p => p.id === selectedProviderId.value);
-    
+
     if (!service || !provider || !selectedDate.value || !selectedTime.value) return false;
-    
+
     appointmentsStore.addAppointment({
       date: selectedDate.value,
       time: selectedTime.value,
@@ -180,7 +194,7 @@ export function useBooking() {
       provider: provider.name,
       status: 'Upcoming',
     });
-    
+
     return true;
   };
 

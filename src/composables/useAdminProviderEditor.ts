@@ -10,6 +10,7 @@ export function useAdminProviderEditor() {
     const provStatus = ref('Available')
     const provImage = ref('')
     const provIsFeatured = ref(false)
+    const provPreferredServiceId = ref<number | undefined>(undefined)
     const editingProviderId = ref<number | null>(null)
 
     // Dirty Tracking
@@ -21,7 +22,8 @@ export function useAdminProviderEditor() {
             description: provDescription.value,
             status: provStatus.value,
             image: provImage.value,
-            isFeatured: provIsFeatured.value
+            isFeatured: provIsFeatured.value,
+            preferredServiceId: provPreferredServiceId.value
         })
     }
 
@@ -31,7 +33,8 @@ export function useAdminProviderEditor() {
             description: provDescription.value,
             status: provStatus.value,
             image: provImage.value,
-            isFeatured: provIsFeatured.value
+            isFeatured: provIsFeatured.value,
+            preferredServiceId: provPreferredServiceId.value
         })
         return current !== initialSnapshot.value
     })
@@ -52,6 +55,7 @@ export function useAdminProviderEditor() {
         provStatus.value = provider.status
         provImage.value = provider.image
         provIsFeatured.value = provider.isFeatured || false
+        provPreferredServiceId.value = provider.preferredServiceId
         takeSnapshot()
     }
 
@@ -62,6 +66,7 @@ export function useAdminProviderEditor() {
         provStatus.value = 'Available'
         provImage.value = ''
         provIsFeatured.value = false
+        provPreferredServiceId.value = undefined
         takeSnapshot()
         nextTick(() => {
             if (providerForm.value) providerForm.value.resetValidation()
@@ -79,6 +84,7 @@ export function useAdminProviderEditor() {
             status: provStatus.value || 'Available',
             image: provImage.value || '',
             isFeatured: provIsFeatured.value,
+            preferredServiceId: provPreferredServiceId.value,
         }
 
         const mode = editingProviderId.value ? 'update' : 'add'
@@ -109,6 +115,7 @@ export function useAdminProviderEditor() {
         provStatus,
         provImage,
         provIsFeatured,
+        provPreferredServiceId,
         editingProviderId,
         providerForm,
         isProviderDirty,

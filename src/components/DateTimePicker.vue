@@ -23,6 +23,7 @@
         bg-color="surface"
         color="primary"
         hide-details
+        class="cursor-pointer"
       />
       <v-text-field
         v-else
@@ -35,6 +36,7 @@
         hide-details
         color="primary"
         readonly
+        class="cursor-pointer"
         @click="menu1 = true"
       >
         <v-menu
@@ -82,6 +84,7 @@
         color="primary"
         variant="outlined"
         hide-details
+        class="cursor-pointer"
         :placeholder="!internalDateStr ? 'Select a date first' : 'Select a time'"
       />
       <v-text-field
@@ -96,6 +99,7 @@
         variant="outlined"
         hide-details
         readonly
+        class="cursor-pointer"
         @click="menu2 = true"
       >
         <v-menu
@@ -175,3 +179,15 @@ const {
   allowedMinutes
 } = useDateTimePicker(props, emit);
 </script>
+
+<style scoped>
+.cursor-pointer :deep(input),
+.cursor-pointer :deep(.v-field__input),
+.cursor-pointer :deep(.v-field__append-inner),
+.cursor-pointer :deep(.v-field__prepend-inner),
+.cursor-pointer :deep(.v-select__selection),
+.cursor-pointer :deep(.v-select__slot),
+.cursor-pointer :deep(.v-field) {
+  cursor: pointer !important;
+}
+</style>

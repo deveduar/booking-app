@@ -28,6 +28,19 @@
               density="compact"
             />
           </v-col>
+          <v-col v-if="assignedServices.length > 0" cols="12">
+            <v-select
+              v-model="internalPreferredServiceId"
+              :items="assignedServices"
+              item-title="name"
+              item-value="id"
+              label="Preferred Service"
+              placeholder="Select a preferred service"
+              clearable
+              hint="This service will be pre-selected when booking with this specialist from the home page"
+              persistent-hint
+            />
+          </v-col>
           <v-col cols="12" class="d-flex">
             <v-btn
               color="secondary"
@@ -51,6 +64,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Provider } from '@/stores/providers'
+import type { Service } from '@/stores/services'
 
 // Minimal interface for VForm validation
 type VForm = {
@@ -65,12 +79,14 @@ const props = defineProps<{
   status: string;
   image: string;
   isFeatured: boolean;
+  preferredServiceId?: number;
   providers: Provider[];
+  services: Service[];
   editingId?: number | null;
   isDirty?: boolean;
 }>();
 
-const emit = defineEmits(['update:name', 'update:description', 'update:status', 'update:image', 'update:isFeatured', 'save', 'cancel', 'remove', 'edit']);
+const emit = defineEmits(['update:name', 'update:description', 'update:status', 'update:image', 'update:isFeatured', 'update:preferred-service-id', 'save', 'cancel', 'remove', 'edit']);
 
 const formRef = ref<VForm | null>(null);
 
@@ -79,6 +95,14 @@ const internalDescription = computed({ get: () => props.description || '', set: 
 const internalStatus = computed({ get: () => props.status, set: v => emit('update:status', v) });
 const internalImage = computed({ get: () => props.image, set: v => emit('update:image', v) });
 const internalIsFeatured = computed({ get: () => props.isFeatured, set: v => emit('update:isFeatured', v) });
+const internalPreferredServiceId = computed({ get: () => props.preferredServiceId, set: v => emit('update:preferred-service-id', v) });
+
+const assignedServices = computed(() => {
+  if (!props.editingId) return [];
+  const provider = props.providers.find(p => p.id === props.editingId);
+  if (!provider) return [];
+  return props.services.filter(s => provider.serviceIds.includes(s.id));
+});
 
 const isSaveDisabled = computed(() => {
   // If editing, disable save until changes are made (isDirty is true)

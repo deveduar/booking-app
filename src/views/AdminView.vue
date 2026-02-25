@@ -98,7 +98,9 @@
             v-model:status="provStatus"
             v-model:image="provImage"
             v-model:is-featured="provIsFeatured"
+            v-model:preferred-service-id="provPreferredServiceId"
             :providers="providers"
+            :services="services"
             :editing-id="editingProviderId"
             :is-dirty="isProviderDirty"
             @save="handleSaveProvider"
@@ -209,7 +211,7 @@ const {
 } = useAdminServiceEditor()
 
 const {
-  provName, provDescription, provStatus, provImage, provIsFeatured,
+  provName, provDescription, provStatus, provImage, provIsFeatured, provPreferredServiceId,
   editingProviderId, providerForm,
   editProvider, cancelProviderEdit, saveProvider,
   removeProvider: removeProviderFromStore,
