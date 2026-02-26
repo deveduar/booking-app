@@ -5,7 +5,7 @@
     <v-card v-if="draftSettings">
       <v-tabs v-model="tab" color="primary">
         <v-tab value="profile">My Profile</v-tab>
-        <v-tab v-if="isAdmin" value="general">General</v-tab>
+        <v-tab value="general">General</v-tab>
         <v-tab v-if="isAdmin" value="company">Company Info</v-tab>
         <v-tab v-if="isAdmin" value="home">Home Page Editor</v-tab>
       </v-tabs>
@@ -23,13 +23,13 @@
                 <div class="text-subtitle-1 text-grey">{{ user.role }}</div>
               </v-col>
               <v-col cols="12" md="8">
-                 <v-form @submit.prevent="handleSaveProfile">
                   <v-row>
                     <v-col cols="12" sm="6">
                       <v-text-field
                         v-model="profileDraft.name"
                         label="Full Name"
                         variant="outlined"
+                        hide-details
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6">
@@ -52,19 +52,13 @@
                         persistent-hint
                       ></v-text-field>
                     </v-col>
-                    <v-col cols="12" class="d-flex justify-end mt-4">
-                      <v-btn color="primary" type="submit" prepend-icon="mdi-account-check">
-                        Update Profile
-                      </v-btn>
-                    </v-col>
                   </v-row>
-                </v-form>
               </v-col>
             </v-row>
           </v-window-item>
 
-          <!-- General Settings (Admin Only) -->
-          <v-window-item v-if="isAdmin" value="general">
+          <!-- General Settings -->
+          <v-window-item value="general">
             <v-row>
               <v-col cols="12" md="6">
                 <v-select
@@ -378,28 +372,27 @@ function removeSocialLink(index: number) {
   }
 }
 
-function handleSaveProfile() {
+function handleSave() {
+  // 1. Update Profile
   authStore.updateProfile({
     name: profileDraft.value.name,
     avatar: profileDraft.value.avatar
   })
-  snackbarText.value = 'Profile updated successfully!'
-  snackbar.value = true
-}
 
-function handleSave() {
-  // 1. Commit general settings
+  // 2. Commit general settings
   commitSettings()
 
-  // 2. Apply featured content changes to stores
-  allServices.value.forEach(s => {
-    s.isFeatured = localFeaturedServiceIds.value.includes(s.id)
-  })
-  allProviders.value.forEach(p => {
-    p.isFeatured = localFeaturedExpertIds.value.includes(p.id)
-  })
+  // 3. Apply featured content changes to stores (Admin only)
+  if (isAdmin.value) {
+    allServices.value.forEach(s => {
+      s.isFeatured = localFeaturedServiceIds.value.includes(s.id)
+    })
+    allProviders.value.forEach(p => {
+      p.isFeatured = localFeaturedExpertIds.value.includes(p.id)
+    })
+  }
 
-  snackbarText.value = 'Salon settings saved successfully!'
+  snackbarText.value = 'Settings saved successfully!'
   snackbar.value = true
 }
 </script>

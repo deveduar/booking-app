@@ -19,11 +19,18 @@
             <v-card-title class="text-h6 pb-0">{{ next.service }}</v-card-title>
             <v-card-subtitle>{{ displayDate(next.date) }} at {{ displayTime(next.time) }}</v-card-subtitle>
           </v-card-item>
-
           <v-card-text>
+            <div class="d-flex align-center mb-1" v-if="isAdmin">
+              <v-icon size="small" class="mr-2">mdi-account-circle</v-icon>
+              <span>Client: {{ next.userName }}</span>
+            </div>
             <div class="d-flex align-center mb-1">
               <v-icon size="small" class="mr-2">mdi-account</v-icon>
               <span>Provider: {{ next.provider || 'Not assigned' }}</span>
+            </div>
+            <div class="d-flex align-center mb-1" v-if="next.createdAt">
+              <v-icon size="small" class="mr-2">mdi-clock-outline</v-icon>
+              <span class="text-caption">Booking made on: {{ displayDateTime(next.createdAt) }}</span>
             </div>
             <div class="d-flex align-center">
               <v-chip size="small" color="primary" variant="tonal">{{ next.status }}</v-chip>
@@ -59,9 +66,17 @@
             </template>
           </v-card-item>
           <v-card-text class="pt-0">
-            <div class="d-flex align-center">
+            <div class="d-flex align-center mb-1" v-if="isAdmin">
+               <v-icon size="x-small" class="mr-1">mdi-account-circle</v-icon>
+               <span class="text-caption">Client: {{ item.userName }}</span>
+            </div>
+            <div class="d-flex align-center mb-1">
                <v-icon size="x-small" class="mr-1">mdi-account</v-icon>
                <span class="text-caption">Provider: {{ item.provider || 'Not assigned' }}</span>
+            </div>
+            <div class="d-flex align-center" v-if="item.createdAt">
+               <v-icon size="x-small" class="mr-1">mdi-clock-outline</v-icon>
+               <span class="text-caption">Booking made on: {{ displayDateTime(item.createdAt) }}</span>
             </div>
           </v-card-text>
         </v-card>
@@ -160,6 +175,17 @@ function displayTime(t: string): string {
 
 function displayDate(d: string): string {
   return formatDate(d);
+}
+
+function displayDateTime(isoStr: string): string {
+  if (!isoStr) return '';
+  const date = new Date(isoStr);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const datePart = `${y}-${m}-${d}`;
+  const timePart = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  return `${formatDate(datePart)} at ${formatTime(timePart)}`;
 }
 
 // Role-based filtering

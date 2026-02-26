@@ -12,6 +12,7 @@ export type Appointment = {
   provider?: string
   userName: string // The name of the user who booked
   status: AppointmentStatus
+  createdAt: string
 }
 
 const STORAGE_KEY = 'salon_appointments'

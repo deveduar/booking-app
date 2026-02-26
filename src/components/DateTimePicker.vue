@@ -45,12 +45,14 @@
           activator="parent"
           transition="scale-transition"
           @click:outside="cancelDate"
+          :fullscreen="$vuetify.display.smAndDown"
         >
           <v-date-picker
             v-model="tempDate"
             :allowed-dates="isAllowedDate"
             color="primary"
             rounded="lg"
+            :width="$vuetify.display.smAndDown ? '100%' : undefined"
           >
             <template v-slot:actions>
               <v-btn variant="text" @click="cancelDate">Cancel</v-btn>
@@ -108,6 +110,7 @@
           activator="parent"
           transition="scale-transition"
           @click:outside="cancelTime"
+          :fullscreen="$vuetify.display.smAndDown"
         >
           <v-time-picker
             v-if="menu2"
@@ -119,6 +122,7 @@
             :format="pickerFormat"
             full-width
             rounded="lg"
+            :width="$vuetify.display.smAndDown ? '100%' : undefined"
           >
             <template v-slot:actions>
               <div class="d-flex justify-end w-100 pt-2">

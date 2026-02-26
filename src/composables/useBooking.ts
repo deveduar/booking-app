@@ -197,6 +197,7 @@ export function useBooking() {
       provider: provider.name,
       userName: user.name,
       status: 'Upcoming',
+      createdAt: new Date().toISOString(),
     });
 
     return true;

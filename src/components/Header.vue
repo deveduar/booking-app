@@ -10,19 +10,19 @@
     />
 
     <!-- Título del toolbar - Visible cuando el drawer está cerrado -->
-    <v-toolbar-title v-if="!drawer" class="font-weight-bold d-flex align-center cursor-pointer" @click="$router.push('/')">
+    <v-toolbar-title v-if="!drawer" class="font-weight-bold d-flex align-center cursor-pointer flex-grow-0 mr-4" @click="$router.push('/')">
       <v-icon color="primary" icon="mdi-calendar-heart" size="small" class="mr-2" />
       {{ company.brandName }}
     </v-toolbar-title>
 
-    <div class="d-none d-md-flex align-center ml-4">
+    <div class="d-none d-md-flex align-center h-100">
       <v-btn
         v-for="(item, index) in leftNavItems"
         :key="index"
         :to="item.to"
         :prepend-icon="item.icon"
         variant="text"
-        class="text-none"
+        class="text-none h-100"
       >
         {{ item.label }}
       </v-btn>
@@ -69,20 +69,15 @@
         </v-list>
       </v-menu>
 
-      <!-- Interruptor de tema -->
-      <v-switch
-        inset
-        color="primary"
-        v-model="isDarkTheme"
-        @change="onSwitchChange"
-        hide-details
-        class="theme-switch ml-4"
-      />
+      <!-- Interruptor de tema personalizado -->
+      <theme-toggle class="ml-2 mr-4" />
     </div>
   </v-app-bar>
 </template>
 
 <script setup lang="ts">
+import ThemeToggle from './ThemeToggle.vue';
+
 defineOptions({ name: 'AppHeader' })
 
 const props = defineProps<{
@@ -131,33 +126,15 @@ function handleLogout() {
   router.push('/');
 }
 
-// Estado del interruptor (dark/light theme)
-const isDarkTheme = ref<boolean>(false);
-
-// Función para alternar el tema
-function toggleTheme(isDark: boolean) {
-  const newTheme = isDark ? 'dark' : 'light';
-  theme.global.name.value = newTheme;  // Acceder a .value para asignar el valor real
-  localStorage.setItem('theme', newTheme);
-}
-
-// Función que maneja el cambio del interruptor
-function onSwitchChange() {
-  toggleTheme(isDarkTheme.value); // Usar .value para obtener el valor real
-}
-
-// Configuración inicial del tema y el estado del switch desde localStorage
+// Configuración inicial del tema desde localStorage
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) {
-    theme.global.name.value = savedTheme;  // Acceder a .value
-    isDarkTheme.value = savedTheme === 'dark';
-  } else {
-    // Configuración predeterminada si no hay un tema guardado
-    isDarkTheme.value = theme.global.current.value.dark;
+    theme.global.name.value = savedTheme;
   }
 });
 </script>
+
 
 <style scoped>
 .theme-switch {
