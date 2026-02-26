@@ -61,11 +61,16 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePick
                     if (props.dateRange?.start && s.date < props.dateRange.start) return false;
                     if (props.dateRange?.end && s.date > props.dateRange.end) return false;
 
-                    // Today check: must have at least one future time (unless allowPast)
-                    if (!props.allowPast && s.date === todayStr) {
-                        return s.times.some(t => parseTimeMin(t) >= currentTime);
-                    }
-                    return true;
+                    // Check if there's at least one time in this slot that's within the global time range
+                    const hasValidTimeInRange = s.times.some(t => {
+                        const tMin = parseTimeMin(t);
+                        if (props.timeRange?.start && tMin < parseTimeMin(props.timeRange.start)) return false;
+                        if (props.timeRange?.end && tMin > parseTimeMin(props.timeRange.end)) return false;
+                        if (!props.allowPast && s.date === todayStr && tMin < currentTime) return false;
+                        return true;
+                    });
+
+                    return hasValidTimeInRange;
                 })
                 .map(s => s.date);
         }
@@ -234,12 +239,12 @@ export function useDateTimePicker(props: DateTimePickerProps, emit: DateTimePick
             } else {
                 // Smart Default: Find first allowed hour
                 let min = 0;
-                
+
                 // If allowedTimesForDate (Fixed Slots or Duration-based) has values, pick first
                 if (allowedTimesForDate.value && allowedTimesForDate.value.length > 0) {
-                     const firstTime = allowedTimesForDate.value[0]; // e.g., "02:00 PM"
-                     min = parseTimeMin(firstTime);
-                } 
+                    const firstTime = allowedTimesForDate.value[0]; // e.g., "02:00 PM"
+                    min = parseTimeMin(firstTime);
+                }
                 // Else if Range exists, pick start of range
                 else if (props.timeRange?.start) {
                     min = parseTimeMin(props.timeRange.start);

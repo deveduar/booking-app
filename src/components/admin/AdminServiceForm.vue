@@ -7,23 +7,7 @@
     <v-card-text class="flex-grow-1 overflow-y-auto">
       <v-form ref="formRef" @submit.prevent="$emit('save')">
         <v-row dense>
-            <v-col cols="12" class="mt-n2 d-flex flex-wrap">
-            <v-switch
-              v-model="internalIsVisible"
-              label="Public Visibility"
-              color="success"
-              hide-details
-              density="compact"
-              class="mr-4"
-            />
-            <v-switch
-              v-model="internalIsFeatured"
-              label="Featured Service"
-              color="amber"
-              hide-details
-              density="compact"
-            />
-          </v-col>
+          <!-- General Info Section -->
           <v-col cols="12">
             <v-text-field v-model="internalName" label="Name" :rules="[v => !!v || 'Name is required']" required />
           </v-col>
@@ -81,23 +65,112 @@
               clearable
             />
           </v-col>
+
+          <!-- Availability Section -->
           <v-col cols="12">
-            <div class="d-flex align-center">
-              <v-radio-group v-model="internalMode" label="Availability Type" inline hide-details>
-                <v-radio label="Standard (Range)" value="Standard" />
-                <v-radio label="Fixed Slots" value="Fixed Slots" />
-              </v-radio-group>
-              <v-tooltip location="top" text="Standard uses a daily time range. Fixed Slots uses specific manual entries.">
+            <v-divider class="mb-4"></v-divider>
+            <div class="d-flex align-center mb-2">
+              <div class="text-h6 font-weight-bold">Availability</div>
+              <v-tooltip location="top" text="Define how customers can book this service. Standard uses a range, Fixed Slots uses specific manual entries.">
                 <template #activator="{ props }">
-                  <v-icon v-bind="props" icon="mdi-information-outline" size="small" color="grey" class="ml-n2 mt-1" />
+                  <v-icon v-bind="props" icon="mdi-information-outline" size="small" color="grey" class="ml-2" />
                 </template>
               </v-tooltip>
             </div>
+
+            <!-- Availability Type Selection -->
+            <v-radio-group v-model="internalMode" inline hide-details class="mb-4">
+              <v-radio label="Standard (Range)" value="Standard" color="primary" />
+              <v-radio label="Fixed Slots" value="Fixed Slots" color="primary" />
+            </v-radio-group>
+
+            <!-- Global Time window (Daily Booking Window) -->
+            <div class="mb-4 pa-4 rounded-lg bg-surface-variant-light" :class="{'border-primary': internalMode === 'Standard'}">
+              <div class="d-flex align-center mb-2">
+                <div class="text-subtitle-2 font-weight-bold">Daily Booking Window</div>
+                <v-tooltip location="top" text="This defines the potential hours available for booking each day. Even for Fixed Slots, entries will be hidden if they fall outside this window.">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" icon="mdi-information-outline" size="x-small" class="ml-2 opacity-70" />
+                  </template>
+                </v-tooltip>
+              </div>
+              <TimeRangeSlider
+                :start="timeRangeStart"
+                :end="timeRangeEnd"
+                :date="dateRangeStart"
+                @update:start="$emit('update:timeRangeStart', $event)"
+                @update:end="$emit('update:timeRangeEnd', $event)"
+              />
+              <v-alert
+                v-if="isRangeTodayPast"
+                type="warning"
+                variant="tonal"
+                density="compact"
+                class="mt-2"
+                icon="mdi-clock-alert-outline"
+              >
+                Past hours for <strong>Today</strong> are automatically hidden.
+              </v-alert>
+            </div>
+
+            <!-- Date Range Selection -->
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <div class="text-caption font-weight-bold">Start Date</div>
+                <DateTimePicker :date="dateRangeStart" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeStart', $event)" />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <div class="text-caption font-weight-bold">End Date</div>
+                <DateTimePicker :date="dateRangeEnd" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeEnd', $event)" />
+              </v-col>
+              
+              <v-col cols="12">
+                <!-- Validation Alerts -->
+                <v-alert
+                  v-if="dateRangeStart && !dateRangeEnd"
+                  type="error"
+                  variant="tonal"
+                  density="compact"
+                  icon="mdi-calendar-alert"
+                  class="mt-1"
+                >
+                  <strong>Incomplete Range:</strong> End Date is required if a Start Date is set.
+                </v-alert>
+                <v-alert
+                  v-else-if="dateRangeEnd && !dateRangeStart"
+                  type="error"
+                  variant="tonal"
+                  density="compact"
+                  icon="mdi-calendar-alert"
+                  class="mt-1"
+                >
+                  <strong>Incomplete Range:</strong> Start Date is required if an End Date is set.
+                </v-alert>
+                <v-alert
+                  v-else-if="dateRangeStart && dateRangeEnd && dateRangeStart > dateRangeEnd"
+                  type="error"
+                  variant="tonal"
+                  density="compact"
+                  icon="mdi-calendar-alert"
+                  class="mt-1"
+                >
+                  <strong>Invalid Range:</strong> Start Date cannot be after End Date.
+                </v-alert>
+                <v-alert
+                  v-if="internalMode === 'Standard' && (!timeRangeStart || !timeRangeEnd || !dateRangeStart || !dateRangeEnd)"
+                  type="info"
+                  variant="tonal"
+                  density="compact"
+                  icon="mdi-information"
+                  class="mt-1"
+                >
+                  Standard mode requires both <strong>Time Range</strong> and <strong>Date Range</strong> to be fully defined.
+                </v-alert>
+              </v-col>
+            </v-row>
           </v-col>
 
-
-          
-          <!-- Mode: Fixed Slots -->
+          <!-- Mode-Specific Managers -->
           <v-col v-if="internalMode === 'Fixed Slots'" cols="12">
             <AdminSlotManager
               :slots="availableSlots"
@@ -116,64 +189,11 @@
               class="mt-2"
               icon="mdi-clock-alert-outline"
             >
-              Some <strong>Fixed Slots</strong> for today have already passed. These will not be visible to customers.
+              Passed <strong>Fixed Slots</strong> for today will not be visible to customers.
             </v-alert>
           </v-col>
 
-          <!-- Mode: Standard -->
-          <v-col v-if="internalMode === 'Standard'" cols="12">
-            <div class="d-flex align-center mb-1">
-              <div class="text-subtitle-1 font-weight-bold">Time Range (Standard Mode)</div>
-              <v-tooltip location="top" text="This defines the potential hours available for booking each day. Actual slots will be generated within this window, respecting the current time if the date is Today.">
-                <template #activator="{ props }">
-                  <v-icon v-bind="props" icon="mdi-information-outline" size="small" class="ml-2 opacity-70" />
-                </template>
-              </v-tooltip>
-            </div>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <div class="text-caption">Start Date</div>
-                <DateTimePicker :date="dateRangeStart" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeStart', $event)" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <div class="text-caption">End Date</div>
-                <DateTimePicker :date="dateRangeEnd" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeEnd', $event)" />
-              </v-col>
-              
-              <v-col cols="12" v-if="dateRangeStart && dateRangeEnd && dateRangeStart > dateRangeEnd">
-                <v-alert
-                  type="error"
-                  variant="tonal"
-                  density="compact"
-                  icon="mdi-calendar-alert"
-                  class="mt-1"
-                >
-                  <strong>Invalid Range:</strong> Start Date cannot be after End Date.
-                </v-alert>
-              </v-col>
-              <v-col cols="12" class="mt-2">
-                <TimeRangeSlider
-                  :start="timeRangeStart"
-                  :end="timeRangeEnd"
-                  :date="dateRangeStart"
-                  @update:start="$emit('update:timeRangeStart', $event)"
-                  @update:end="$emit('update:timeRangeEnd', $event)"
-                />
-                
-                <v-alert
-                  v-if="isRangeTodayPast"
-                  type="warning"
-                  variant="tonal"
-                  density="compact"
-                  class="mt-2"
-                  icon="mdi-clock-alert-outline"
-                >
-                  Some hours in this range have already passed for <strong>Today</strong>. Customers will only see slots starting from <strong>{{ currentFormatedTime }}</strong>.
-                </v-alert>
-              </v-col>
-            </v-row>
-          </v-col>
-          
+          <!-- Specialist Overrides -->
           <v-col cols="12">
             <AdminOverrideManager
               v-if="assignedProvidersFull.length > 1"
@@ -207,6 +227,38 @@
               @edit-override="$emit('edit-override', $event)"
               @remove-override="$emit('remove-override', $event)"
             />
+          </v-col>
+
+          <!-- Visibility & Promotion Section -->
+          <v-col cols="12">
+            <v-divider class="my-4"></v-divider>
+            <div class="text-h6 font-weight-bold mb-2">Visibility & Promotion</div>
+            <v-card variant="outlined" class="pa-4 border-dashed">
+              <v-row dense>
+                <v-col cols="12" sm="6">
+                  <v-switch
+                    v-model="internalIsVisible"
+                    label="Publicly Visible"
+                    color="success"
+                    hide-details
+                    density="compact"
+                    prepend-icon="mdi-eye-outline"
+                  />
+                  <div class="text-caption text-grey ml-10 mt-n1">Set if this service is visible to customers.</div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-switch
+                    v-model="internalIsFeatured"
+                    label="Featured Service"
+                    color="amber"
+                    hide-details
+                    density="compact"
+                    prepend-icon="mdi-star-outline"
+                  />
+                  <div class="text-caption text-grey ml-10 mt-n1">Highlight this service on the home page.</div>
+                </v-col>
+              </v-row>
+            </v-card>
           </v-col>
         </v-row>
         

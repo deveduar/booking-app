@@ -88,17 +88,38 @@ export function useAdminServiceEditor() {
     // Form Validity
     const isSvcFormValid = computed(() => {
         if (!svcName.value) return false
+        if (svcDuration.value === null || svcDuration.value <= 0) return false
+
+        // Date Range Validation: Start requires End
+        if (svcDateRangeStart.value && !svcDateRangeEnd.value) return false
+        if (svcDateRangeEnd.value && !svcDateRangeStart.value) return false
+        if (svcDateRangeStart.value && svcDateRangeEnd.value && svcDateRangeEnd.value < svcDateRangeStart.value) return false
+
         if (svcSchedulingMode.value === 'Standard') {
-            if (svcDateRangeStart.value && svcDateRangeEnd.value && svcDateRangeEnd.value < svcDateRangeStart.value) return false
+            // Standard mode requires defined time and date ranges
+            if (!svcTimeRangeStart.value || !svcTimeRangeEnd.value) return false
+            if (!svcDateRangeStart.value || !svcDateRangeEnd.value) return false
+        } else if (svcSchedulingMode.value === 'Fixed Slots') {
+            // Fixed Slots requires at least one slot defined
+            if (!svcAvailableSlots.value || svcAvailableSlots.value.length === 0) return false
         }
         return true
     })
 
     const isOverrideFormValid = computed(() => {
         if (!selectedOverrideProviderId.value) return false
-        if (overrideSchedulingMode.value === 'Fixed Slots') return overrideSlots.value.length > 0
+
+        // Date Range Validation: Start requires End
+        if (overDateRangeStart.value && !overDateRangeEnd.value) return false
+        if (overDateRangeEnd.value && !overDateRangeStart.value) return false
+        if (overDateRangeStart.value && overDateRangeEnd.value && overDateRangeEnd.value < overDateRangeStart.value) return false
+
+        if (overrideSchedulingMode.value === 'Fixed Slots') {
+            return overrideSlots.value.length > 0
+        }
         if (overrideSchedulingMode.value === 'Standard') {
-            if (overDateRangeStart.value && overDateRangeEnd.value && overDateRangeEnd.value < overDateRangeStart.value) return false
+            if (!overTimeRangeStart.value || !overTimeRangeEnd.value) return false
+            if (!overDateRangeStart.value || !overDateRangeEnd.value) return false
             return true
         }
         return true

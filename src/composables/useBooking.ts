@@ -56,9 +56,9 @@ export function useBooking() {
     // Fallback to service defaults based on mode
     return {
       schedulingMode: service.schedulingMode,
-      availableSlots: service.schedulingMode === 'Fixed Slots' ? service.availableSlots : [],
-      dateRange: service.schedulingMode === 'Standard' ? service.dateRange : undefined,
-      timeRange: service.schedulingMode === 'Standard' ? service.timeRange : undefined
+      availableSlots: service.availableSlots || [],
+      dateRange: service.dateRange,
+      timeRange: service.timeRange
     };
   });
 

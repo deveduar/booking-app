@@ -18,69 +18,123 @@
       </v-col>
     </v-row>
 
-    <div v-if="internalSelectedId" class="pa-4  rounded-lg border">
-      <div class="text-subtitle-2 mb-2">Override for {{ overrideProviderName }}</div>
+    <!-- Availability Section for Override -->
+    <div v-if="internalSelectedId" class="pa-4 rounded-lg border bg-surface mt-4">
+      <div class="d-flex align-center mb-2">
+        <div class="text-subtitle-1 font-weight-bold">Override for {{ overrideProviderName }}</div>
+      </div>
       
-      <v-radio-group v-model="internalMode" label="Override Mode" inline>
-        <v-radio label="Standard (Range)" value="Standard"></v-radio>
-        <v-radio label="Fixed Slots" value="Fixed Slots"></v-radio>
+      <v-radio-group v-model="internalMode" label="Override Mode" inline hide-details class="mb-4">
+        <v-radio label="Standard (Range)" value="Standard" color="primary"></v-radio>
+        <v-radio label="Fixed Slots" value="Fixed Slots" color="primary"></v-radio>
       </v-radio-group>
 
-      <!-- Mode: Fixed Slots -->
-      <AdminSlotManager
-        v-if="internalMode === 'Fixed Slots'"
-        :slots="overrideSlots"
-        :new-date="overDate"
-        :new-time="overTime"
-        title="Specific Slots for Specialist"
-        @add="$emit('add-slot')"
-        @remove="$emit('remove-slot', $event)"
-        @update:new-date="$emit('update:overDate', $event)"
-        @update:new-time="$emit('update:overTime', $event)"
-      />
-      
-      <v-alert
-        v-if="isFixedTodayPast"
-        type="warning"
-        variant="tonal"
-        density="compact"
-        class="mt-2"
-        icon="mdi-clock-alert-outline"
-      >
-        Some <strong>Override Slots</strong> for today have already passed.
-      </v-alert>
+      <!-- Daily Booking Window for Override -->
+      <div class="mb-4 pa-3 rounded bg-surface-variant-light">
+        <div class="d-flex align-center mb-2">
+          <div class="text-caption font-weight-bold">Daily Booking Window (Override)</div>
+          <v-tooltip location="top" text="Define a specific time window for this specialist. It will further restrict their availability.">
+            <template #activator="{ props }">
+              <v-icon v-bind="props" icon="mdi-information-outline" size="x-small" class="ml-2 opacity-70" />
+            </template>
+          </v-tooltip>
+        </div>
+        <TimeRangeSlider
+          :start="overTimeRangeStart"
+          :end="overTimeRangeEnd"
+          :date="overDateRangeStart"
+          @update:start="$emit('update:overTimeRangeStart', $event)"
+          @update:end="$emit('update:overTimeRangeEnd', $event)"
+        />
+        <v-alert
+          v-if="isRangeTodayPast"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          class="mt-2"
+          icon="mdi-clock-alert-outline"
+        >
+          Past hours for <strong>Today</strong> are hidden.
+        </v-alert>
+      </div>
 
-      <!-- Mode: Standard -->
-      <div v-if="internalMode === 'Standard'">
-        <v-row dense>
-          <v-col cols="12" sm="6">
-            <div class="text-caption">Start Date</div>
-            <DateTimePicker :date="overDateRangeStart" :time="null" hideTime scheduling-mode="Standard"  @update:date="$emit('update:overDateRangeStart', $event)" />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <div class="text-caption">End Date</div>
-            <DateTimePicker :date="overDateRangeEnd" :time="null" hideTime scheduling-mode="Standard"  @update:date="$emit('update:overDateRangeEnd', $event)" />
-          </v-col>
-          <v-col cols="12" class="mt-2">
-            <TimeRangeSlider
-              :start="overTimeRangeStart"
-              :end="overTimeRangeEnd"
-              :date="overDateRangeStart"
-              @update:start="$emit('update:overTimeRangeStart', $event)"
-              @update:end="$emit('update:overTimeRangeEnd', $event)"
-            />
-            <v-alert
-              v-if="isRangeTodayPast"
-              type="warning"
-              variant="tonal"
-              density="compact"
-              class="mt-2"
-              icon="mdi-clock-alert-outline"
-            >
-              This override range includes past hours for <strong>Today</strong>. Customers will only see slots from <strong>{{ currentFormatedTime }}</strong>.
-            </v-alert>
-          </v-col>
-        </v-row>
+      <!-- Date Range Selection for Override -->
+      <v-row dense>
+        <v-col cols="12" sm="6">
+          <div class="text-caption font-weight-bold">Start Date</div>
+          <DateTimePicker :date="overDateRangeStart" :time="null" hideTime scheduling-mode="Standard"  @update:date="$emit('update:overDateRangeStart', $event)" />
+        </v-col>
+        <v-col cols="12" sm="6">
+          <div class="text-caption font-weight-bold">End Date</div>
+          <DateTimePicker :date="overDateRangeEnd" :time="null" hideTime scheduling-mode="Standard"  @update:date="$emit('update:overDateRangeEnd', $event)" />
+        </v-col>
+        <v-col cols="12">
+          <!-- Validation Alerts for Override -->
+          <v-alert
+            v-if="overDateRangeStart && !overDateRangeEnd"
+            type="error"
+            variant="tonal"
+            density="compact"
+            icon="mdi-calendar-alert"
+            class="mt-1"
+          >
+            <strong>Incomplete Range:</strong> End Date is required.
+          </v-alert>
+          <v-alert
+            v-else-if="overDateRangeEnd && !overDateRangeStart"
+            type="error"
+            variant="tonal"
+            density="compact"
+            icon="mdi-calendar-alert"
+            class="mt-1"
+          >
+            <strong>Incomplete Range:</strong> Start Date is required.
+          </v-alert>
+          <v-alert
+            v-else-if="overDateRangeStart && overDateRangeEnd && overDateRangeStart > overDateRangeEnd"
+            type="error"
+            variant="tonal"
+            density="compact"
+            icon="mdi-calendar-alert"
+            class="mt-1"
+          >
+            <strong>Invalid Range:</strong> Start Date cannot be after End Date.
+          </v-alert>
+          <v-alert
+            v-if="internalMode === 'Standard' && (!overTimeRangeStart || !overTimeRangeEnd || !overDateRangeStart || !overDateRangeEnd)"
+            type="info"
+            variant="tonal"
+            density="compact"
+            icon="mdi-information"
+            class="mt-1"
+          >
+            Override requires full <strong>Time</strong> and <strong>Date</strong> ranges.
+          </v-alert>
+        </v-col>
+      </v-row>
+
+      <!-- Mode: Fixed Slots for Override -->
+      <div v-if="internalMode === 'Fixed Slots'" class="mt-4">
+        <AdminSlotManager
+          :slots="overrideSlots"
+          :new-date="overDate"
+          :new-time="overTime"
+          :title="'Custom Slots for ' + overrideProviderName"
+          @add="$emit('add-slot')"
+          @remove="$emit('remove-slot', $event)"
+          @update:new-date="$emit('update:overDate', $event)"
+          @update:new-time="$emit('update:overTime', $event)"
+        />
+        <v-alert
+          v-if="isFixedTodayPast"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          class="mt-2"
+          icon="mdi-clock-alert-outline"
+        >
+          Passed slots for today will be hidden.
+        </v-alert>
       </div>
 
       <v-btn color="primary" variant="elevated" block class="mt-4" @click="$emit('save')" :disabled="!isValid">

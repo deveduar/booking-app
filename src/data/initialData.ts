@@ -11,6 +11,7 @@ export const servicesData: Service[] = [
         duration: 45,
         category: 'Haircuts',
         schedulingMode: 'Standard',
+        dateRange: { start: '2026-01-01', end: '2026-12-31' },
         timeRange: { start: '09:00', end: '18:00' },
         isFeatured: true,
         isVisible: true
@@ -78,6 +79,7 @@ export const servicesData: Service[] = [
         duration: 60,
         category: 'Nails',
         schedulingMode: 'Standard',
+        dateRange: { start: '2026-01-01', end: '2026-12-31' },
         timeRange: { start: '10:00', end: '19:00' },
         defaultProviderId: 4,
         isVisible: true
@@ -90,6 +92,7 @@ export const servicesData: Service[] = [
         duration: 60,
         category: 'Skincare',
         schedulingMode: 'Standard',
+        dateRange: { start: '2026-01-01', end: '2026-12-31' },
         timeRange: { start: '09:00', end: '17:00' },
         defaultProviderId: 5,
         isVisible: true
