@@ -14,7 +14,10 @@
         <v-card v-if="next" border elevation="2">
           <v-card-item>
             <template v-slot:prepend>
-              <v-icon color="primary" size="x-large">mdi-calendar-check</v-icon>
+              <v-avatar v-if="getServiceThumbnail(next)" size="x-large" rounded="lg" class="mr-3">
+                <v-img :src="getServiceThumbnail(next)" cover />
+              </v-avatar>
+              <v-icon v-else color="primary" size="x-large">mdi-calendar-check</v-icon>
             </template>
             <v-card-title class="text-h6 pb-0">{{ next.service }}</v-card-title>
             <v-card-subtitle>{{ displayDate(next.date) }} at {{ displayTime(next.time) }}</v-card-subtitle>
@@ -57,7 +60,10 @@
         <v-card v-for="item in otherUpcoming" :key="item.id" border class="mb-3">
           <v-card-item>
             <template v-slot:prepend>
-              <v-icon color="secondary" size="large">mdi-calendar-clock</v-icon>
+              <v-avatar v-if="getServiceThumbnail(item)" size="large" rounded="lg" class="mr-2">
+                <v-img :src="getServiceThumbnail(item)" cover />
+              </v-avatar>
+              <v-icon v-else color="secondary" size="large">mdi-calendar-clock</v-icon>
             </template>
             <v-card-title class="text-h6 pb-0">{{ item.service }}</v-card-title>
             <v-card-subtitle>{{ displayDate(item.date) }} at {{ displayTime(item.time) }}</v-card-subtitle>
@@ -108,8 +114,9 @@
             <template v-for="(item, index) in sortedHistory" :key="item.id">
               <v-list-item>
                 <template v-slot:prepend>
-                  <v-avatar color="surface-variant" rounded>
-                    <v-icon>mdi-history</v-icon>
+                  <v-avatar size="large" rounded="lg" color="surface-variant">
+                    <v-img v-if="getServiceThumbnail(item)" :src="getServiceThumbnail(item)" cover />
+                    <v-icon v-else>mdi-history</v-icon>
                   </v-avatar>
                 </template>
                 <v-list-item-title class="font-weight-bold">{{ item.service }}</v-list-item-title>
@@ -154,10 +161,12 @@ import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppointmentsStore } from '@/stores/appointments'
 import type { Appointment } from '@/stores/appointments'
+import { useServicesStore } from '@/stores/services'
 import { useSettings } from '@/composables/useSettings'
 import { useAuthStore } from '@/stores/auth'
 
 const appointmentsStore = useAppointmentsStore()
+const servicesStore = useServicesStore()
 const authStore = useAuthStore()
 const { user, isAdmin } = storeToRefs(authStore)
 
@@ -186,6 +195,17 @@ function displayDateTime(isoStr: string): string {
   const datePart = `${y}-${m}-${d}`;
   const timePart = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   return `${formatDate(datePart)} at ${formatTime(timePart)}`;
+}
+
+function getServiceThumbnail(app: Appointment): string | undefined {
+  let service = null;
+  if (app.serviceId) {
+    service = servicesStore.getById(app.serviceId);
+  } else {
+    // Fallback for older appointments: look up by name
+    service = servicesStore.services.find(s => s.name === app.service);
+  }
+  return service?.thumbnailUrl || service?.imageUrl;
 }
 
 // Role-based filtering

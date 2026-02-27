@@ -27,6 +27,8 @@ export function useAdminServiceEditor() {
     const svcProviderAvailability = ref<{ [id: number]: AvailabilityOverride }>({})
     const svcIsFeatured = ref(false)
     const svcIsVisible = ref(true)
+    const svcImageUrl = ref('')
+    const svcThumbnailUrl = ref('')
 
     // Override State
     const selectedOverrideProviderId = ref<number | null>(null)
@@ -59,7 +61,9 @@ export function useAdminServiceEditor() {
             timeRangeEnd: svcTimeRangeEnd.value,
             providerAvailability: svcProviderAvailability.value,
             isFeatured: svcIsFeatured.value,
-            isVisible: svcIsVisible.value
+            isVisible: svcIsVisible.value,
+            imageUrl: svcImageUrl.value,
+            thumbnailUrl: svcThumbnailUrl.value
         })
     }
 
@@ -80,7 +84,9 @@ export function useAdminServiceEditor() {
             timeRangeEnd: svcTimeRangeEnd.value,
             providerAvailability: svcProviderAvailability.value,
             isFeatured: svcIsFeatured.value,
-            isVisible: svcIsVisible.value
+            isVisible: svcIsVisible.value,
+            imageUrl: svcImageUrl.value,
+            thumbnailUrl: svcThumbnailUrl.value
         })
         return current !== initialServiceSnapshot.value
     })
@@ -164,7 +170,9 @@ export function useAdminServiceEditor() {
         svcTimeRangeEnd.value = service.timeRange?.end || null
         svcProviderAvailability.value = service.providerAvailability ? JSON.parse(JSON.stringify(service.providerAvailability)) : {}
         svcIsFeatured.value = service.isFeatured || false
-        svcIsVisible.value = service.isVisible !== false // Default to true if undefined
+        svcIsVisible.value = service.isVisible !== false
+        svcImageUrl.value = service.imageUrl || ''
+        svcThumbnailUrl.value = service.thumbnailUrl || ''
         takeServiceSnapshot()
     }
 
@@ -186,6 +194,8 @@ export function useAdminServiceEditor() {
         svcProviderAvailability.value = {}
         svcIsFeatured.value = false
         svcIsVisible.value = true
+        svcImageUrl.value = ''
+        svcThumbnailUrl.value = ''
         selectedOverrideProviderId.value = null
         overTimeRangeStart.value = null
         overTimeRangeEnd.value = null
@@ -214,6 +224,8 @@ export function useAdminServiceEditor() {
             providerAvailability: svcProviderAvailability.value,
             isFeatured: svcIsFeatured.value,
             isVisible: svcIsVisible.value,
+            imageUrl: svcImageUrl.value || svcThumbnailUrl.value,
+            thumbnailUrl: svcThumbnailUrl.value || svcImageUrl.value
         }
 
         if (editingServiceId.value) {
@@ -357,6 +369,8 @@ export function useAdminServiceEditor() {
         svcProviderAvailability,
         svcIsFeatured,
         svcIsVisible,
+        svcImageUrl,
+        svcThumbnailUrl,
         editingServiceId,
         serviceForm,
         selectedOverrideProviderId,

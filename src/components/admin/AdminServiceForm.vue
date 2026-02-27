@@ -85,7 +85,11 @@
             </v-radio-group>
 
             <!-- Global Time window (Daily Booking Window) -->
-            <div class="mb-4 pa-4 rounded-lg bg-surface-variant-light" :class="{'border-primary': internalMode === 'Standard'}">
+            <div 
+              class="mb-4 pa-4 rounded-lg bg-surface-variant-light transition-swing" 
+              :class="{'border-primary': internalMode === 'Standard', 'opacity-30': internalMode !== 'Standard'}"
+              :style="internalMode !== 'Standard' ? 'pointer-events: none' : ''"
+            >
               <div class="d-flex align-center mb-2">
                 <div class="text-subtitle-2 font-weight-bold">Daily Booking Window</div>
                 <v-tooltip location="top" text="This defines the potential hours available for booking each day. Even for Fixed Slots, entries will be hidden if they fall outside this window.">
@@ -114,7 +118,7 @@
             </div>
 
             <!-- Date Range Selection -->
-            <v-row dense>
+            <v-row dense :class="{'opacity-30': internalMode !== 'Standard'}" :style="internalMode !== 'Standard' ? 'pointer-events: none' : ''" class="transition-swing">
               <v-col cols="12" sm="6">
                 <div class="text-caption font-weight-bold">Start Date</div>
                 <DateTimePicker :date="dateRangeStart" :time="null" hideTime scheduling-mode="Standard" @update:date="$emit('update:dateRangeStart', $event)" />
@@ -228,7 +232,61 @@
               @remove-override="$emit('remove-override', $event)"
             />
           </v-col>
-
+          <!-- Media Section -->
+          <v-col cols="12">
+            <v-divider class="mb-4"></v-divider>
+            <div class="text-h6 font-weight-bold mb-2">Service Media & Previews</div>
+            <v-card variant="outlined" class="pa-4 border-dashed ">
+              <v-row dense>
+                <v-col cols="12" md="6">
+                  <v-text-field 
+                    v-model="internalImageUrl" 
+                    label="Cover Image URL" 
+                    placeholder="https://images.unsplash.com/..." 
+                    variant="filled" 
+                    density="compact"
+                    hide-details
+                    class="mb-3"
+                  >
+                    <template #prepend-inner>
+                      <v-icon icon="mdi-image-plus-outline" size="small" />
+                    </template>
+                  </v-text-field>
+                  <v-text-field 
+                    v-model="internalThumbnailUrl" 
+                    label="Thumbnail Image URL" 
+                    placeholder="Same as cover if empty..." 
+                    variant="filled" 
+                    density="compact"
+                    hide-details
+                  >
+                    <template #prepend-inner>
+                      <v-icon icon="mdi-image-filter-center-focus" size="small" />
+                    </template>
+                  </v-text-field>
+                  <p class="text-caption text-grey mt-2">Use high-quality Unsplash URLs for best results.</p>
+                </v-col>
+                <v-col cols="12" md="6" class="d-flex ga-3">
+                  <!-- Thumbnail Preview -->
+                  <div class="flex-grow-1">
+                    <div class="text-caption font-weight-bold mb-1 ml-1">Thumbnail</div>
+                    <v-card border rounded="lg" height="100" width="100%" class="d-flex align-center justify-center overflow-hidden">
+                      <v-img v-if="internalThumbnailUrl || internalImageUrl" :src="internalThumbnailUrl || internalImageUrl" cover height="100%" />
+                      <v-icon v-else icon="mdi-image-off-outline" color="grey-lighten-1" size="large" />
+                    </v-card>
+                  </div>
+                  <!-- Cover Preview -->
+                  <div class="flex-grow-1 d-none d-sm-block">
+                    <div class="text-caption font-weight-bold mb-1 ml-1">Cover (Details)</div>
+                    <v-card border rounded="lg" height="100" width="100%" class="d-flex align-center justify-center overflow-hidden">
+                      <v-img v-if="internalImageUrl || internalThumbnailUrl" :src="internalImageUrl || internalThumbnailUrl" cover height="100%" />
+                      <v-icon v-else icon="mdi-image-off-outline" color="grey-lighten-1" size="large" />
+                    </v-card>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-card>
+          </v-col>
           <!-- Visibility & Promotion Section -->
           <v-col cols="12">
             <v-divider class="my-4"></v-divider>
@@ -264,7 +322,7 @@
         
         <v-row class="mt-4">
           <v-col cols="6">
-            <v-btn block color="primary" variant="elevated" type="submit" :disabled="!isValid">
+            <v-btn block color="primary" variant="elevated" type="submit" :disabled="!isValid || (!!editingId && !isDirty)">
               {{ editingId ? 'Update Service' : 'Add Service' }}
             </v-btn>
           </v-col>
@@ -321,7 +379,10 @@ const props = defineProps<{
   providerAvailability: { [id: number]: AvailabilityOverride };
   isVisible: boolean;
   isFeatured: boolean;
+  imageUrl: string;
+  thumbnailUrl: string;
   isValid: boolean;
+  isDirty: boolean;
   
   // Override props
   selectedOverrideId: number | null;
@@ -343,7 +404,7 @@ const emit = defineEmits([
   'update:mode', 'update:assignedProviderIds', 'update:defaultProviderId',
   'update:newSlotDate', 'update:newSlotTime', 'add-slot', 'remove-slot',
   'update:dateRangeStart', 'update:dateRangeEnd', 'update:timeRangeStart', 'update:timeRangeEnd',
-  'update:isVisible', 'update:isFeatured',
+  'update:isVisible', 'update:isFeatured', 'update:imageUrl', 'update:thumbnailUrl',
   'save', 'cancel',
   
   // Override emits
@@ -370,6 +431,8 @@ const internalAssignedIds = computed({ get: () => props.assignedProviderIds, set
 const internalDefaultId = computed({ get: () => props.defaultProviderId, set: v => emit('update:defaultProviderId', v) });
 const internalIsVisible = computed({ get: () => props.isVisible, set: v => emit('update:isVisible', v) });
 const internalIsFeatured = computed({ get: () => props.isFeatured, set: v => emit('update:isFeatured', v) });
+const internalImageUrl = computed({ get: () => props.imageUrl, set: v => emit('update:imageUrl', v) });
+const internalThumbnailUrl = computed({ get: () => props.thumbnailUrl, set: v => emit('update:thumbnailUrl', v) });
 
 const assignedProvidersFull = computed(() => {
   return props.providers.filter(p => props.assignedProviderIds.includes(p.id));
@@ -405,3 +468,12 @@ defineExpose({
   resetValidation: () => formRef.value?.resetValidation()
 });
 </script>
+
+<style scoped>
+.transition-swing {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+}
+.opacity-30 {
+  opacity: 0.3;
+}
+</style>

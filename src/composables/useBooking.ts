@@ -67,6 +67,33 @@ export function useBooking() {
     return !!(selectedService.value.providerAvailability?.[selectedProviderId.value]);
   });
 
+  const availabilitySummary = computed(() => {
+    if (!activeAvailability.value) return '';
+    const avail = activeAvailability.value;
+
+    if (avail.schedulingMode === 'Fixed Slots') {
+      if (!avail.availableSlots || avail.availableSlots.length === 0) return 'No slots currently available.';
+      const uniqueDates = avail.availableSlots.length;
+      return `Limited slots available across ${uniqueDates} upcoming date${uniqueDates > 1 ? 's' : ''}.`;
+    }
+
+    if (avail.schedulingMode === 'Standard') {
+      const start = avail.dateRange?.start;
+      const end = avail.dateRange?.end;
+      const timeStart = avail.timeRange?.start;
+      const timeEnd = avail.timeRange?.end;
+
+      if (!start || !end) return 'General flexible availability.';
+
+      let msg = `Available from ${start} to ${end}.`;
+      if (timeStart && timeEnd) {
+        msg += ` Daily window: ${timeStart} — ${timeEnd}.`;
+      }
+      return msg;
+    }
+    return '';
+  });
+
   const canSubmit = computed(() => !!(selectedServiceId.value && selectedProviderId.value && selectedDate.value && selectedTime.value));
 
   // Watch for availability changes to Auto-Select earliest
@@ -193,6 +220,7 @@ export function useBooking() {
     appointmentsStore.addAppointment({
       date: selectedDate.value,
       time: selectedTime.value,
+      serviceId: service.id,
       service: service.name,
       provider: provider.name,
       userName: user.name,
@@ -213,6 +241,7 @@ export function useBooking() {
     selectedService,
     activeAvailability,
     isSpecialistOverride,
+    availabilitySummary,
     canSubmit,
     createAppointment
   };

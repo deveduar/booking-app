@@ -9,6 +9,7 @@ export type Appointment = {
   date: string
   time: string
   service: string
+  serviceId?: number // The ID for image/detail lookup
   provider?: string
   userName: string // The name of the user who booked
   status: AppointmentStatus

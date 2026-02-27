@@ -30,34 +30,45 @@
           
           <!-- Service Details Section -->
           <v-expand-transition>
-            <v-card v-if="selectedService" class="mb-4 mt-n2" variant="tonal" color="secondary" rounded="lg">
-              <v-card-text class="py-2">
-                <v-row dense align="center" justify="space-between">
-                  <v-col cols="auto" class="d-flex align-center">
-                    <v-icon icon="mdi-tag-outline" size="small" class="mr-2" />
-                    <div>
-                      <div class="text-caption opacity-70">Category</div>
-                      <div class="text-body-2 font-weight-bold">{{ selectedService.category }}</div>
+            <v-card v-if="selectedService" class="mb-4 mt-n2 overflow-hidden" rounded="lg">
+              <v-row no-gutters>
+                <v-col cols="12" sm="4" md="3">
+                  <v-img v-if="selectedService.imageUrl || selectedService.thumbnailUrl" :src="selectedService.imageUrl || selectedService.thumbnailUrl" cover height="100%" min-height="120" />
+                  <v-sheet v-else height="100%" min-height="120" class="d-flex align-center justify-center">
+                    <v-icon icon="mdi-image-off-outline" size="40" color="grey-lighten-1" />
+                  </v-sheet>
+                </v-col>
+                <v-col cols="12" sm="8" md="9">
+                  <v-card-text class="pa-4">
+                    <div class="d-flex align-center justify-space-between mb-2">
+                      <div class="text-h6 font-weight-bold">{{ selectedService.name }}</div>
+                      <v-chip color="primary" variant="flat" size="small">{{ selectedService.price ? '$' + selectedService.price : 'TBD' }}</v-chip>
                     </div>
-                  </v-col>
-                  <v-col cols="auto" class="d-flex align-center">
-                    <v-icon icon="mdi-clock-outline" size="small" class="mr-2" />
-                    <div>
-                      <div class="text-caption opacity-70">Duration</div>
-                      <div class="text-body-2 font-weight-bold">{{ selectedService.duration }} mins</div>
-                    </div>
-                  </v-col>
-                  <v-col cols="auto" class="d-flex align-center">
-                    <v-icon :icon="activeAvailability?.schedulingMode === 'Fixed Slots' ? 'mdi-calendar-check' : 'mdi-calendar-range'" size="small" class="mr-2" />
-                    <div>
-                      <div class="text-caption opacity-70">Availability</div>
-                      <div class="text-body-2 font-weight-bold">
-                        {{ activeAvailability?.schedulingMode === 'Fixed Slots' ? 'Slots Only' : 'Flexible' }}
+                    <div class="text-body-2 text-medium-emphasis mb-4">{{ selectedService.description }}</div>
+                    
+                    <v-row dense align="center">
+                      <v-col cols="auto" class="d-flex align-center mr-4">
+                        <v-icon icon="mdi-clock-outline" size="small" class="mr-2 text-primary" />
+                        <span class="text-caption font-weight-bold">{{ selectedService.duration }} mins</span>
+                      </v-col>
+                      <v-col cols="auto" class="d-flex align-center">
+                        <v-icon :icon="activeAvailability?.schedulingMode === 'Fixed Slots' ? 'mdi-calendar-check' : 'mdi-calendar-range'" size="small" class="mr-2 text-primary" />
+                        <span class="text-caption font-weight-bold">{{ activeAvailability?.schedulingMode === 'Fixed Slots' ? 'Slots Only' : 'Flexible' }}</span>
+                      </v-col>
+                    </v-row>
+                    
+                    <v-divider class="my-3"></v-divider>
+                    
+                    <div class="d-flex align-start">
+                      <v-icon icon="mdi-information-outline" size="small" class="mr-2 mt-1 text-info" />
+                      <div>
+                        <div class="text-caption font-weight-bold text-info">Availability Summary</div>
+                        <div class="text-caption">{{ availabilitySummary }}</div>
                       </div>
                     </div>
-                  </v-col>
-                </v-row>
-              </v-card-text>
+                  </v-card-text>
+                </v-col>
+              </v-row>
             </v-card>
           </v-expand-transition>
           
@@ -177,6 +188,7 @@ const {
   selectedService,
   activeAvailability,
   isSpecialistOverride,
+  availabilitySummary,
   canSubmit,
   createAppointment
 } = useBooking();

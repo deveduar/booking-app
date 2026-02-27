@@ -52,6 +52,8 @@
             @update:timeRangeEnd="svcTimeRangeEnd = $event"
             @update:isVisible="svcIsVisible = $event"
             @update:isFeatured="svcIsFeatured = $event"
+            @update:imageUrl="svcImageUrl = $event"
+            @update:thumbnailUrl="svcThumbnailUrl = $event"
             @add-slot="addSlot"
             @remove-slot="removeSlot"
             @save="handleSaveService"
@@ -198,7 +200,7 @@ const {
   svcSchedulingMode, svcDefaultProviderId, svcAssignedProviderIds,
   svcAvailableSlots, svcDateRangeStart, svcDateRangeEnd,
   svcTimeRangeStart, svcTimeRangeEnd, svcProviderAvailability,
-  svcIsVisible, svcIsFeatured,
+  svcIsVisible, svcIsFeatured, svcImageUrl, svcThumbnailUrl,
   editingServiceId, serviceForm,
   selectedOverrideProviderId, overrideSchedulingMode, overrideSlots,
   overDate, overTime, overDateRangeStart, overDateRangeEnd,
@@ -337,7 +339,10 @@ const serviceEditorState = computed(() => ({
   providerAvailability: svcProviderAvailability.value,
   isVisible: svcIsVisible.value,
   isFeatured: svcIsFeatured.value,
+  imageUrl: svcImageUrl.value,
+  thumbnailUrl: svcThumbnailUrl.value,
   isValid: isSvcFormValid.value,
+  isDirty: isServiceDirty.value,
 
   // Override props
   selectedOverrideId: selectedOverrideProviderId.value,

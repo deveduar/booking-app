@@ -1,34 +1,70 @@
 <template>
-    <v-card class="mx-auto" max-width="400" outlined>
-      <v-card-title class="text-h6 font-weight-bold">
-        {{ service.name }}
-      </v-card-title>
-      <v-card-subtitle class="text-body-1">
-        {{ service.description }}
+    <v-card class="mx-auto overflow-hidden" max-width="400"  rounded="lg">
+      <v-img
+        v-if="props.service.thumbnailUrl || props.service.imageUrl"
+        :src="props.service.thumbnailUrl || props.service.imageUrl"
+        height="180"
+        cover
+        class="align-end"
+      >
+        <v-card-title class="text-white bg-surface w-100 text-truncate">
+          {{ props.service.name }}
+        </v-card-title>
+      </v-img>
+      <v-sheet
+        v-else
+        height="180"
+        class="d-flex align-center justify-center border-b position-relative"
+      >
+        <v-icon icon="mdi-image-off-outline" size="48" />
+        <v-card-title class=" w-100 position-absolute bottom-0">
+          {{ props.service.name }}
+        </v-card-title>
+      </v-sheet>
+
+      <v-card-subtitle class="mt-2 text-body-2">
+        {{ props.service.description }}
       </v-card-subtitle>
+      
       <v-card-text>
-        <div class="mb-2">
-          <strong>Price:</strong> ${{ (Number(service.price) || 0).toFixed(2) }}
+        <div class="d-flex align-center flex-wrap ga-2 mt-1">
+          <v-chip size="small" color="primary" variant="flat">
+            <v-icon start icon="mdi-currency-usd" size="x-small" />
+            {{ (Number(props.service.price) || 0).toFixed(0) }}
+          </v-chip>
+          <v-chip size="small" variant="tonal">
+            <v-icon start icon="mdi-clock-outline" size="x-small" />
+            {{ Number(props.service.duration) || 0 }}m
+          </v-chip>
+          <v-chip v-if="props.service.isFeatured" size="small" color="amber" variant="tonal">
+            <v-icon start icon="mdi-star" size="x-small" />
+            Featured
+          </v-chip>
         </div>
-        <div class="mb-2">
-          <strong>Duration:</strong> {{ Number(service.duration) || 0 }} mins
+
+        <div v-if="props.service.defaultDate" class="mt-4 text-primary font-weight-bold text-caption d-flex align-center">
+          <v-icon size="small" color="primary" class="mr-2">mdi-calendar-star</v-icon>
+          Next: {{ props.service.defaultDate }} @ {{ props.service.defaultTime }}
         </div>
-        <div v-if="service.defaultDate" class="mt-2 text-primary font-weight-bold">
-          <v-icon size="small" color="primary" class="mr-1">mdi-calendar-star</v-icon>
-          Next Event: {{ service.defaultDate }} {{ service.defaultTime }}
-        </div>
-        <div v-if="defaultProvider" class="mt-1 text-secondary text-caption">
-          <v-icon size="x-small" color="secondary" class="mr-1">mdi-account-star</v-icon>
-          Recommended: {{ defaultProvider.name }}
+        
+        <div v-if="defaultProvider" class="mt-1 text-medium-emphasis text-caption d-flex align-center">
+          <v-icon size="x-small" color="grey" class="mr-2">mdi-account-star-outline</v-icon>
+          Expert: {{ defaultProvider.name }}
         </div>
       </v-card-text>
-      <v-card-actions>
+
+      <v-divider></v-divider>
+
+      <v-card-actions class="pa-4">
         <v-btn 
+          block
           color="primary" 
+          variant="elevated"
           @click="handleBooking"
           aria-label="Book Appointment"
+          rounded="pill"
         >
-          Book Now
+          Book Appointment
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -42,23 +78,23 @@ import type { Service } from '@/stores/services'
 
 defineOptions({ name: 'ServiceCard' })
 
-const { service } = defineProps<{ service: Service }>()
+const props = defineProps<{ service: Service }>()
 const router = useRouter()
 const providersStore = useProvidersStore()
 
 const defaultProvider = computed(() => {
-  if (!service.defaultProviderId) return null
-  return providersStore.providers.find(p => p.id === service.defaultProviderId)
+  if (!props.service.defaultProviderId) return null
+  return providersStore.providers.find(p => p.id === props.service.defaultProviderId)
 })
 
 const handleBooking = () => {
   router.push({ 
     path: '/booking', 
     query: { 
-      serviceId: service.id,
-      providerId: service.defaultProviderId,
-      date: service.defaultDate,
-      time: service.defaultTime
+      serviceId: props.service.id,
+      providerId: props.service.defaultProviderId,
+      date: props.service.defaultDate,
+      time: props.service.defaultTime
     } 
   })
 }
@@ -70,6 +106,9 @@ const handleBooking = () => {
   }
   .v-card:hover {
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  .bg-black-opacity-50 {
+    background: rgba(0, 0, 0, 0.5);
   }
   </style>
   

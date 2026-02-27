@@ -30,7 +30,11 @@
       </v-radio-group>
 
       <!-- Daily Booking Window for Override -->
-      <div class="mb-4 pa-3 rounded bg-surface-variant-light">
+      <div 
+        class="mb-4 pa-3 rounded bg-surface-variant-light transition-swing"
+        :class="{'opacity-30': internalMode !== 'Standard'}"
+        :style="internalMode !== 'Standard' ? 'pointer-events: none' : ''"
+      >
         <div class="d-flex align-center mb-2">
           <div class="text-caption font-weight-bold">Daily Booking Window (Override)</div>
           <v-tooltip location="top" text="Define a specific time window for this specialist. It will further restrict their availability.">
@@ -59,7 +63,7 @@
       </div>
 
       <!-- Date Range Selection for Override -->
-      <v-row dense>
+      <v-row dense :class="{'opacity-30': internalMode !== 'Standard'}" :style="internalMode !== 'Standard' ? 'pointer-events: none' : ''" class="transition-swing">
         <v-col cols="12" sm="6">
           <div class="text-caption font-weight-bold">Start Date</div>
           <DateTimePicker :date="overDateRangeStart" :time="null" hideTime scheduling-mode="Standard"  @update:date="$emit('update:overDateRangeStart', $event)" />
@@ -137,9 +141,18 @@
         </v-alert>
       </div>
 
-      <v-btn color="primary" variant="elevated" block class="mt-4" @click="$emit('save')" :disabled="!isValid">
-        Save Specialist Override
-      </v-btn>
+      <v-row dense class="mt-4">
+        <v-col cols="6">
+          <v-btn color="primary" variant="elevated" block @click="$emit('save')" :disabled="!isValid">
+            Save Specialist Override
+          </v-btn>
+        </v-col>
+        <v-col cols="6">
+          <v-btn color="grey" variant="tonal" block @click="internalSelectedId = null">
+            Cancel
+          </v-btn>
+        </v-col>
+      </v-row>
     </div>
 
     <!-- Active Overrides List -->

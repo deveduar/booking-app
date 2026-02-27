@@ -45,6 +45,8 @@ export type Service = {
   providerAvailability?: { [providerId: number]: AvailabilityOverride }
   isFeatured?: boolean
   isVisible?: boolean
+  imageUrl?: string
+  thumbnailUrl?: string
 }
 
 const STORAGE_KEY = 'salon_services'

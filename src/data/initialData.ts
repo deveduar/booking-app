@@ -95,7 +95,9 @@ export const servicesData: Service[] = [
         dateRange: { start: '2026-01-01', end: '2026-12-31' },
         timeRange: { start: '09:00', end: '17:00' },
         defaultProviderId: 5,
-        isVisible: true
+        isVisible: true,
+        imageUrl: 'https://images.unsplash.com/photo-1650600538903-ec09f670c391?q=80&w=1071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1650600538903-ec09f670c391?q=80&w=1071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     }
 ]
 
