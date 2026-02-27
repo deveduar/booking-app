@@ -22,8 +22,8 @@ export function useAdminServiceEditor() {
     const svcAvailableSlots = ref<{ date: string, times: string[] }[]>([])
     const svcDateRangeStart = ref<string | null>(null)
     const svcDateRangeEnd = ref<string | null>(null)
-    const svcTimeRangeStart = ref<string | null>(null)
-    const svcTimeRangeEnd = ref<string | null>(null)
+    const svcTimeRangeStart = ref<string | null>('09:00')
+    const svcTimeRangeEnd = ref<string | null>('18:00')
     const svcProviderAvailability = ref<{ [id: number]: AvailabilityOverride }>({})
     const svcIsFeatured = ref(false)
     const svcIsVisible = ref(true)
@@ -189,8 +189,8 @@ export function useAdminServiceEditor() {
         svcAvailableSlots.value = []
         svcDateRangeStart.value = null
         svcDateRangeEnd.value = null
-        svcTimeRangeStart.value = null
-        svcTimeRangeEnd.value = null
+        svcTimeRangeStart.value = '09:00'
+        svcTimeRangeEnd.value = '18:00'
         svcProviderAvailability.value = {}
         svcIsFeatured.value = false
         svcIsVisible.value = true
@@ -294,8 +294,9 @@ export function useAdminServiceEditor() {
             overrideSlots.value = []
             overDateRangeStart.value = null
             overDateRangeEnd.value = null
-            overTimeRangeStart.value = null
-            overTimeRangeEnd.value = null
+            // Set sensible defaults for new overrides
+            overTimeRangeStart.value = '09:00'
+            overTimeRangeEnd.value = '18:00'
         }
     })
 
@@ -349,6 +350,37 @@ export function useAdminServiceEditor() {
         svcAvailableSlots.value.splice(index, 1)
     }
 
+    function duplicateService(service: Service) {
+        // Clone data without the ID
+        const clone = JSON.parse(JSON.stringify(service))
+        const { id, ...dupeData } = clone
+
+        // Customize name
+        dupeData.name = `${service.name} (Copy)`
+
+        // Add to store
+        servicesStore.addService(dupeData)
+
+        // Find the newly added service to get its ID
+        const newService = services.value.find(s => s.name === dupeData.name && s.description === dupeData.description)
+
+        if (newService) {
+            // Re-link providers that were assigned to the original service
+            const assignedIds = providers.value
+                .filter(p => p.serviceIds.includes(service.id))
+                .map(p => p.id)
+
+            if (assignedIds.length > 0) {
+                providersStore.toggleServiceAssignment(newService.id, assignedIds)
+
+                // If the original had a default provider, keep it if still assigned
+                if (service.defaultProviderId && assignedIds.includes(service.defaultProviderId)) {
+                    servicesStore.updateService(newService.id, { defaultProviderId: service.defaultProviderId })
+                }
+            }
+        }
+    }
+
     // Initialize snapshot
     takeServiceSnapshot()
 
@@ -392,6 +424,7 @@ export function useAdminServiceEditor() {
         editService,
         cancelEdit,
         saveService,
+        duplicateService,
         addOverrideSlot,
         saveOverride,
         editOverride,

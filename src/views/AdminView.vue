@@ -26,6 +26,9 @@
           :services="services"
           :providers="providers"
           @edit="handleEditServiceClick"
+          @duplicate="handleDuplicateService"
+          @toggle-featured="handleToggleFeatured"
+          @toggle-visibility="handleToggleVisibility"
           @delete="removeService"
         />
 
@@ -207,7 +210,7 @@ const {
   overTimeRangeStart, overTimeRangeEnd,
   newSlotDate, newSlotTime,
   isSvcFormValid, isOverrideFormValid, overrideProviderName,
-  editService, cancelEdit, saveService,
+  editService, cancelEdit, saveService, duplicateService,
   addOverrideSlot, saveOverride, editOverride,
   addSlot, removeSlot, isServiceDirty
 } = useAdminServiceEditor()
@@ -364,6 +367,28 @@ function getProviderName(id: number) {
 
 function removeOverride(pid: number) {
   delete svcProviderAvailability.value[pid]
+}
+
+function handleDuplicateService(service: Service) {
+  duplicateService(service)
+  snackbarText.value = `Service "${service.name}" duplicated successfully!`
+  snackbarColor.value = 'success'
+  snackbar.value = true
+}
+
+function handleToggleFeatured(service: Service) {
+  servicesStore.updateService(service.id, { isFeatured: !service.isFeatured })
+  snackbarText.value = service.isFeatured ? `"${service.name}" removed from featured` : `"${service.name}" marked as featured`
+  snackbarColor.value = 'success'
+  snackbar.value = true
+}
+
+function handleToggleVisibility(service: Service) {
+  const newVisibility = service.isVisible === false
+  servicesStore.updateService(service.id, { isVisible: newVisibility })
+  snackbarText.value = newVisibility ? `"${service.name}" is now public` : `"${service.name}" is now hidden`
+  snackbarColor.value = 'info'
+  snackbar.value = true
 }
 
 function removeOverrideSlot(index: number) {

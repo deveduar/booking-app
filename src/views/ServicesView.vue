@@ -7,26 +7,44 @@
       </v-col>
     </v-row>
 
-    <!-- Filter and Sort Options -->
-    <v-row class="mb-4">
-      <v-col cols="12" md="6" lg="4">
+    <v-row class="mb-4" align="center">
+      <v-col cols="12" sm="5" md="4">
         <v-select
           v-model="selectedCategory"
           :items="categories"
-          label="Filter by Category"
-          outlined
-          dense
+          label="Category"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          prepend-inner-icon="mdi-filter-variant"
         ></v-select>
       </v-col>
 
-      <v-col cols="12" md="6" lg="4">
+      <v-col cols="12" sm="7" md="6" class="d-flex align-center ga-2">
         <v-select
           v-model="sortOption"
           :items="sortOptions"
+          item-title="title"
+          item-value="value"
           label="Sort by"
-          outlined
-          dense
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          prepend-inner-icon="mdi-sort-variant"
+          class="flex-grow-1"
         ></v-select>
+
+        <v-btn-toggle
+          v-model="sortDirection"
+          mandatory
+          color="primary"
+          variant="outlined"
+          density="comfortable"
+          style="height: 48px" 
+        >
+          <v-btn value="asc" icon="mdi-sort-ascending" class="px-2"></v-btn>
+          <v-btn value="desc" icon="mdi-sort-descending" class="px-2"></v-btn>
+        </v-btn-toggle>
       </v-col>
     </v-row>
 
@@ -69,10 +87,15 @@ export default {
     const { services, categories: storeCategories } = storeToRefs(servicesStore);
 
     // Filter and sort options
-    const selectedCategory = ref('All'); // Default to 'All'
-    const sortOption = ref('price'); // Default to sort by price
+    const selectedCategory = ref('All'); 
+    const sortOption = ref('name'); 
+    const sortDirection = ref<'asc' | 'desc'>('asc');
     const categories = ref<string[]>([]);
-    const sortOptions = ref(['price', 'duration']);
+    const sortOptions = ref([
+      { title: 'Name', value: 'name' },
+      { title: 'Price', value: 'price' },
+      { title: 'Duration', value: 'duration' }
+    ]);
 
     // Computed property to filter and sort services
     const filteredServices = computed(() => {
@@ -85,12 +108,21 @@ export default {
         );
       }
 
-      // Sort by selected option (price or duration)
-      if (sortOption.value === 'price') {
-        filtered.sort((a, b) => a.price - b.price);
-      } else if (sortOption.value === 'duration') {
-        filtered.sort((a, b) => a.duration - b.duration);
-      }
+      // Sort by selected option
+      filtered.sort((a: any, b: any) => {
+        let valA = a[sortOption.value];
+        let valB = b[sortOption.value];
+        
+        // Handle number types vs string types
+        if (typeof valA === 'string') {
+          valA = valA.toLowerCase();
+          valB = valB.toLowerCase();
+        }
+        
+        if (valA < valB) return sortDirection.value === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection.value === 'asc' ? 1 : -1;
+        return 0;
+      });
 
       return filtered;
     });
@@ -104,6 +136,7 @@ export default {
       services,
       selectedCategory,
       sortOption,
+      sortDirection,
       categories,
       sortOptions,
       filteredServices,

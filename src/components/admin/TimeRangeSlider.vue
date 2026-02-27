@@ -2,12 +2,25 @@
 <template>
   <v-card class="pa-4 rounded-lg">
     <div class="d-flex justify-space-between align-center mb-1">
-      <div class="text-subtitle-1 font-weight-bold">Daily Booking Window</div>
-      <v-chip size="small" color="primary" variant="flat">
-        {{ formattedRange }}
-      </v-chip>
+      <div class="text-subtitle-1 font-weight-bold d-flex align-center">
+        Daily Booking Window
+        <v-tooltip location="top">
+          <template v-slot:activator="{ props }">
+            <v-icon v-bind="props" size="x-small" color="medium-emphasis" class="ml-1">mdi-information-outline</v-icon>
+          </template>
+          These hours define when the service is open for booking each day.
+        </v-tooltip>
+      </div>
+      <div class="d-flex align-center">
+        <v-chip v-if="isDefaultRange" size="x-small" color="secondary" variant="tonal" class="mr-2">
+          DEFAULT
+        </v-chip>
+        <v-chip size="small" color="primary" variant="flat">
+          {{ formattedRange }}
+        </v-chip>
+      </div>
     </div>
-    <div class="text-caption opacity-70 mb-4">Define the range of hours available for booking each day.</div>
+    <div class="text-caption opacity-70 mb-4">Drag the sliders to set the daily start and end times.</div>
 
     <v-range-slider
       v-model="sliderValue"
@@ -83,6 +96,10 @@ const currentFormatedTime = computed(() => {
 const formatLabel = (val: number) => {
   return formatTimeMin(val, timeFormat.value as '12h'|'24h');
 };
+
+const isDefaultRange = computed(() => {
+  return props.start === '09:00' && props.end === '18:00';
+});
 
 const formattedRange = computed(() => {
   return `${formatTimeMin(sliderValue.value[0], timeFormat.value as '12h'|'24h')} - ${formatTimeMin(sliderValue.value[1], timeFormat.value as '12h'|'24h')}`;

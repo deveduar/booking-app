@@ -17,35 +17,34 @@ A modern, responsive Appointment Booking Application built with **Vue 3**, **Typ
 
 ### 📅 Booking System (`/booking`)
 - **Interactive Calendar:** Users can select dates and view available time slots in real-time.
-- **Conflict Detection:** Automatically filters out past times and fully booked slots.
-- **Service Selection:** Choose from categorized services with specific durations and prices.
-- **Provider Selection:** Option to choose a specific specialist or "Any available".
+- **Conflict Detection:** Automatically filters out past times and respects provider-specific schedules.
+- **Service Selection:** Choose from categorized services. Services can be marked as public/hidden.
+- **Provider Selection:** Specialists are assigned to services. Users can see expert profiles and status.
+- **Smart Flow:** Auto-selection of specialists and the next available slot for a seamless experience.
 
 ### 🛠️ Admin Dashboard (`/admin`)
-- **Service Management:**
-  - Create, edit, and delete services.
+- **Comprehensive Service Management:**
+  - Create, edit, duplicate, and delete services.
   - Define pricing, duration, and categories.
-  - **Flexible Scheduling Modes:**
-    - **Standard:** Define daily operating hours (e.g., 9:00 AM - 5:00 PM).
-    - **Fixed Slots:** Manually specify exact start times (e.g., 10:00 AM, 2:00 PM).
+  - **Visibility Control:** Toggle services as public or hidden.
+- **Advanced Scheduling Engine:**
+  - **Standard Mode:** Daily operating windows (e.g., 9:00 AM - 5:00 PM).
+  - **Fixed Slots Mode:** Precise manual control over specific date/time combinations.
+  - **Provider Overrides:** Custom schedules for any provider on any specific service, overriding business defaults.
 - **Provider Management:**
-  - Add/Remove specialists.
-  - Manage availability status (Available, Busy, Away).
-- **Advanced Overrides:**
-  - Configure unique schedules for specific providers on specific services.
-  - Example: "Alice works 10-6 generally, but for 'Haircut' she only accepts 2-4 PM on Fridays."
+  - Full CRUD for specialists with profiles and status tracking.
+  - Granular service assignment.
 
-### 💾 Data Persistence
-- **Local Storage:** All data (services, providers, appointments) is persisted in the browser's `localStorage`.
-- **Mock Data:** Initializes with a rich set of sample data (`src/data/initialData.ts`) for easy testing and demonstration.
-- **No Backend Required:** The application runs entirely client-side, making it easy to deploy and test without setting up a server.
+### 💾 Data Resilience
+- **Persistent Local Storage:** All state (Services, Providers, Appointments, Settings) is saved in `localStorage`.
+- **Theme Support:** Fully responsive design with Dark/Light mode support.
+- **Simulation Mode:** Pre-populated with rich sample data for immediate evaluation.
 
-## 🚧 Current Status & Limitations
-
-- **Backend:** This is a **frontend-only** application. Data is stored locally in the browser. Clearing browser cache will reset the application to its initial state.
-- **Authentication:** Authentication views (`/login`, `/register`) are present but currently use simulated local authentication.
-- **Time Zones:** Currently optimized for local time usage.
-- **Performance:** Optimized for typical small-to-medium business data sets managed client-side.
+## 🚧 Current Status & Roadmap
+- **Persistence:** Frontend-only. Data stays in the browser.
+- **Auth:** Simulated authentication with 'Admin' and 'User' roles.
+- **Collision Detection:** (Roadmap) Currently, availability is based on schedules. Real-time booking collision (preventing double-booking of the same slot) is a planned enhancement.
+- **Provider Role:** (Roadmap) Adding a dedicated login for specialists to manage their own schedules.
 
 ## 🛠️ Project Setup
 

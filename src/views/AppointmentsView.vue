@@ -11,40 +11,42 @@
     <v-row class="mb-8">
       <v-col cols="12">
         <h2 class="text-h5 font-weight-bold mb-4">Next Appointment</h2>
-        <v-card v-if="next" border elevation="2">
-          <v-card-item>
-            <template v-slot:prepend>
-              <v-avatar v-if="getServiceThumbnail(next)" size="x-large" rounded="lg" class="mr-3">
-                <v-img :src="getServiceThumbnail(next)" cover />
-              </v-avatar>
-              <v-icon v-else color="primary" size="x-large">mdi-calendar-check</v-icon>
-            </template>
-            <v-card-title class="text-h6 pb-0">{{ next.service }}</v-card-title>
-            <v-card-subtitle>{{ displayDate(next.date) }} at {{ displayTime(next.time) }}</v-card-subtitle>
-          </v-card-item>
-          <v-card-text>
-            <div class="d-flex align-center mb-1" v-if="isAdmin">
-              <v-icon size="small" class="mr-2">mdi-account-circle</v-icon>
-              <span>Client: {{ next.userName }}</span>
-            </div>
-            <div class="d-flex align-center mb-1">
-              <v-icon size="small" class="mr-2">mdi-account</v-icon>
-              <span>Provider: {{ next.provider || 'Not assigned' }}</span>
-            </div>
-            <div class="d-flex align-center mb-1" v-if="next.createdAt">
-              <v-icon size="small" class="mr-2">mdi-clock-outline</v-icon>
-              <span class="text-caption">Booking made on: {{ displayDateTime(next.createdAt) }}</span>
-            </div>
-            <div class="d-flex align-center">
-              <v-chip size="small" color="primary" variant="tonal">{{ next.status }}</v-chip>
-            </div>
-          </v-card-text>
-
-          <v-divider></v-divider>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="error" variant="text" @click="cancel(next)">Cancel</v-btn>
-          </v-card-actions>
+        <v-card v-if="next" border elevation="2" class="overflow-hidden" rounded="lg">
+          <v-row no-gutters>
+            <!-- Media column -->
+            <v-col cols="12" sm="4" md="3">
+              <v-img v-if="getServiceThumbnail(next)" :src="getServiceThumbnail(next)" cover height="100%" min-height="120" />
+              <v-sheet v-else height="100%" min-height="120" class="d-flex align-center justify-center bg-grey-lighten-4">
+                <v-icon icon="mdi-calendar-check" size="40" color="grey-lighten-1" />
+              </v-sheet>
+            </v-col>
+            
+            <!-- Content column -->
+            <v-col cols="12" sm="8" md="9">
+              <v-card-title class="text-h6 font-weight-bold pt-4 px-4">{{ next.service }}</v-card-title>
+              <v-card-subtitle class="px-4 pb-2">{{ displayDate(next.date) }} at {{ displayTime(next.time) }}</v-card-subtitle>
+              
+              <v-card-text class="px-4 py-2">
+                <div class="d-flex align-center mb-1" v-if="isAdmin">
+                  <v-icon size="small" color="primary" class="mr-2">mdi-account-circle</v-icon>
+                  <span class="text-caption">Client: <span class="font-weight-bold">{{ next.userName }}</span></span>
+                </div>
+                <div class="d-flex align-center mb-1">
+                  <v-icon size="small" color="primary" class="mr-2">mdi-account</v-icon>
+                  <span class="text-caption">Provider: <span class="font-weight-bold">{{ next.provider || 'Not assigned' }}</span></span>
+                </div>
+                <div class="d-flex align-center mb-2" v-if="next.createdAt">
+                  <v-icon size="small" color="grey" class="mr-2">mdi-clock-outline</v-icon>
+                  <span class="text-caption text-medium-emphasis">Booked: {{ displayDateTime(next.createdAt) }}</span>
+                </div>
+                
+                <div class="d-flex align-center justify-space-between">
+                  <v-chip size="small" color="primary" variant="flat">{{ next.status }}</v-chip>
+                  <v-btn color="error" variant="tonal" size="small" @click="cancel(next)">Cancel</v-btn>
+                </div>
+              </v-card-text>
+            </v-col>
+          </v-row>
         </v-card>
         <v-alert v-else type="info" variant="tonal" border="start">
           No upcoming appointments scheduled.
@@ -57,34 +59,38 @@
     <v-row v-if="otherUpcoming.length" class="mb-8">
       <v-col cols="12">
         <h2 class="text-h5 font-weight-bold mb-4">Other Upcoming Appointments</h2>
-        <v-card v-for="item in otherUpcoming" :key="item.id" border class="mb-3">
-          <v-card-item>
-            <template v-slot:prepend>
-              <v-avatar v-if="getServiceThumbnail(item)" size="large" rounded="lg" class="mr-2">
-                <v-img :src="getServiceThumbnail(item)" cover />
-              </v-avatar>
-              <v-icon v-else color="secondary" size="large">mdi-calendar-clock</v-icon>
-            </template>
-            <v-card-title class="text-h6 pb-0">{{ item.service }}</v-card-title>
-            <v-card-subtitle>{{ displayDate(item.date) }} at {{ displayTime(item.time) }}</v-card-subtitle>
-            <template v-slot:append>
-              <v-btn color="error" variant="text" size="small" @click="cancel(item)">Cancel</v-btn>
-            </template>
-          </v-card-item>
-          <v-card-text class="pt-0">
-            <div class="d-flex align-center mb-1" v-if="isAdmin">
-               <v-icon size="x-small" class="mr-1">mdi-account-circle</v-icon>
-               <span class="text-caption">Client: {{ item.userName }}</span>
-            </div>
-            <div class="d-flex align-center mb-1">
-               <v-icon size="x-small" class="mr-1">mdi-account</v-icon>
-               <span class="text-caption">Provider: {{ item.provider || 'Not assigned' }}</span>
-            </div>
-            <div class="d-flex align-center" v-if="item.createdAt">
-               <v-icon size="x-small" class="mr-1">mdi-clock-outline</v-icon>
-               <span class="text-caption">Booking made on: {{ displayDateTime(item.createdAt) }}</span>
-            </div>
-          </v-card-text>
+        <v-card v-for="item in otherUpcoming" :key="item.id" border class="mb-3 overflow-hidden" rounded="lg">
+          <v-row no-gutters>
+            <!-- Media col -->
+            <v-col cols="12" sm="4" md="2">
+               <v-img v-if="getServiceThumbnail(item)" :src="getServiceThumbnail(item)" cover height="100%" min-height="100" />
+               <v-sheet v-else height="100%" min-height="100" class="d-flex align-center justify-center bg-grey-lighten-4">
+                 <v-icon icon="mdi-calendar-clock" size="32" color="grey-lighten-1" />
+               </v-sheet>
+            </v-col>
+            
+            <!-- Content col -->
+            <v-col cols="12" sm="8" md="10">
+              <div class="pa-3">
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <div class="text-subtitle-1 font-weight-bold">{{ item.service }}</div>
+                  <v-btn color="error" variant="text" size="small" density="compact" @click="cancel(item)">Cancel</v-btn>
+                </div>
+                <div class="text-caption mb-2">{{ displayDate(item.date) }} at {{ displayTime(item.time) }}</div>
+                
+                <div class="d-flex align-center flex-wrap ga-3">
+                  <div class="d-flex align-center" v-if="isAdmin">
+                    <v-icon size="x-small" color="primary" class="mr-1">mdi-account-circle</v-icon>
+                    <span class="text-caption">Client: {{ item.userName }}</span>
+                  </div>
+                  <div class="d-flex align-center">
+                    <v-icon size="x-small" color="primary" class="mr-1">mdi-account</v-icon>
+                    <span class="text-caption">Provider: {{ item.provider || 'Not assigned' }}</span>
+                  </div>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
         </v-card>
       </v-col>
     </v-row>
@@ -112,23 +118,32 @@
         <v-card v-if="history.length" border>
           <v-list lines="two">
             <template v-for="(item, index) in sortedHistory" :key="item.id">
-              <v-list-item>
-                <template v-slot:prepend>
-                  <v-avatar size="large" rounded="lg" color="surface-variant">
-                    <v-img v-if="getServiceThumbnail(item)" :src="getServiceThumbnail(item)" cover />
-                    <v-icon v-else>mdi-history</v-icon>
-                  </v-avatar>
-                </template>
-                <v-list-item-title class="font-weight-bold">{{ item.service }}</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ displayDate(item.date) }} · {{ displayTime(item.time) }}
-                  <span v-if="item.provider">· {{ item.provider }}</span>
-                </v-list-item-subtitle>
-                <template v-slot:append>
-                  <v-chip size="x-small" :color="getStatusColor(item.status)" variant="tonal">
-                    {{ item.status }}
-                  </v-chip>
-                </template>
+              <v-list-item class="pa-0 mb-2" rounded="lg">
+                <v-row no-gutters align="center">
+                  <!-- Media Col -->
+                  <v-col cols="auto" class="pa-2">
+                    <v-avatar size="64" rounded="lg" color="surface-variant">
+                      <v-img v-if="getServiceThumbnail(item)" :src="getServiceThumbnail(item)" cover />
+                      <v-icon v-else>mdi-history</v-icon>
+                    </v-avatar>
+                  </v-col>
+                  
+                  <!-- Info Col -->
+                  <v-col class="pa-2">
+                    <div class="text-subtitle-1 font-weight-bold">{{ item.service }}</div>
+                    <div class="text-caption text-medium-emphasis">
+                      {{ displayDate(item.date) }} · {{ displayTime(item.time) }}
+                      <span v-if="item.provider">· {{ item.provider }}</span>
+                    </div>
+                  </v-col>
+                  
+                  <!-- Status Col -->
+                  <v-col cols="auto" class="px-4 text-right">
+                    <v-chip size="x-small" :color="getStatusColor(item.status)" variant="tonal" class="font-weight-bold">
+                      {{ item.status.toUpperCase() }}
+                    </v-chip>
+                  </v-col>
+                </v-row>
               </v-list-item>
               <v-divider v-if="index < sortedHistory.length - 1" inset></v-divider>
             </template>

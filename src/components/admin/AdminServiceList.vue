@@ -77,21 +77,48 @@
           </v-avatar>
         </template>
         <template #append>
-          <v-btn
-            icon="mdi-pencil"
-            variant="text"
-            size="small"
-            color="primary"
-            class="mr-1"
-            @click="$emit('edit', service)"
-          ></v-btn>
-          <v-btn
-            icon="mdi-delete"
-            variant="text"
-            size="small"
-            color="error"
-            @click="$emit('delete', service.id)"
-          ></v-btn>
+          <v-menu location="bottom end">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon="mdi-dots-vertical"
+                variant="text"
+                size="small"
+                color="medium-emphasis"
+              ></v-btn>
+            </template>
+            <v-list density="compact">
+              <v-list-item 
+                prepend-icon="mdi-pencil" 
+                title="Edit Details" 
+                @click="$emit('edit', service)"
+              />
+              <v-list-item 
+                prepend-icon="mdi-content-copy" 
+                title="Duplicate Service" 
+                @click="$emit('duplicate', service)"
+              />
+              <v-divider class="my-1"></v-divider>
+              <v-list-item 
+                :prepend-icon="service.isFeatured ? 'mdi-star-off-outline' : 'mdi-star-outline'" 
+                :title="service.isFeatured ? 'Remove Featured' : 'Mark as Featured'" 
+                color="amber-darken-2"
+                @click="$emit('toggle-featured', service)"
+              />
+              <v-list-item 
+                :prepend-icon="service.isVisible !== false ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" 
+                :title="service.isVisible !== false ? 'Make Private' : 'Make Public'" 
+                @click="$emit('toggle-visibility', service)"
+              />
+              <v-divider class="my-1"></v-divider>
+              <v-list-item 
+                prepend-icon="mdi-delete" 
+                title="Delete Service" 
+                color="error"
+                @click="$emit('delete', service.id)"
+              />
+            </v-list>
+          </v-menu>
         </template>
       </v-list-item>
     </v-list>
@@ -113,6 +140,9 @@ const { formatDate, formatTime } = useSettings()
 defineEmits<{
   (e: 'edit', service: Service): void
   (e: 'delete', id: number): void
+  (e: 'duplicate', service: Service): void
+  (e: 'toggle-featured', service: Service): void
+  (e: 'toggle-visibility', service: Service): void
 }>()
 
 function getAssignedProviderNames(serviceId: number): string {

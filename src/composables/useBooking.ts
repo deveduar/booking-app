@@ -24,7 +24,7 @@ export function useBooking() {
   const selectedDate = ref<string | null>(null);
   const selectedTime = ref<string | null>(null);
 
-  const serviceItems = computed(() => services.value);
+  const serviceItems = computed(() => services.value.filter(s => s.isVisible !== false));
 
   const providerItems = computed(() => {
     if (!selectedServiceId.value) return providers.value;
